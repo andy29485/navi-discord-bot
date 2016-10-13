@@ -85,10 +85,10 @@ async def on_message(message):
   
   replacements = Config('configs/replace.json')
 
-  if message.content[0] not in bot.command_prefix:
+  if message.content.strip()[0] not in bot.command_prefix+['?', '$']:
     m = message.content
     for i in replacements:
-      m = re.sub(i, replacements[i][0], m)
+      m = re.sub('\\b{}\\b'.format(i), replacements[i][0], m)
     
     if m.lower() != message.content.lower():
       await bot.send_message(message.channel, '*'+m)

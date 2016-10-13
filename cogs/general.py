@@ -127,26 +127,20 @@ class General:
   async def _rm(self, ctx, *, message):
     """remove an existing replacement"""
     
-    #Find requested replacement
-    rep = re.match('^(.*?[^\\\\](\\\\\\\\)*)$',
-                   message)
-    
     #ensure that replace was found before proceeding
-    if not rep:
-      await self.bot.say(formatter.error('Could not find valid regex'))
-      return
-    
-    #ensure that replace was found before proceeding
-    if rep.group(2) not in self.replacements:
-      await self.bot.say(formatter.error('Regex not in replacements.'))
-      return
+    if message not in self.replacements:
+      if re.search('^`.*`$', message) and message[1:-1] in self.replacements:
+        message = message[1:-1]
+      else:
+        await self.bot.say(formatter.error('Regex not in replacements.'))
+        return
     
     #check if they have correct permissions
-    if ctx.message.author.id != self.replacements[rep.group(2)][1] \
+    if ctx.message.author.id != self.replacements[message][1] \
        and not perms.check_permissions(ctx, {'manage_messages':True}):
         raise commands.errors.CheckFailure('Cannot edit')
     
-    self.replacements.pop(rep.group(2))
+    self.replacements.pop(message)
     await self.bot.say(formatter.ok())
   
   @rep.command(name='list', aliases=['ls'])

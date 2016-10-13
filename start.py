@@ -1,15 +1,109 @@
 #!/usr/bin/env python3
 
+if __name__ == '__main__' and __package__ is None:
+  from os import sys, path
+  sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
 import discord
+from discord.ext import commands
 import asyncio
+import re, sys
+import logging
+import datetime
+import logging.handlers
+from cogs import *
+from cogs.utils.config import Config
+import cogs.utils.format
 
-client = discord.Client()
+starting_cogs = [
+  'cogs.general',
+  'cogs.az'
+]
 
-@client.event
+discord_logger = logging.getLogger('discord')
+discord_logger.setLevel(logging.CRITICAL)
+log = logging.getLogger()
+handler = logging.FileHandler(filename='logs/navi.log',
+                              encoding='utf-8', mode='w')
+log.addHandler(handler)
+
+prefix = ['.', '!', '\N{HEAVY EXCLAMATION MARK SYMBOL}']
+description = 'Andy29485\'s bot'
+formatter = commands.HelpFormatter(show_check_failure=False)
+help_attrs = dict(hidden=True)
+
+bot = commands.Bot(command_prefix=prefix, description=description,
+                   pm_help=None, help_attrs=help_attrs)
+
+@bot.event
 async def on_ready():
-    print('Logged in as')
-    print(client.user.name)
-    print(client.user.id)
-    print('------')
+  print('Logged in as:')
+  print('Username: ' + bot.user.name + '#' +bot.user.discriminator)
+  print('ID: ' + bot.user.id)
+  print('------')
+  if not hasattr(bot, 'uptime'):
+    bot.uptime = datetime.datetime.utcnow()
 
-#TODO
+@bot.event
+async def on_command_error(error, ctx):
+  if isinstance(error, commands.NoPrivateMessage):
+    await bot.send_message(ctx.message.author, format.error(
+                            'This command cannot be used in private messages.'))
+  elif isinstance(error, commands.DisabledCommand):
+    await bot.send_message(ctx.message.channel, format.error(
+                         'Sorry. This command is disabled and cannot be used.'))
+  elif isinstance(error, commands.CommandInvokeError):
+    log.error('In {0.command.qualified_name}:'.format(ctx))
+    log.error(error.original.__traceback__)
+    log.error('{0.__class__.__name__}: {0}'.format(error.original))
+    await bot.send_message(ctx.message.channel,  format.error('Command error'))
+  elif isinstance(error, commands.errors.CheckFailure):
+    await bot.send_message(ctx.message.channel, format.error(
+                'Sorry you have insufficient permissions to run that command.'))
+
+@bot.event
+async def on_resumed():
+  print('resuming...')
+
+@bot.event
+async def on_command(command, ctx):
+  msg = ctx.message
+  chan = None
+  if ctx.message.channel.is_private:
+    chan = 'PM'
+  else:
+    chan = '#{0.channel.name} ({0.server.name})'.format(msg)
+
+    log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(
+              msg, chan))
+
+@bot.event
+async def on_message(message):
+  if message.author.bot:
+    return
+  
+  replacements = Config('configs/replace.json')
+
+  m = message.content
+  for i in replacements:
+    m = re.sub(i, replacements[i][0], m)
+  
+  if m.lower() != message.content.lower():
+    await bot.send_message(message.channel, '*'+m)
+    return
+  
+  await bot.process_commands(message)
+
+for cog in starting_cogs:
+  try:
+    bot.load_extension(cog)
+  except Exception as e:
+    print('Failed to load cog {}\n{}: {}'.format(cog, type(e).__name__, e))
+
+auth = Config('configs/auth.json')
+
+while 'token' not in auth or len(auth['token']) < 30:
+  auth['token'] = input('Please enter bot\'s token: ')
+
+bot.run(auth['token'])
+

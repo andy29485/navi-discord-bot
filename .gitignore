@@ -1,6 +1,9 @@
 # authentication file
 .auth
 
+#config files
+config/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

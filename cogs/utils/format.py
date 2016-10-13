@@ -8,6 +8,8 @@ def warning(text):
 def info(text):
   return "\N{INFORMATION SOURCE} {}".format(text)
 
+def ok(text=''):
+  return "\N{OK HAND SIGN} {}". format(text)
 
 def question(text):
   return "\N{BLACK QUESTION MARK ORNAMENT} {}".format(text)
@@ -39,5 +41,3 @@ def escape(text):
               .replace("~", "\\~"))
   return text
 
-def escape_mass_mentions(text):
-  return escape(text, mass_mentions=True)

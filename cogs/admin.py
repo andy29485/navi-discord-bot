@@ -1,5 +1,5 @@
 from discord.ext import commands
-from .utils import checks
+from .utils import perms
 from .utils import format as formatter
 import discord
 import inspect
@@ -13,7 +13,7 @@ class Admin:
     self.bot = bot
 
   @commands.command(hidden=True)
-  @checks.is_owner()
+  @perms.is_owner()
   async def load(self, *, module : str):
     """Loads a module."""
     try:
@@ -25,7 +25,7 @@ class Admin:
       await self.bot.say(formatter.ok())
 
   @commands.command(hidden=True)
-  @checks.is_owner()
+  @perms.is_owner()
   async def unload(self, *, module : str):
     """Unloads a module."""
     try:
@@ -37,7 +37,7 @@ class Admin:
       await self.bot.say(formatter.ok())
 
   @commands.command(name='reload', hidden=True)
-  @checks.is_owner()
+  @perms.is_owner()
   async def _reload(self, *, module : str):
     """Reloads a module."""
     try:
@@ -50,7 +50,7 @@ class Admin:
       await self.bot.say(formatter.ok())
 
   @commands.command(pass_context=True, hidden=True)
-  @checks.is_owner()
+  @perms.is_owner()
   async def debug(self, ctx, *, code : str):
     """Evaluates code."""
     code = code.strip('` ')

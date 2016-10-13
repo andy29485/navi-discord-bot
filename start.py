@@ -13,11 +13,12 @@ import datetime
 import logging.handlers
 from cogs import *
 from cogs.utils.config import Config
-import cogs.utils.format
+import cogs.utils.format as formatter
 
 starting_cogs = [
   'cogs.general',
-  'cogs.az'
+  'cogs.az',
+  'cogs.admin'
 ]
 
 discord_logger = logging.getLogger('discord')
@@ -29,7 +30,6 @@ log.addHandler(handler)
 
 prefix = ['.', '!', '\N{HEAVY EXCLAMATION MARK SYMBOL}']
 description = 'Andy29485\'s bot'
-formatter = commands.HelpFormatter(show_check_failure=False)
 help_attrs = dict(hidden=True)
 
 bot = commands.Bot(command_prefix=prefix, description=description,
@@ -47,18 +47,19 @@ async def on_ready():
 @bot.event
 async def on_command_error(error, ctx):
   if isinstance(error, commands.NoPrivateMessage):
-    await bot.send_message(ctx.message.author, format.error(
+    await bot.send_message(ctx.message.author, formatter.error(
                             'This command cannot be used in private messages.'))
   elif isinstance(error, commands.DisabledCommand):
-    await bot.send_message(ctx.message.channel, format.error(
+    await bot.send_message(ctx.message.channel, formatter.error(
                          'Sorry. This command is disabled and cannot be used.'))
   elif isinstance(error, commands.CommandInvokeError):
     log.error('In {0.command.qualified_name}:'.format(ctx))
     log.error(error.original.__traceback__)
     log.error('{0.__class__.__name__}: {0}'.format(error.original))
-    await bot.send_message(ctx.message.channel,  format.error('Command error'))
+    await bot.send_message(ctx.message.channel,formatter.error('Command error'))
+    raise error
   elif isinstance(error, commands.errors.CheckFailure):
-    await bot.send_message(ctx.message.channel, format.error(
+    await bot.send_message(ctx.message.channel, formatter.error(
                 'Sorry you have insufficient permissions to run that command.'))
 
 @bot.event
@@ -84,13 +85,13 @@ async def on_message(message):
   
   replacements = Config('configs/replace.json')
 
-  m = message.content
-  for i in replacements:
-    m = re.sub(i, replacements[i][0], m)
-  
-  if m.lower() != message.content.lower():
-    await bot.send_message(message.channel, '*'+m)
-    return
+  if message.content[0] not in bot.command_prefix:
+    m = message.content
+    for i in replacements:
+      m = re.sub(i, replacements[i][0], m)
+    
+    if m.lower() != message.content.lower():
+      await bot.send_message(message.channel, '*'+m)
   
   await bot.process_commands(message)
 
@@ -99,6 +100,7 @@ for cog in starting_cogs:
     bot.load_extension(cog)
   except Exception as e:
     print('Failed to load cog {}\n{}: {}'.format(cog, type(e).__name__, e))
+    raise
 
 auth = Config('configs/auth.json')
 

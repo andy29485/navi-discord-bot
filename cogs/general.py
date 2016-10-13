@@ -5,8 +5,9 @@ import re
 import asyncio
 import discord
 from discord.ext import commands
-import .utils.format as formatter
-import .utils.perms as perms
+from .utils import format as formatter
+from .utils import perms
+from .utils.config import Config
 
 class General:
   def __init__(self, bot):
@@ -42,104 +43,111 @@ class General:
       out.append('{}: {}'.format(roll, message))
     return out
   
-  @bot.group(pass_context=True)
+  @commands.group(pass_context=True)
   async def rep(self, ctx):
     """Manage replacements
     Uses a regex to replace text from users
     """
     if ctx.invoked_subcommand is None:
-      await bot.say(formatter.error(
+      await self.bot.say(formatter.error(
              'Error, {0.subcommand_passed} is not a valid command'.format(ctx)
       ))
 
   @rep.command(name='add', pass_context=True)
-  async def _add(self, ctx):
+  async def _add(self, ctx, *, message):
     """adds a new replacement
-    Format `s/old/new/`"""
+    Format `s/old/new/`
+    """
     
     #Find requested replacement
-    rep = re.match('s/(.*?[^\\](\\\\)*)/(.*?[^\\](\\\\)*)/g?',
-                   ctx.message.content)
+    rep = re.match('^s/(.*?[^\\\\](\\\\\\\\)*)/(.*?[^\\\\](\\\\\\\\)*)/g?$',
+                   message)
     
     #ensure that replace was found before proceeding
     if not rep:
-      await bot.say(formatter.error('Could not find valid regex'))
+      await self.bot.say(formatter.error('Could not find valid regex'))
       return
-    
+      
     #check regex for validity
     try:
       re.compile(rep.group(1))
+      if bad_re(rep.group(1)):
+        raise re.error('nothing in pattern')
     except re.error:
-      await bot.say(formatter.error('regex is invalid'))
+      await self.bot.say(formatter.error('regex is invalid'))
       return
     
     #check that regex does not already exist
     if rep.group(1) in self.replacements:
-      await bot.say(formatter.error('regex already exists'))
+      await self.bot.say(formatter.error('regex already exists'))
       return
     
     self.replacements[rep.group(1)] = [rep.group(3), ctx.message.author.id]
-    await bot.say(formatter.ok())
+    await self.bot.say(formatter.ok())
   
   @rep.command(name='edit', pass_context=True)
-  async def _edit(self, ctx):
-  """adds a new replacement
-    Format `s/old/new/`"""
+  async def _edit(self, ctx, *, message):
+    """edits an existing replacement
+    Format `s/old/new/`
+    """
     
     #Find requested replacement
-    rep = re.match('s/(.*?[^\\](\\\\)*)/(.*?[^\\](\\\\)*)/g?',
-                   ctx.message.content)
+    rep = re.match('^s/(.*?[^\\\\](\\\\\\\\)*)/(.*?[^\\\\](\\\\\\\\)*)/g?$',
+                   message)
     
     #ensure that replace was found before proceeding
     if not rep:
-      await bot.say(formatter.error('Could not find valid regex'))
+      await self.bot.say(formatter.error('Could not find valid regex'))
       return
     
     #check regex for validity
     try:
       re.compile(rep.group(1))
+      
     except re.error:
-      await bot.say(formatter.error('regex is invalid'))
+      await self.bot.say(formatter.error('regex is invalid'))
+      if bad_re(rep.group(1)):
+        raise re.error('nothing in pattern')
       return
     
     #ensure that replace was found before proceeding
     if rep.group(1) not in self.replacements:
-      await bot.say(formatter.error('Regex not in replacements.'))
+      await self.bot.say(formatter.error('Regex not in replacements.'))
       return
     
     #check if they have correct permissions
-    if ctx.message.author.id != self.replacements[rep.group(1)][1]
+    if ctx.message.author.id != self.replacements[rep.group(1)][1] \
        and not perms.check_permissions(ctx, {'manage_messages':True}):
         raise commands.errors.CheckFailure('Cannot edit')
     
     self.replacements[rep.group(1)] = [rep.group(3), ctx.message.author.id]
-    await bot.say(formatter.ok())
+    await self.bot.say(formatter.ok())
   
   @rep.command(name='remove', aliases=['rm'], pass_context=True)
-  async def _rm(self, ctx):
+  async def _rm(self, ctx, *, message):
     """remove an existing replacement"""
     
     #Find requested replacement
-    rep = re.match('(s/)?(.*?[^\\](\\\\)*)(/)?',
-                   ctx.message.content)
+    rep = re.match('^(.*?[^\\\\](\\\\\\\\)*)$',
+                   message)
     
     #ensure that replace was found before proceeding
     if not rep:
-      await bot.say(formatter.error('Could not find valid regex'))
+      await self.bot.say(formatter.error('Could not find valid regex'))
       return
     
     #ensure that replace was found before proceeding
     if rep.group(2) not in self.replacements:
-      await bot.say(formatter.error('Regex not in replacements.'))
+      await self.bot.say(formatter.error('Regex not in replacements.'))
       return
     
     #check if they have correct permissions
-    if ctx.message.author.id != self.replacements[rep.group(2)][1]
+    if ctx.message.author.id != self.replacements[rep.group(2)][1] \
        and not perms.check_permissions(ctx, {'manage_messages':True}):
         raise commands.errors.CheckFailure('Cannot edit')
     
     self.replacements.pop(rep.group(2))
-    await bot.say(formatter.ok())
+    await self.bot.say(formatter.ok())
   
   @rep.command(name='list', aliases=['ls'])
   async def _ls(self):
@@ -147,10 +155,33 @@ class General:
     msg = ''
     
     for rep in self.replacements:
-      msg = 's/{}/{}/\n'.format(rep, self.replacements[rep][0])
+      msg += 's/{}/{}/\n'.format(rep, self.replacements[rep][0])
     msg = msg[:-1]
     
-    await bot.say(formatter.code(msg))
+    await self.bot.say(formatter.code(msg))
+  
+def bad_re(string):
+  string_a = re.sub('\\s+', '', string)
+  if not string_a:
+    return True
+  
+  string_a = re.sub('\\(\\?[^\\)]\\)', '', string_a)
+  if not string_a:
+    return True
+  
+  string_a = re.sub('.\\?', '', string_a)
+  if not string_a:
+    return True
+  
+  string_a = re.sub('(?!\\\\)[\\.\\?\\+\\*\\{\\}\\)\\(\\[\\]]', '', string_a)
+  if not string_a:
+    return True
+    
+  string_a = re.sub('\\\\[bSDQEs]', '', string_a)
+  if not string_a:
+    return True
+  
+  return len(string_a) < 3
 
 def setup(bot):
   bot.add_cog(General(bot))

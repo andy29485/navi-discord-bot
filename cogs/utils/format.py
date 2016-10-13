@@ -9,7 +9,7 @@ def info(text):
   return "\N{INFORMATION SOURCE} {}".format(text)
 
 def ok(text=''):
-  return "\N{OK HAND SIGN} {}". format(text)
+  return "\N{OK HAND SIGN} {}".format(text)
 
 def question(text):
   return "\N{BLACK QUESTION MARK ORNAMENT} {}".format(text)

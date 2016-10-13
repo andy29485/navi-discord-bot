@@ -60,8 +60,7 @@ class General:
     """
     
     #Find requested replacement
-    rep = re.match('^s/(.*?[^\\\\](\\\\\\\\)*)/(.*?[^\\\\](\\\\\\\\)*)/g?$',
-                   message)
+    rep = get_match(message)
     
     #ensure that replace was found before proceeding
     if not rep:
@@ -70,19 +69,19 @@ class General:
       
     #check regex for validity
     try:
-      re.compile(rep.group(1))
-      if bad_re(rep.group(1)):
+      re.compile(rep.group(2))
+      if bad_re(rep.group(2)):
         raise re.error('nothing in pattern')
     except re.error:
       await self.bot.say(formatter.error('regex is invalid'))
       return
     
     #check that regex does not already exist
-    if rep.group(1) in self.replacements:
+    if rep.group(2) in self.replacements:
       await self.bot.say(formatter.error('regex already exists'))
       return
     
-    self.replacements[rep.group(1)] = [rep.group(3), ctx.message.author.id]
+    self.replacements[rep.group(2)] = [rep.group(4), ctx.message.author.id]
     await self.bot.say(formatter.ok())
   
   @rep.command(name='edit', pass_context=True)
@@ -92,8 +91,7 @@ class General:
     """
     
     #Find requested replacement
-    rep = re.match('^s/(.*?[^\\\\](\\\\\\\\)*)/(.*?[^\\\\](\\\\\\\\)*)/g?$',
-                   message)
+    rep = get_match(message)
     
     #ensure that replace was found before proceeding
     if not rep:
@@ -102,25 +100,25 @@ class General:
     
     #check regex for validity
     try:
-      re.compile(rep.group(1))
+      re.compile(rep.group(2))
       
     except re.error:
       await self.bot.say(formatter.error('regex is invalid'))
-      if bad_re(rep.group(1)):
+      if bad_re(rep.group(2)):
         raise re.error('nothing in pattern')
       return
     
     #ensure that replace was found before proceeding
-    if rep.group(1) not in self.replacements:
+    if rep.group(2) not in self.replacements:
       await self.bot.say(formatter.error('Regex not in replacements.'))
       return
     
     #check if they have correct permissions
-    if ctx.message.author.id != self.replacements[rep.group(1)][1] \
+    if ctx.message.author.id != self.replacements[rep.group(2)][1] \
        and not perms.check_permissions(ctx, {'manage_messages':True}):
         raise commands.errors.CheckFailure('Cannot edit')
     
-    self.replacements[rep.group(1)] = [rep.group(3), ctx.message.author.id]
+    self.replacements[rep.group(2)] = [rep.group(4), ctx.message.author.id]
     await self.bot.say(formatter.ok())
   
   @rep.command(name='remove', aliases=['rm'], pass_context=True)
@@ -149,31 +147,23 @@ class General:
     msg = ''
     
     for rep in self.replacements:
-      msg += 's/{}/{}/\n'.format(rep, self.replacements[rep][0])
+      msg += '\"{}\" -> \"{}\"\n'.format(rep, self.replacements[rep][0])
     msg = msg[:-1]
     
     await self.bot.say(formatter.code(msg))
   
+def get_match(message):
+  pattern = r'^s{0}(\(\?i\))?(.*?[^\\](\\\\)*){0}(.*?[^\\](\\\\)*){0}g?$'
+  sep = re.search('^s(.)', message)
+  if not sep or len(sep.groups()) < 1 or len(sep.group(1)) != 1:
+    return None
+  return re.match(pattern.format(sep.group(1)), message)
+  
 def bad_re(string):
-  string_a = re.sub('\\s+', '', string)
-  if not string_a:
-    return True
-  
-  string_a = re.sub('\\(\\?[^\\)]\\)', '', string_a)
-  if not string_a:
-    return True
-  
+  string_a = re.sub('\\(\\?[^\\)]\\)', '', string)
   string_a = re.sub('.\\?', '', string_a)
-  if not string_a:
-    return True
-  
   string_a = re.sub('(?!\\\\)[\\.\\?\\+\\*\\{\\}\\)\\(\\[\\]]', '', string_a)
-  if not string_a:
-    return True
-    
   string_a = re.sub('\\\\[bSDQEs]', '', string_a)
-  if not string_a:
-    return True
   
   return len(string_a) < 3
 

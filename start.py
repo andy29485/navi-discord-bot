@@ -57,7 +57,6 @@ async def on_command_error(error, ctx):
     log.error(error.original.__traceback__)
     log.error('{0.__class__.__name__}: {0}'.format(error.original))
     await bot.send_message(ctx.message.channel,formatter.error('Command error'))
-    raise error
   elif isinstance(error, commands.errors.CheckFailure):
     await bot.send_message(ctx.message.channel, formatter.error(
                 'Sorry you have insufficient permissions to run that command.'))
@@ -88,7 +87,7 @@ async def on_message(message):
   if message.content.strip()[0] not in bot.command_prefix+['?', '$']:
     m = message.content
     for i in replacements:
-      m = re.sub('\\b{}\\b'.format(i), replacements[i][0], m)
+      m = re.sub('\\b{}\\b'.format(i), replacements[i][0], m, re.I)
     
     if m.lower() != message.content.lower():
       await bot.send_message(message.channel, '*'+m)
@@ -100,7 +99,6 @@ for cog in starting_cogs:
     bot.load_extension(cog)
   except Exception as e:
     print('Failed to load cog {}\n{}: {}'.format(cog, type(e).__name__, e))
-    raise
 
 auth = Config('configs/auth.json')
 

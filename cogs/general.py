@@ -53,6 +53,13 @@ class General:
     message = ctx.message.author.mention + ':\n'
     message += formatter.inline(random.choice(choices))
     await self.bot.say(message)
+  
+  @commands.command(pass_context=True, aliases=['a', 'ask'])
+  async def question(self, ctx):
+    """Answers a question"""
+    message = ctx.message.author.mention + ':\n'
+    message += formatter.inline(random.choice(['yes', 'no']))
+    await self.bot.say(message)
 
 def setup(bot):
   bot.add_cog(General(bot))

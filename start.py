@@ -97,8 +97,8 @@ async def on_message(message):
     
     if m.lower() != message.content.lower():
       await bot.send_message(message.channel, '*'+m)
-  
-  await bot.process_commands(message)
+  if not re.search('^\\.{2,}', message.content):
+    await bot.process_commands(message)
 
 for cog in starting_cogs:
   try:

@@ -28,8 +28,6 @@ class Regex:
     Format `s/old/new/`
     """
     
-    print(regex)
-    
     #Find requested replacement
     rep = get_match(regex)
     
@@ -44,6 +42,15 @@ class Regex:
     except re.error:
       await self.bot.say(formatter.error('regex is invalid'))
       return
+    
+    #make sure that there are no similar regexes in db
+    for i in self.replacements:
+      sim = similar(rep.group(2))
+      if sim.lower() == similar(i).lower():
+        r = '\"{}\" -> \"{}\"'.format(i, self.replacements[i][0])
+        message = 'similar regex already exists\n{}'.format(formatter.inline(r))
+        await self.bot.say(formatter.error(message))
+        return
     
     #make sure regex is not too broad
     if bad_re(rep.group(2)):
@@ -136,15 +143,18 @@ def get_match(string):
   if not sep or len(sep.groups()) < 1 or len(sep.group(1)) != 1:
     return None
   return re.match(pattern.format(sep.group(1)), string)
-  
-def bad_re(string):
-  string_a = re.sub(r'\(\?[^\)]*\)', '', string)
+
+def similar(pattern):
+  string_a = re.sub(r'\(\?[^\)]*\)', '', pattern)
+  string_a = re.sub(r'\s+', '', string_a)
   string_a = re.sub(r'.\?', '', string_a)
   string_a = re.sub(r'\[[^\]]*\]', '', string_a)
   string_a = re.sub(r'(?!\\)[\.\?\+\*\{\}\)\(\[\]\^\$]', '', string_a)
   string_a = re.sub('\\\\[bSDWBQEs]', '', string_a)
-  
-  return len(string_a) < 3
+  return string_a
+
+def bad_re(pattern):
+  return len(similar(pattern)) < 3
 
 def setup(bot):
   bot.add_cog(Regex(bot))

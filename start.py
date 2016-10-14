@@ -18,7 +18,10 @@ import cogs.utils.format as formatter
 starting_cogs = [
   'cogs.general',
   'cogs.az',
-  'cogs.admin'
+  'cogs.admin',
+  'cogs.internet',
+  'cogs.quotes',
+  'cogs.regex'
 ]
 
 discord_logger = logging.getLogger('discord')
@@ -56,10 +59,13 @@ async def on_command_error(error, ctx):
     log.error('In {0.command.qualified_name}:'.format(ctx))
     log.error(error.original.__traceback__)
     log.error('{0.__class__.__name__}: {0}'.format(error.original))
+    raise error
     await bot.send_message(ctx.message.channel,formatter.error('Command error'))
   elif isinstance(error, commands.errors.CheckFailure):
     await bot.send_message(ctx.message.channel, formatter.error(
                 'Sorry you have insufficient permissions to run that command.'))
+  else:
+    await bot.send_message(ctx.message.channel, formatter.error(str(error)))
 
 @bot.event
 async def on_resumed():
@@ -87,7 +93,7 @@ async def on_message(message):
   if message.content.strip()[0] not in bot.command_prefix+['?', '$']:
     m = message.content
     for i in replacements:
-      m = re.sub('\\b{}\\b'.format(i), replacements[i][0], m, re.I)
+      m = re.sub(r'(?i)(?:^|\b){}(?:\b|$)'.format(i), replacements[i][0], m)
     
     if m.lower() != message.content.lower():
       await bot.send_message(message.channel, '*'+m)

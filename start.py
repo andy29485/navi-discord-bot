@@ -87,14 +87,18 @@ async def on_command(command, ctx):
 async def on_message(message):
   if message.author.bot:
     return
-  
+
+  if re.search("(?i)^g(ood ?)?j(ob)?\\s+navi", message.content.lower()):
+    await bot.send_message(message.channel, "Thank you")
+    return
+
   replacements = Config('configs/replace.json')
 
   if message.content.strip()[0] not in bot.command_prefix+['?', '$']:
     m = message.content
     for i in replacements:
       m = re.sub(r'(?i)(?:^|\b){}(?:\b|$)'.format(i), replacements[i][0], m)
-    
+
     if m.lower() != message.content.lower():
       await bot.send_message(message.channel, '*'+m)
   if not re.search('^\\.{2,}', message.content):
@@ -112,4 +116,3 @@ while 'token' not in auth or len(auth['token']) < 30:
   auth['token'] = input('Please enter bot\'s token: ')
 
 bot.run(auth['token'])
-

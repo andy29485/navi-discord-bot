@@ -25,10 +25,10 @@ class General:
 
   def rolls(self, dice):
     out = []
-    
+
     if not dice:
       dice = [6]
-    
+
     for roll in dice:
       match = re.search('^((\\d+)?d)?(\\d+)$', roll, re.I)
       message = ''
@@ -44,7 +44,7 @@ class General:
         message = message[:-2]
       out.append('{}: {}'.format(roll, message))
     return out
-  
+
   @commands.command(pass_context=True, aliases=['c', 'choice'])
   async def choose(self, ctx, *, choices):
     """Chooses a value from a comma seperated list"""
@@ -53,7 +53,7 @@ class General:
     message = ctx.message.author.mention + ':\n'
     message += formatter.inline(random.choice(choices))
     await self.bot.say(message)
-  
+
   @commands.command(pass_context=True, aliases=['a', 'ask'])
   async def question(self, ctx):
     """Answers a question"""

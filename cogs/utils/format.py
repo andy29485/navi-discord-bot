@@ -32,12 +32,15 @@ def strikethrough(text):
 def underline(text):
   return "__{}__".format(text)
 
-def escape(text):
-  text = text.replace("@everyone", "@\u200beveryone")
-  text = text.replace("@here", "@\u200bhere")
-  text = (text.replace("`", "\\`")
-              .replace("*", "\\*")
-              .replace("_", "\\_")
-              .replace("~", "\\~"))
+def escape_mentions(text):
+  return text.replace('@', '@\u200b')
+
+def escape(text, mentions=False):
+  if mentions:
+    text = escape_mentions(text)
+  text = text.replace("`", "\\`") \
+             .replace("*", "\\*") \
+             .replace("_", "\\_") \
+             .replace("~", "\\~")
   return text
 

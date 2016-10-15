@@ -157,7 +157,7 @@ def simplify(pattern):
 def similar(pattern1, pattern2):
   sim1 = simplify(pattern1)
   sim2 = simplify(pattern2)
-  return not (sim1.lower() == sim2.lower() or \
+  return (sim1.lower() == sim2.lower() or \
          re.search(r'(?i){}'.format(pattern1), sim1) or \
          re.search(r'(?i){}'.format(pattern2), sim2) or \
          (comp(sim1) and re.search(r'(?i){}'.format(sim1), sim2)) or \

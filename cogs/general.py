@@ -2,7 +2,9 @@
 
 import random
 import re
+import time
 import asyncio
+from urllib import parse as urlencode
 from discord.ext import commands
 from .utils import format as formatter
 from .utils import perms
@@ -11,6 +13,14 @@ from .utils.config import Config
 class General:
   def __init__(self, bot):
     self.bot = bot
+    self.stopwatches = {}
+    self.conf = Config('configs/general.json')
+    self.poll_sessions = []
+
+  @commands.command(hidden=True)
+  async def ping(self):
+    """Pong."""
+    await self.bot.say("Pong.")
 
   @commands.command(pass_context=True)
   async def roll(self, ctx, *dice):
@@ -22,6 +32,36 @@ class General:
     else:
       message += formatter.inline(roll)
     await self.bot.say(message)
+  
+  @commands.command(name="8", aliases=["8ball"])
+  async def _8ball(self, *, question : str):
+    """Ask 8 ball a question
+    Question must end with a question mark.
+    """
+    if question.endswith("?") and question != "?":
+      await self.bot.say("`" + random.choice(self.config['8-ball']) + "`")
+    else:
+      await self.bot.say("That doesn't look like a question.")
+
+  @commands.command(aliases=["sw"], pass_context=True)
+  async def stopwatch(self, ctx):
+    """Starts/stops stopwatch"""
+    author = ctx.message.author
+    if not author.id in self.stopwatches:
+      self.stopwatches[author.id] = int(time.perf_counter())
+      await self.bot.say(author.mention + " Stopwatch started!")
+    else:
+      tmp = abs(self.stopwatches[author.id] - int(time.perf_counter()))
+      tmp = str(datetime.timedelta(seconds=tmp))
+      await self.bot.say("{} Stopwatch stopped! Time: **{}**".format(
+                         author.mention, tmp))
+      self.stopwatches.pop(author.id, None)
+      
+  @commands.command()
+  async def lmgtfy(self, *, search_terms : str):
+    """Creates a lmgtfy link"""
+    search_terms = urlencode('q': search_terms)
+    await self.bot.say("http://lmgtfy.com/?{}".format(search_terms))
 
   def rolls(self, dice):
     out = []

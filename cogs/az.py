@@ -22,7 +22,7 @@ class AZ:
     if 'key' not in self.conf:
       self.conf['key'] = input('Enter puush api key: ')
     self.account = puush.Account(self.conf['key'])
-    
+
     if 'images' not in self.conf or type(self.conf['images']) != dict:
       self.conf['images'] = {}
 
@@ -31,12 +31,14 @@ class AZ:
   async def img(self, *search):
     if 'path' not in self.conf or not os.path.exists(self.conf['path']):
       await self.bot.say('path does not exist')
-    
+
+    search = [re.sub('[^\\w\\.-]+', '', i).lower() for i in search]
+
     try:
       path = find(self.conf['path'], '*'.join(search))
     except:
       path = ''
-    
+
     if path in self.conf['images']:
       image_id = self.conf['images'][path]['id']
       url = self.conf['images'][path]['url']
@@ -46,7 +48,7 @@ class AZ:
           return
       except:
         pass
-      
+
     out = ''
     if path:
       image = self.account.upload(path)

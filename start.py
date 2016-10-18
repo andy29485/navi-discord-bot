@@ -80,8 +80,8 @@ async def on_command(command, ctx):
   else:
     chan = '#{0.channel.name} ({0.server.name})'.format(msg)
 
-    log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(
-              msg, chan))
+  log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(
+            msg, chan))
 
 @bot.event
 async def on_message(message):
@@ -91,17 +91,8 @@ async def on_message(message):
   if re.search("(?i)^g(ood ?)?j(ob)?\\s+navi", message.content.lower()):
     await bot.send_message(message.channel, "Thank you")
     return
-
-  replacements = Config('configs/replace.json')
-
-  if message.content.strip()[0] not in bot.command_prefix+['?', '$']:
-    m = message.content
-    for i in replacements:
-      m = re.sub(r'(?i)(?:^|\b){}(?:\b|$)'.format(i), replacements[i][0], m)
-
-    if m.lower() != message.content.lower():
-      await bot.send_message(message.channel, '*'+m)
-  if not re.search('^\\.{2,}', message.content):
+  
+  if not re.search('^[\\.!\\?\\$]{2,}', message.content):
     await bot.process_commands(message)
 
 for cog in starting_cogs:

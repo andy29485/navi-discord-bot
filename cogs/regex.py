@@ -36,16 +36,17 @@ class Regex:
       await self.bot.say(formatter.error('Could not find valid regex'))
       return
 
+    p1 = formatter.escape_mentions(rep.group(2))
+    p2 = formatter.escape_mentions(rep.group(4))
+
     #check regex for validity
-    try:
-      re.compile(rep.group(2))
-    except re.error:
+    if not comp(p1, p2):
       await self.bot.say(formatter.error('regex is invalid'))
       return
 
     #make sure that there are no similar regexes in db
     for i in self.replacements:
-      if similar(rep.group(2), i):
+      if similar(p1, i):
         r = '\"{}\" -> \"{}\"'.format(i, self.replacements[i][0])
         message = 'Similar regex already exists, delete or edit it\n{}'.format(
                    formatter.inline(r))
@@ -53,16 +54,16 @@ class Regex:
         return
 
     #make sure regex is not too broad
-    if bad_re(rep.group(2)):
+    if bad_re(p1):
       await self.bot.say(formatter.error('regex is too broad'))
       return
 
     #check that regex does not already exist
-    if rep.group(2) in self.replacements:
+    if p1 in self.replacements:
       await self.bot.say(formatter.error('regex already exists'))
       return
 
-    self.replacements[rep.group(2)] = [rep.group(4), ctx.message.author.id]
+    self.replacements[p1] = [p2, ctx.message.author.id]
     await self.bot.say(formatter.ok())
 
   @rep.command(name='edit', pass_context=True)
@@ -78,30 +79,31 @@ class Regex:
     if not rep:
       await self.bot.say(formatter.error('Could not find valid regex'))
       return
+    
+    p1 = formatter.escape_mentions(rep.group(2))
+    p2 = formatter.escape_mentions(rep.group(4))
 
     #check regex for validity
-    try:
-      re.compile(rep.group(2))
-    except re.error:
+    if not comp(p1, p2):
       await self.bot.say(formatter.error('regex is invalid'))
       return
 
     #make sure regex is not too broad
-    if bad_re(rep.group(2)):
+    if bad_re(p1):
       await self.bot.say(formatter.error('regex is too broad'))
       return
 
     #ensure that replace was found before proceeding
-    if rep.group(2) not in self.replacements:
+    if p1 not in self.replacements:
       await self.bot.say(formatter.error('Regex not in replacements.'))
       return
 
     #check if they have correct permissions
-    if ctx.message.author.id != self.replacements[rep.group(2)][1] \
+    if ctx.message.author.id != self.replacements[p1][1] \
        and not perms.check_permissions(ctx, {'manage_messages':True}):
         raise commands.errors.CheckFailure('Cannot edit')
 
-    self.replacements[rep.group(2)] = [rep.group(4), ctx.message.author.id]
+    self.replacements[p1] = [p2, ctx.message.author.id]
     await self.bot.say(formatter.ok())
 
   @rep.command(name='remove', aliases=['rm'], pass_context=True)
@@ -109,6 +111,7 @@ class Regex:
     """remove an existing replacement"""
 
     pattern = re.sub('^(`)?\\(\\?[^\\)]*\\)', '\\1', pattern)
+    pattern = formatter.escape_mentions(pattern)
 
     #ensure that replace was found before proceeding
     if pattern not in self.replacements:
@@ -137,6 +140,19 @@ class Regex:
     msg = msg[:-1]
 
     await self.bot.say(formatter.code(msg))
+  
+  async def replace(self, message):
+    if message.author.bot:
+      return
+    if message.content.strip()[0] in self.bot.command_prefix+['?', '$']:
+      return
+    
+    m = message.content
+    for i in self.replacements:
+      m = re.sub(r'(?i)\b{}\b'.format(i), self.replacements[i][0], m)
+
+    if m.lower() != message.content.lower():
+      await self.bot.send_message(message.channel, '*'+m)
 
 def get_match(string):
   pattern = r'^s{0}(\(\?i\))?(.*?[^\\](\\\\)*){0}(.*?[^\\](\\\\)*){0}g?$'
@@ -146,34 +162,39 @@ def get_match(string):
   return re.match(pattern.format(sep.group(1)), string)
 
 def simplify(pattern):
-  string_a = re.sub(r'\(\?[^\)]*\)', '', pattern)
-  string_a = re.sub(r'\s+', '', string_a)
-  string_a = re.sub(r'.\?', '', string_a)
-  string_a = re.sub(r'\[[^\]]*\]', '', string_a)
-  string_a = re.sub(r'(?!\\)[\.\?\+\*\{\}\)\(\[\]\^\$]', '', string_a)
-  string_a = re.sub('\\\\[bSDWBQEs]', '', string_a)
-  return string_a
+  out = set()
+  reps = [r'(?!\\)[\.\?\+\*]', '\\\\[bSDWBQEs]', r'(?!\\)[\)\(\[\]]',
+          r'\(\?[^\)]*\)', r'\(\?[^\)]*\)', r'.\?', r'\[[^\]]*\]',
+          r'\{[^\}]*\}', r'\s+']
+  string_a = pattern
+  for r in reps:
+    string_a = re.sub(r, '', string_a)
+    out.add(re.sub(r, '', pattern))
+    out.add(string_a)
+  return out
 
 def similar(pattern1, pattern2):
-  sim1 = simplify(pattern1)
-  sim2 = simplify(pattern2)
-  return (sim1.lower() == sim2.lower() or \
-         re.search(r'(?i){}'.format(pattern1), sim1) or \
-         re.search(r'(?i){}'.format(pattern2), sim2) or \
-         (comp(sim1) and re.search(r'(?i){}'.format(sim1), sim2)) or \
-         (comp(sim2) and re.search(r'(?i){}'.format(sim2), sim1)))
-
-
+  for sim1 in simplify(pattern1):
+    for sim2 in simplify(pattern2):
+      if (sim1.lower() == sim2.lower() or \
+         re.search(r'(?i){}'.format(pattern1), sim2) or \
+         re.search(r'(?i){}'.format(pattern2), sim1) or \
+         (comp(sim1, sim2) and re.search(r'(?i){}'.format(sim1), sim2)) or \
+         (comp(sim2, sim1) and re.search(r'(?i){}'.format(sim2), sim1))):
+          return True
+  return False
 
 def bad_re(pattern):
   return len(simplify(pattern)) < 3
 
-def comp(regex):
+def comp(regex, replace=''):
   try:
-    re.compile(sim1)
+    re.sub(regex, replace, '')
     return True
   except:
     return False
 
 def setup(bot):
-  bot.add_cog(Regex(bot))
+  reg = Regex(bot)
+  bot.add_listener(reg.replace, "on_message")
+  bot.add_cog(reg)

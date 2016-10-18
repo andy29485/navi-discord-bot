@@ -8,13 +8,15 @@ from urllib import parse as urlencode
 from discord.ext import commands
 from .utils import format as formatter
 from .utils import perms
+from .utils.poll import Poll
 from .utils.config import Config
 
 class General:
   def __init__(self, bot):
-    self.bot = bot
-    self.stopwatches = {}
-    self.conf = Config('configs/general.json')
+    self.bot           = bot
+    self.stopwatches   = {}
+    self.polls         = {}
+    self.conf          = Config('configs/general.json')
     self.poll_sessions = []
 
   @commands.command(hidden=True)
@@ -60,7 +62,7 @@ class General:
   @commands.command()
   async def lmgtfy(self, *, search_terms : str):
     """Creates a lmgtfy link"""
-    search_terms = urlencode('q': search_terms)
+    search_terms = urlencode.urlencode({'q':search_terms})
     await self.bot.say("http://lmgtfy.com/?{}".format(search_terms))
 
   def rolls(self, dice):
@@ -88,8 +90,7 @@ class General:
   @commands.command(pass_context=True, aliases=['c', 'choice'])
   async def choose(self, ctx, *, choices):
     """Chooses a value from a comma seperated list"""
-    choices = re.split(r'(?i)\s*(?:,|\bor\b)\s*', choices)
-    choices = list(filter(None, choices))
+    choices = split(choices)
     message = ctx.message.author.mention + ':\n'
     message += formatter.inline(random.choice(choices))
     await self.bot.say(message)
@@ -100,6 +101,62 @@ class General:
     message = ctx.message.author.mention + ':\n'
     message += formatter.inline(random.choice(['yes', 'no']))
     await self.bot.say(message)
+  
+  async def tally(self, message):
+    chan = message.channel
+    user = message.author
+    mess = message.content
+    
+    #bots don't get a vote
+    if user.bot:
+      return
+    
+    if mess.strip()[0] in self.bot.command_prefix + ['$','?']:
+      return
+    
+    if chan in self.polls:
+      self.polls[chan].vote(user, mess)
+  
+  @commands.command(pass_context=True)
+  async def poll(self, ctx, *, question):
+    """Starts a poll
+    format:
+    poll question? opt1, opt2, opt3 or opt4...
+    poll stop
+    """
+    
+    if question.lower().strip() == 'stop':
+      if ctx.message.channel in self.polls:
+        await self.polls[ctx.message.channel].stop()
+      else:
+        await self.bot.say('There is no poll active in this channel')
+      return
+    
+    if ctx.message.channel in self.polls:
+      await self.bot.say('There\'s already an active poll in this channel')
+      return
+    
+    match = re.search(r'^(.*?\?)\s*(.*?)$', question)
+    if not match:
+      await self.bot.say('Question could not be found.')
+      return
+    
+    options  = split(match.group(2))
+    question = formatter.escape_mentions(match.group(1))
+    
+    poll = Poll(self.bot, ctx.message.channel, question, options,
+                self.conf['polls']['duration'], self.polls)
+                                           
+    self.polls[ctx.message.channel] = poll
+    await poll.start()
+    
+
+def split(choices):
+  choices = re.split(r'(?i)\s*(?:,|\bor\b)\s*', choices)
+  return list(filter(None, choices))
 
 def setup(bot):
-  bot.add_cog(General(bot))
+  g = General(bot)
+  bot.add_listener(g.tally, "on_message")
+  bot.add_cog(g)
+

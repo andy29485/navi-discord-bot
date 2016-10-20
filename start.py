@@ -88,10 +88,6 @@ async def on_message(message):
   if message.author.bot:
     return
 
-  if re.search("(?i)^g(ood ?)?j(ob)?\\s+navi", message.content.lower()):
-    await bot.send_message(message.channel, "Thank you")
-    return
-  
   if not re.search('^[\\.!\\?\\$]{2,}', message.content):
     await bot.process_commands(message)
 

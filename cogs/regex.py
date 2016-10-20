@@ -140,13 +140,15 @@ class Regex:
     msg = msg[:-1]
 
     await self.bot.say(formatter.code(msg))
-  
+
   async def replace(self, message):
     if message.author.bot:
       return
+    if len(message.content.strip()) < 2:
+      return
     if message.content.strip()[0] in self.bot.command_prefix+['?', '$']:
       return
-    
+
     m = message.content
     for i in self.replacements:
       m = re.sub(r'(?i)\b{}\b'.format(i), self.replacements[i][0], m)

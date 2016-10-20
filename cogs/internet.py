@@ -4,6 +4,7 @@ import asyncio
 from discord.ext import commands
 from .utils import format as formatter
 import aiohttp
+import html2text
 from urllib.parse import parse_qs
 from lxml import etree
 
@@ -60,13 +61,13 @@ class Search:
           </span>
       </div>
       """
-      
+
       search_nodes = root.findall(".//div[@class='g']")
       for node in search_nodes:
         entry_node = node.find(".//span[@class='st']")
         if entry_node is None or not entry_node.text:
           continue
-        
+
         url_node = node.find('.//h3/a')
         if url_node is None:
           continue
@@ -75,10 +76,11 @@ class Search:
         if not url.startswith('/url?'):
           continue
 
-        url = parse_qs(url[5:])['q'][0]
+        summary = html2text.html2text(etree.tostring(entry_node).decode('utf-8'))
+        url     = parse_qs(url[5:])['q'][0]
 
         # if I ever cared about the description, this is how
-        entries.append('<{}>\n{}\n'.format(url, entry_node.text))
+        entries.append('<{}>\n{}\n'.format(url, summary))
     return entries
 
 def setup(bot):

@@ -7,6 +7,7 @@ if __name__ == '__main__' and __package__ is None:
 import discord
 from discord.ext import commands
 import asyncio
+import aiohttp
 import re, sys
 import logging
 import datetime
@@ -102,4 +103,11 @@ auth = Config('configs/auth.json')
 while 'token' not in auth or len(auth['token']) < 30:
   auth['token'] = input('Please enter bot\'s token: ')
 
-bot.run(auth['token'])
+while True:
+  try:
+    bot.run(auth['token'])
+  except aiohttp.errors.ClientOSError:
+    pass
+  except:
+    raise
+    sys.exit(1)

@@ -24,6 +24,13 @@ class General:
     """Pong."""
     await self.bot.say("Pong.")
 
+  async def respond(self, message):
+    for i in self.conf['responses']:
+      if re.search("(?i){}".format(i[0]), message.content):
+        await bot.send_message(message.channel, re.sub("(?i){}".format(i[0]),
+                                                       i[1] message.content))
+        return
+
   @commands.command(pass_context=True)
   async def roll(self, ctx, *dice):
     'rolls dice given pattern [Nd]S'
@@ -34,7 +41,7 @@ class General:
     else:
       message += formatter.inline(roll)
     await self.bot.say(message)
-  
+
   @commands.command(name="8", aliases=["8ball"])
   async def _8ball(self, *, question : str):
     """Ask 8 ball a question
@@ -58,7 +65,7 @@ class General:
       await self.bot.say("{} Stopwatch stopped! Time: **{}**".format(
                          author.mention, tmp))
       self.stopwatches.pop(author.id, None)
-      
+
   @commands.command()
   async def lmgtfy(self, *, search_terms : str):
     """Creates a lmgtfy link"""
@@ -101,55 +108,55 @@ class General:
     message = ctx.message.author.mention + ':\n'
     message += formatter.inline(random.choice(['yes', 'no']))
     await self.bot.say(message)
-  
+
   async def tally(self, message):
     chan = message.channel
     user = message.author
     mess = message.content
-    
+
     #bots don't get a vote
     if user.bot:
       return
-    
+
     if mess.strip()[0] in self.bot.command_prefix + ['$','?']:
       return
-    
+
     if chan in self.polls:
       self.polls[chan].vote(user, mess)
-  
+
   @commands.command(pass_context=True)
   async def poll(self, ctx, *, question):
     """Starts a poll
     format:
     poll question? opt1, opt2, opt3 or opt4...
-    poll stop
+    poll stop|end
     """
-    
-    if question.lower().strip() == 'stop':
+
+    if question.lower().strip() in ['end', 'stop']:
       if ctx.message.channel in self.polls:
         await self.polls[ctx.message.channel].stop()
       else:
         await self.bot.say('There is no poll active in this channel')
       return
-    
+
     if ctx.message.channel in self.polls:
       await self.bot.say('There\'s already an active poll in this channel')
       return
-    
+
     match = re.search(r'^(.*?\?)\s*(.*?)$', question)
     if not match:
       await self.bot.say('Question could not be found.')
       return
-    
+
     options  = split(match.group(2))
     question = formatter.escape_mentions(match.group(1))
-    
+
     poll = Poll(self.bot, ctx.message.channel, question, options,
                 self.conf['polls']['duration'], self.polls)
-                                           
+
     self.polls[ctx.message.channel] = poll
     await poll.start()
-    
+
 
 def split(choices):
   choices = re.split(r'(?i)\s*(?:,|\bor\b)\s*', choices)
@@ -158,5 +165,6 @@ def split(choices):
 def setup(bot):
   g = General(bot)
   bot.add_listener(g.tally, "on_message")
+  bot.add_listener(g.respond, "on_message")
   bot.add_cog(g)
 

@@ -118,7 +118,8 @@ class General:
     if user.bot:
       return
 
-    if mess.strip()[0] in self.bot.command_prefix + ['$','?']:
+    if len(mess.strip()) < 2 or \
+       mess.strip()[0] in self.bot.command_prefix + ['$','?']:
       return
 
     if chan in self.polls:

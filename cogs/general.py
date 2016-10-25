@@ -48,7 +48,7 @@ class General:
     Question must end with a question mark.
     """
     if question.endswith("?") and question != "?":
-      await self.bot.say("`" + random.choice(self.config['8-ball']) + "`")
+      await self.bot.say("`" + random.choice(self.conf['8-ball']) + "`")
     else:
       await self.bot.say("That doesn't look like a question.")
 

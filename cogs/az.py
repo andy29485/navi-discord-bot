@@ -27,7 +27,7 @@ class AZ:
       self.conf['images'] = {}
 
   @commands.command()
-  @perms.is_owner()
+  @perms.in_group('img')
   async def img(self, *search):
     if 'path' not in self.conf or not os.path.exists(self.conf['path']):
       await self.bot.say('path does not exist')

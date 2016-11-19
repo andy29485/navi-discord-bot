@@ -27,8 +27,8 @@ class General:
   async def respond(self, message):
     for i in self.conf['responses']:
       if re.search("(?i){}".format(i[0]), message.content):
-        await bot.send_message(message.channel, re.sub("(?i){}".format(i[0]),
-                                                       i[1], message.content))
+        await self.bot.send_message(message.channel, re.sub("(?i){}".format(
+                                                i[0]), i[1], message.content))
         return
 
   @commands.command(pass_context=True)

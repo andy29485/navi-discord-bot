@@ -51,11 +51,16 @@ class AZ:
 
     out = ''
     if path:
-      image = self.account.upload(path)
-      if image and image.url:
-        self.conf['images'][path] = {'id':image.id, 'url':image.url}
-        self.conf.save()
-        out = image.url
+      for i in range(3):
+        try:
+          image = self.account.upload(path)
+          if image and image.url:
+            self.conf['images'][path] = {'id':image.id, 'url':image.url}
+            self.conf.save()
+            out = image.url
+            break
+        except ValueError:
+          pass
       else:
         out = 'could not upload image'
     else:

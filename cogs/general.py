@@ -31,6 +31,8 @@ class General:
         subs = {"\\{un\\}":message.author.name,
                 "\\{um\\}":message.author.mention,
                 "\\{ui\\}":message.author.id}
+        for j in re.findall("\\(.*\\|.*\\)", rep):
+          rep = rep.replace(j, random.choice(j[1:-1].split("|")))
         for j in subs:
           rep = re.sub(j, subs[j], rep)
         msg = re.sub("(?i){}".format(i[0]), rep, message.content)

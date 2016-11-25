@@ -24,8 +24,28 @@ class General:
     """Pong."""
     await self.bot.say("Pong.")
 
+  async def tally(self, message):
+    chan = message.channel
+    user = message.author
+    mess = message.content
+
+    #bots don't get a vote
+    if user.bot:
+      return
+
+    if len(mess.strip()) < 2 or \
+       mess.strip()[0] in self.bot.command_prefix + ['$','?']:
+      return
+
+    if chan in self.polls:
+      self.polls[chan].vote(user, mess)
+
   async def respond(self, message):
     if message.author.bot:
+      return
+
+    if len(message.content.strip()) < 2 or \
+       message.content.strip()[0] in self.bot.command_prefix + ['$','?']:
       return
 
     for i in self.conf['responses']:
@@ -121,22 +141,6 @@ class General:
     message = ctx.message.author.mention + ':\n'
     message += formatter.inline(random.choice(['yes', 'no']))
     await self.bot.say(message)
-
-  async def tally(self, message):
-    chan = message.channel
-    user = message.author
-    mess = message.content
-
-    #bots don't get a vote
-    if user.bot:
-      return
-
-    if len(mess.strip()) < 2 or \
-       mess.strip()[0] in self.bot.command_prefix + ['$','?']:
-      return
-
-    if chan in self.polls:
-      self.polls[chan].vote(user, mess)
 
   @commands.command(pass_context=True)
   async def poll(self, ctx, *, question):

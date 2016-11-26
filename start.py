@@ -32,7 +32,7 @@ handler = logging.FileHandler(filename='logs/navi.log',
                               encoding='utf-8', mode='w')
 log.addHandler(handler)
 
-prefix = ['.', '!', '\N{HEAVY EXCLAMATION MARK SYMBOL}']
+prefix = ['.']
 description = 'Andy29485\'s bot'
 help_attrs = dict(hidden=True)
 

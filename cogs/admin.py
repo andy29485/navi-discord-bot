@@ -57,12 +57,12 @@ class Admin:
     result = None
 
     env = {
-      'bot': self.bot,
-      'ctx': ctx,
+      'bot':     self.bot,
+      'ctx':     ctx,
       'message': ctx.message,
-      'server': ctx.message.server,
+      'server':  ctx.message.server,
       'channel': ctx.message.channel,
-      'author': ctx.message.author
+      'author':  ctx.message.author
     }
 
     env.update(globals())

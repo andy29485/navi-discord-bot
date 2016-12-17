@@ -22,6 +22,7 @@ starting_cogs = [
   'cogs.admin',
   'cogs.internet',
   'cogs.quotes',
+  'cogs.server',
   'cogs.regex'
 ]
 

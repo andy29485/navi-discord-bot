@@ -107,8 +107,5 @@ while 'token' not in auth or len(auth['token']) < 30:
 while True:
   try:
     bot.run(auth['token'])
-  except aiohttp.errors.ClientOSError:
-    pass
   except:
-    raise
-    sys.exit(1)
+    pass

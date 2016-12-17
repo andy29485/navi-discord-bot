@@ -60,7 +60,10 @@ class AZ:
       await self.bot.say("couldn't find anything matching: `{}`".format(search))
       return
 
-    await self.bot.say(self.get_url(path))
+    loop = asyncio.get_event_loop()
+    future_url = loop.run_in_executor(None, self.get_url, path)
+    url = await future_url
+    await self.bot.say(url)
 
   def confirm_img(self, iids):
     for iid in iids.split('\n'):

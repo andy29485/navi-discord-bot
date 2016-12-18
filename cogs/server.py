@@ -81,13 +81,15 @@ class Server:
 
   async def timeout_send(self, channel, server, member, time):
     roles = [role.id for role in member.roles[1:]]
-    
+
     if server not in self.timeouts:
       self.timeouts[server] = {}
     self.timeouts[server][member] = roles
-    
-    to_role = [discord.utils.find(lambda m: m.name=='timeout',server.roles).id]
-    
+    criteria = lambda m: re.search('(?i)^time?[ _-]?out.*', m.name)
+
+    to_role = [discord.utils.find(criteria ,server.roles   ).id]
+    to_chan =  discord.utils.find(criteria, server.channels)
+
     if not to_role:
       p = discord.Permissions.none()
       await self.bot.create_role(server,     name='timeout',
@@ -100,13 +102,14 @@ class Server:
                                   'no `timeout` role found/unable to create it'
       )
       return
-    
+
+    message = '{}: you are now under a {} second timeout'.format(
+                member.mention,
+                time
+    )
     await self.bot._replace_roles(member, to_role)
-    await self.bot.send_message(channel,
-          '{}: you are now under a {} second timeout'.format(
-      member.mention,
-      time
-    ))
+    await self.bot.send_message(channel, message)
+    await self.bot.send_message(to_chan, message)
 
     await asyncio.sleep(time)
 
@@ -117,8 +120,9 @@ class Server:
       await self.bot._replace_roles(member, self.timeouts[server].pop(member))
       await self.bot.send_message(channel,
             '{}: your time out is up, permissions restored'.format(
-        member.mention
-      ))
+              member.mention
+            )
+      )
 
 def setup(bot):
   g = Server(bot)

@@ -2,6 +2,7 @@
 
 import random
 import re
+import requests
 import asyncio
 import discord
 import puush
@@ -68,19 +69,18 @@ class AZ:
             'but at least I didn\'t crash :p'
     await self.bot.say(url)
 
-  def confirm_img(self, iids):
-    for iid in iids.split('\n'):
-      if not self.account.thumbnail(iid):
+  def confirm_img(self, urls):
+    for url in urls.split('\n'):
+      if url and requests.get(url, timeout=0.05).status_code != 200:
         return False
     return True
 
   def get_url(self, path):
     if path in self.conf['images']:
-      image_id = self.conf['images'][path]['id']
-      url      = self.conf['images'][path]['url']
+      urls = self.conf['images'][path]['url']
       try:
-        if confirm_img(image_id):
-          return url
+        if self.confirm_img(urls):
+          return urls
       except:
         pass
 
@@ -101,21 +101,19 @@ class AZ:
   def upload(self, paths, p=None):
     if not p:
       p = paths[0]
-    iids = ''
     urls = ''
     for path in paths:
       for i in range(3):
         try:
           image = self.account.upload(path)
           if image and image.url:
-            iids += image.id  + '\n'
             urls += image.url + '\n'
             break
         except ValueError:
           pass
       else:
         return 'could not upload image'
-    self.conf['images'][p] = {'id':iids, 'url':urls}
+    self.conf['images'][p] = {'url':urls}
     self.conf.save()
     return urls
 

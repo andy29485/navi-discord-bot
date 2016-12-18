@@ -13,14 +13,14 @@ if 'owner' not in config:
     owner = input('please enter YOUR id(use `\\@NAME` to find yours): ')
   config['owner'] = owner
 
-def is_owner_check(message):
-  return message.author.id == config['owner']
-
 def is_owner():
   return commands.check(lambda ctx: is_owner_check(ctx.message))
 
 def in_group(group):
   return commands.check(lambda ctx: in_group_check(ctx.message, group))
+
+def has_perms(**perms):
+  return commands.check(lambda ctx: check_permissions(ctx.message, perms))
 
 # The permission system of the bot is based on a "just works" basis
 # You have permissions and the bot has permissions. If you meet the permissions
@@ -32,6 +32,9 @@ def in_group(group):
 # having the permissions required for them.
 # Of course, the owner will always be able to execute commands.
 
+def is_owner_check(message):
+  return message.author.id == config['owner']
+
 def in_group_check(msg, group):
   if is_owner_check(msg):
     return True
@@ -41,8 +44,7 @@ def in_group_check(msg, group):
       return True
   return False
 
-def check_permissions(ctx, perms):
-  msg = ctx.message
+def check_permissions(msg, perms):
   if is_owner_check(msg):
     return True
 

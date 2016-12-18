@@ -12,6 +12,7 @@ class Server:
     self.bot      = bot
     self.timeouts = {}
 
+  @perms.has_perms(manage_roles=True)
   @commands.command(name='timeout_send', aliases=['ts'], pass_context=True)
   async def _timeout_send(self, ctx, member: discord.Member, time: float = 300):
     """puts a member in timeout for a duration(default 5 min)

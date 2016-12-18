@@ -34,7 +34,7 @@ class AZ:
   @perms.in_group('img')
   async def img(self, *search):
     if 'path' not in self.conf or not os.path.exists(self.conf['path']):
-      await self.bot.say('path does not exist')
+      await self.bot.say('{path} does not exist')
 
     search = [re.sub(r'[^\w\./#\*-]+', '', i).lower() for i in search]
     for i in range(len(search)):
@@ -53,16 +53,19 @@ class AZ:
     try:
       path = azfind.search(self.conf['path'], search)
     except:
-      raise
       path = ''
 
     if not path:
       await self.bot.say("couldn't find anything matching: `{}`".format(search))
       return
 
-    loop = asyncio.get_event_loop()
-    future_url = loop.run_in_executor(None, self.get_url, path)
-    url = await future_url
+    try:
+      loop = asyncio.get_event_loop()
+      future_url = loop.run_in_executor(None, self.get_url, path)
+      url = await future_url
+    except:
+      url = 'There was an error uploading the image\n ' + \
+            'but at least I didn\'t crash :p'
     await self.bot.say(url)
 
   def confirm_img(self, iids):

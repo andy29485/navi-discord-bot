@@ -93,6 +93,22 @@ class Server:
     to_role = [discord.utils.find(criteria ,server.roles   ).id]
     to_chan =  discord.utils.find(criteria, server.channels)
 
+    if not to_chan:
+      po1 = discord.PermissionOverwrite(read_messages        = False,
+                                        send_messages        = False
+      )
+      po2 = discord.PermissionOverwrite(read_messages        = True,
+                                        read_message_history = Falue,
+                                        send_messages        = True
+      )
+      p1 = discord.ChannelPermissions(target=server.default_role, overwrite=po1)
+      p2 = discord.ChannelPermissions(target=to_role,             overwrite=po2)
+      p3 = discord.ChannelPermissions(target=to_role,             overwrite=po1)
+      await self.bot.create_channel(server, 'timeout_room', p1, p2)
+      for chan in server.channels:
+        await self.bot.edit_channel_permissions(chan, p3)
+      to_chan = discord.utils.find(criteria, server.channels)
+
     if not to_role:
       p = discord.Permissions.none()
       await self.bot.create_role(server,     name='timeout',
@@ -112,7 +128,8 @@ class Server:
     )
     await self.bot._replace_roles(member, to_role)
     await self.bot.send_message(channel, message)
-    await self.bot.send_message(to_chan, message)
+    if to_chan and to_chan != channel:
+      await self.bot.send_message(to_chan, message)
 
     await asyncio.sleep(time)
 

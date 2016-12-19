@@ -2,6 +2,7 @@
 
 import time
 import asyncio
+import re
 from .utils import perms
 from discord.ext.commands.errors import CheckFailure
 import discord
@@ -45,11 +46,12 @@ class Server:
                               member, time)
     except:
       await self.bot.say(
-        'There was an error send {} to timeout ({})'.format(
+        'There was an error sending {} to timeout ({})'.format(
           member.name,
           'do I have permission to manage roles?'
         )
       )
+      #raise
 
   @commands.command(name='timeout_end', aliases=['te'], pass_context=True)
   async def _timeout_end(self, ctx, member: discord.Member):

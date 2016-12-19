@@ -51,7 +51,7 @@ class Server:
           'do I have permission to manage roles?'
         )
       )
-      #raise
+      raise
 
   @commands.command(name='timeout_end', aliases=['te'], pass_context=True)
   async def _timeout_end(self, ctx, member: discord.Member):
@@ -90,15 +90,29 @@ class Server:
     self.timeouts[server][member] = roles
     criteria = lambda m: re.search('(?i)^time?[ _-]?out.*', m.name)
 
-    to_role = [discord.utils.find(criteria ,server.roles   ).id]
-    to_chan =  discord.utils.find(criteria, server.channels)
+    to_role = discord.utils.find(criteria ,server.roles   )
+    to_chan = discord.utils.find(criteria, server.channels)
+
+    if not to_role:
+      p = discord.Permissions.none()
+      await self.bot.create_role(server,            name='timeout',
+                                 hoist=True,        permissions=p,
+                                 mentionable=False,
+                                 colour=discord.Colour.dark_red()
+      )
+      to_role = discord.utils.find(criteria, server.roles)
+      if not to_role:
+        await self.bot.send_message(channel,
+                                    'no `timeout` role found/unable to create it'
+        )
+        return
 
     if not to_chan:
       po1 = discord.PermissionOverwrite(read_messages        = False,
                                         send_messages        = False
       )
       po2 = discord.PermissionOverwrite(read_messages        = True,
-                                        read_message_history = Falue,
+                                        read_message_history = False,
                                         send_messages        = True
       )
       p1 = discord.ChannelPermissions(target=server.default_role, overwrite=po1)
@@ -109,18 +123,7 @@ class Server:
         await self.bot.edit_channel_permissions(chan, p3)
       to_chan = discord.utils.find(criteria, server.channels)
 
-    if not to_role:
-      p = discord.Permissions.none()
-      await self.bot.create_role(server,     name='timeout',
-                                 hoist=Ture, permission=p
-      )
-      to_role = [discord.utils.find(lambda m:m.name=='timeout',server.roles).id]
-
-    if not to_role:
-      await self.bot.send_message(channel,
-                                  'no `timeout` role found/unable to create it'
-      )
-      return
+    to_role = [to_role.id]
 
     message = '{}: you are now under a {} second timeout'.format(
                 member.mention,

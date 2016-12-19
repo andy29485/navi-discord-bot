@@ -25,6 +25,13 @@ class Server:
       await self.bot.say('Can\'t send higher ranking members to timeout')
       return
 
+    server  = ctx.message.server
+    channel = ctx.message.channel
+
+    if server in self.timeouts and member in self.timeouts[server]:
+      await self.bot.say('{}\'s already in timeout...'.format(member.name))
+      return
+
     if perms.in_group('timeout') and not perms.is_owner():
       await self.bot.say('You\'re in timeout... No.')
       return
@@ -42,13 +49,15 @@ class Server:
       return
 
     try:
-      await self.timeout_send(ctx.message.channel, ctx.message.server,
-                              member, time)
+      await self.timeout_send(channel, server, member, time)
     except:
       await self.bot.say(
-        'There was an error sending {} to timeout ({})'.format(
+        'There was an error sending {}\'s to timeout \n({}{}\n)'.format(
           member.name,
-          'do I have permission to manage roles?'
+          '\n  - do I have permission to manage roles(and possibly channels)?',
+          '\n  - is my highest role above {}\'s highest role?'.format(
+             member.name
+          )
         )
       )
       raise
@@ -64,6 +73,14 @@ class Server:
       await self.bot.say('Can\'t end equal/higher ranking user\'s timeouts')
       return
 
+    server  = ctx.message.server
+    channel = ctx.message.channel
+
+    if server not in self.timeouts or member not in self.timeouts[server]:
+      await self.bot.say('{} is not in timeout...'.format(member.name))
+      return
+
+
     if perms.in_group('timeout') and not perms.is_owner():
       await self.bot.say('You\'re in timeout... No.')
       return
@@ -73,17 +90,20 @@ class Server:
       return
 
     try:
-      await self.timeout_end(ctx.message.channel, ctx.message.server, member)
+      await self.timeout_end(channel, server, member)
     except:
       await self.bot.say(
-        'There was an error ending {}\'s timeout ({})'.format(
+        'There was an error ending {}\'s timeout \n({}{}\n)'.format(
           member.name,
-          'do I have permission to manage roles?'
+          '\n  - do I have permission to manage roles(and possibly channels)?',
+          '\n  - is my highest role above {}\'s highest role?'.format(
+             member.name
+          )
         )
       )
 
   async def timeout_send(self, channel, server, member, time):
-    roles = [role.id for role in member.roles[1:]]
+    roles = member.roles[1:]
 
     if server not in self.timeouts:
       self.timeouts[server] = {}
@@ -95,12 +115,11 @@ class Server:
 
     if not to_role:
       p = discord.Permissions.none()
-      await self.bot.create_role(server,            name='timeout',
-                                 hoist=True,        permissions=p,
-                                 mentionable=False,
-                                 colour=discord.Colour.dark_red()
+      to_role = await self.bot.create_role(server,            name='timeout',
+                                           hoist=True,        permissions=p,
+                                           mentionable=False,
+                                           colour=discord.Colour.dark_red()
       )
-      to_role = discord.utils.find(criteria, server.roles)
       if not to_role:
         await self.bot.send_message(channel,
                                     'no `timeout` role found/unable to create it'
@@ -109,30 +128,38 @@ class Server:
 
     if not to_chan:
       po1 = discord.PermissionOverwrite(read_messages        = False,
+                                        read_message_history = False,
                                         send_messages        = False
       )
       po2 = discord.PermissionOverwrite(read_messages        = True,
                                         read_message_history = False,
                                         send_messages        = True
       )
+      po3 = discord.PermissionOverwrite(read_messages        = True,
+                                        read_message_history = True,
+                                        send_messages        = True
+      )
+
       p1 = discord.ChannelPermissions(target=server.default_role, overwrite=po1)
       p2 = discord.ChannelPermissions(target=to_role,             overwrite=po2)
-      p3 = discord.ChannelPermissions(target=to_role,             overwrite=po1)
-      await self.bot.create_channel(server, 'timeout_room', p1, p2)
       for chan in server.channels:
-        await self.bot.edit_channel_permissions(chan, p3)
-      to_chan = discord.utils.find(criteria, server.channels)
-
-    to_role = [to_role.id]
+        await self.bot.edit_channel_permissions(chan, to_role, po1)
+      to_chan = await self.bot.create_channel(server, 'timeout_room', p1, p2)
+      me = discord.utils.find(lambda m: m.id == self.bot.user.id, server.members)
+      await self.bot.edit_channel_permissions(to_chan, me, po3)
 
     message = '{}: you are now under a {} second timeout'.format(
                 member.mention,
                 time
     )
-    await self.bot._replace_roles(member, to_role)
+    await self.bot.replace_roles(member, to_role)
+    await asyncio.sleep(1)
     await self.bot.send_message(channel, message)
     if to_chan and to_chan != channel:
-      await self.bot.send_message(to_chan, message)
+      try:
+        await self.bot.send_message(to_chan, message)
+      except:
+        pass
 
     await asyncio.sleep(time)
 
@@ -140,7 +167,7 @@ class Server:
 
   async def timeout_end(self, channel, server, member):
     if server in self.timeouts and member in self.timeouts[server]:
-      await self.bot._replace_roles(member, self.timeouts[server].pop(member))
+      await self.bot.replace_roles(member, *self.timeouts[server].pop(member))
       await self.bot.send_message(channel,
             '{}: your time out is up, permissions restored'.format(
               member.mention

@@ -109,7 +109,7 @@ class General:
     out = []
 
     if not dice:
-      dice = [6]
+      dice = ['20']
 
     for roll in dice:
       match = re.search('^((\\d+)?d)?(\\d+)$', roll, re.I)

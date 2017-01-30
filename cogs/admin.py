@@ -56,6 +56,9 @@ class Admin:
     import git
     g = git.cmd.Git('.')
     g.pull()
+    asyncio.get_event_loop().stop()
+    #concurrent.futures.ProcessPoolExecutor().shutdown()
+
     sys.exit()
 
   @commands.command(pass_context=True, hidden=True)

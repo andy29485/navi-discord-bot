@@ -11,6 +11,7 @@ class Regex:
   def __init__(self, bot):
     self.bot = bot
     self.replacements = Config('configs/replace.json')
+    self.permissions  = Config('configs/perms.json')
 
   @commands.group(pass_context=True)
   async def rep(self, ctx):
@@ -27,6 +28,10 @@ class Regex:
     """adds a new replacement
     Format `s/old/new/`
     """
+
+    if ctx.message.author.id in self.permissions['rep-blacklist']:
+      await self.bot.say(formatter.error('No ')+':poi:')
+      return
 
     #Find requested replacement
     rep = get_match(regex)

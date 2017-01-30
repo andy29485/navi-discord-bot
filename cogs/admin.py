@@ -3,6 +3,7 @@ from .utils import perms
 from .utils import format as formatter
 import discord
 import inspect
+import sys
 
 # to expose to the eval command
 import datetime
@@ -55,6 +56,7 @@ class Admin:
     import git
     g = git.cmd.Git('.')
     g.pull()
+    sys.exit()
 
   @commands.command(pass_context=True, hidden=True)
   @perms.is_owner()

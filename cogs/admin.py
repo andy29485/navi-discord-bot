@@ -49,6 +49,13 @@ class Admin:
     else:
       await self.bot.say(formatter.ok())
 
+  @commands.command(hidden=True)
+  @perms.is_owner()
+  async def update(self):
+    import git
+    g = git.cmd.Git('.')
+    g.pull()
+
   @commands.command(pass_context=True, hidden=True)
   @perms.is_owner()
   async def debug(self, ctx, *, code : str):

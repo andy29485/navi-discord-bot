@@ -105,8 +105,5 @@ auth = Config('configs/auth.json')
 while 'token' not in auth or len(auth['token']) < 30:
   auth['token'] = input('Please enter bot\'s token: ')
 
-while True:
-  try:
-    bot.run(auth['token'])
-  except:
-    pass
+#start bot
+bot.run(auth['token'])

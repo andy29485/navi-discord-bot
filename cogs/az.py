@@ -13,6 +13,27 @@ from .utils import perms
 from .utils import find as azfind
 from .utils.config import Config
 
+
+that = """
+╚═( ͡° ͜ʖ ͡° )═╝
+..╚═(███)═╝
+.╚═(███)═╝
+..╚═(███)═╝
+...╚═(███)═╝
+....╚═(███)═╝
+...╚═(███)═╝
+..╚═(███)═╝
+.╚═(███)═╝
+╚═(███)═╝
+.╚═(███)═╝
+..╚═(███)═╝
+...╚═(███)═╝
+...╚═(███)═╝
+.....╚(███)╝
+.......╚(██)╝
+.........(█)
+..........*"""
+
 class AZ:
   def __init__(self, bot):
     self.bot = bot
@@ -28,8 +49,20 @@ class AZ:
       self.conf['images'] = {}
 
   @commands.command()
-  async def lenny(self):
-    await self.bot.say('( ͡° ͜ʖ ͡° )');
+  async def lenny(self, first=None):
+    try:
+      first = int(first)
+      if first < 1:
+        first = 1
+      if first > 10:
+        first = 10
+    except:
+      first = 1
+    await self.bot.say('\n( ͡° ͜ʖ ͡° )'*first)
+
+  @commands.command()
+  async def lennytipede(self):
+    await self.bot.say(code(that))
 
   @commands.command()
   @perms.in_group('img')

@@ -55,9 +55,11 @@ class Admin:
   @perms.is_owner()
   async def update(self):
     import git
+    loop = asyncio.get_event_loop()
     g = git.cmd.Git('.')
-    g.pull()
-    asyncio.get_event_loop().stop()
+    loop.run_in_executor(g.pull())
+    await self.bot.say(formatter.ok('restarting'))
+    loop.stop()
     #concurrent.futures.ProcessPoolExecutor().shutdown()
 
     sys.exit()

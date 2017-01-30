@@ -79,7 +79,7 @@ class Regex:
     if not rep:
       await self.bot.say(formatter.error('Could not find valid regex'))
       return
-    
+
     p1 = formatter.escape_mentions(rep.group(2))
     p2 = formatter.escape_mentions(rep.group(4))
 
@@ -110,7 +110,7 @@ class Regex:
   async def _rm(self, ctx, *, pattern):
     """remove an existing replacement"""
 
-    pattern = re.sub('^(`)?\\(\\?[^\\)]*\\)', '\\1', pattern)
+    #pattern = re.sub('^(`)?\\(\\?[^\\)]*\\)', '\\1', pattern)
     pattern = formatter.escape_mentions(pattern)
 
     #ensure that replace was found before proceeding
@@ -123,7 +123,7 @@ class Regex:
 
     #check if they have correct permissions
     if ctx.message.author.id != self.replacements[pattern][1] \
-       and not perms.check_permissions(ctx, {'manage_messages':True}):
+       and not perms.check_permissions(ctx.message, {'manage_messages':True}):
         raise commands.errors.CheckFailure('Cannot delete')
 
     self.replacements.pop(pattern)
@@ -165,9 +165,15 @@ def get_match(string):
 
 def simplify(pattern):
   out = set()
-  reps = [r'(?!\\)[\.\?\+\*]', '\\\\[bSDWBQEs]', r'(?!\\)[\)\(\[\]]',
-          r'\(\?[^\)]*\)', r'\(\?[^\)]*\)', r'.\?', r'\[[^\]]*\]',
-          r'\{[^\}]*\}', r'\s+']
+  reps = [r'(?!\\)[\.\?\+\*]',
+          r'\\[bSDWBQEs]',
+          r'(?!\\)[\)\(\[\]]',
+          r'\(\?[^\)]*\)',
+          r'\(\?[^\)]*\)',
+          r'.\?',
+          r'\[[^\]]*\]',
+          r'\{[^\}]*\}',
+          r'\s+']
   string_a = pattern
   for r in reps:
     string_a = re.sub(r, '', string_a)
@@ -179,15 +185,15 @@ def similar(pattern1, pattern2):
   for sim1 in simplify(pattern1):
     for sim2 in simplify(pattern2):
       if (sim1.lower() == sim2.lower() or \
-         re.search(r'(?i){}'.format(pattern1), sim2) or \
-         re.search(r'(?i){}'.format(pattern2), sim1) or \
-         (comp(sim1, sim2) and re.search(r'(?i){}'.format(sim1), sim2)) or \
-         (comp(sim2, sim1) and re.search(r'(?i){}'.format(sim2), sim1))):
+         re.search(r'(?i)\b{}\b'.format(pattern1), sim2) or \
+         re.search(r'(?i)\b{}\b'.format(pattern2), sim1) or \
+         (comp(sim1, sim2) and re.search(r'(?i)\b{}\b'.format(sim1), sim2)) or\
+         (comp(sim2, sim1) and re.search(r'(?i)\b{}\b'.format(sim2), sim1))):
           return True
   return False
 
 def bad_re(pattern):
-  return len(simplify(pattern)) < 3
+  return max(len(s) for s in simplify(pattern)) < 3
 
 def comp(regex, replace=''):
   try:

@@ -61,8 +61,9 @@ async def on_command_error(error, ctx):
     log.error('In {0.command.qualified_name}:'.format(ctx))
     log.error(error.original.__traceback__)
     log.error('{0.__class__.__name__}: {0}'.format(error.original))
-    raise error
-    await bot.send_message(ctx.message.channel,formatter.error('Command error'))
+    await bot.send_message(ctx.message.channel,formatter.error(
+        'Command error: {}'.format(error))
+    )
   elif isinstance(error, commands.errors.CheckFailure):
     await bot.send_message(ctx.message.channel, formatter.error(
                 'Sorry you have insufficient permissions to run that command.'))

@@ -21,9 +21,11 @@ def search(directory, pattern, single=True):
   return matches
 
 def match(filename, pattern):
+  pattern.add('-.git')
   for i in pattern:
-    if i[0] == '-' and i[1:].lower in filename.lower():
-      return False
+    if i[0] == '-':
+      if i[1:].lower() in filename.lower():
+        return False
     elif i not in filename.lower():
       return False
   return True

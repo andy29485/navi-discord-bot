@@ -3,6 +3,7 @@ from .utils import perms
 from .utils import format as formatter
 import discord
 import inspect
+import asyncio
 import sys
 
 # to expose to the eval command

@@ -23,7 +23,8 @@ starting_cogs = [
   'cogs.internet',
   'cogs.quotes',
   'cogs.server',
-  'cogs.regex'
+  'cogs.regex',
+  'cogs.groupme'
 ]
 
 discord_logger = logging.getLogger('discord')

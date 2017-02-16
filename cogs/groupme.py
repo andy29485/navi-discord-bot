@@ -82,7 +82,7 @@ class General:
     except:
       pass
 
-  async def poll()
+  async def poll():
     for bot in self.g_bots():
       messages     = []
       all_messages = self.g_groups[bot.group_id].messages()

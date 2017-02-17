@@ -20,18 +20,11 @@ class General:
 
     for discord_chan_id in self.conf['links']:
       g_id    = self.conf['links'][discord_chan_id]
-      group   = None
+      group, bot = self.get_group_bot(gid)
 
-      for g in groupy.Group.list():
-        if g.id == g_id:
-          group = g
-          break
       if not group:
         continue
 
-      g_bot   = groupy.Bot.create('Navi', group,
-                                 image_url=self.bot.user.avatar_url
-      )
       channel = self.bot.get_channel(discord_chan_id)
 
       self.d_chans[channel] = g_bot
@@ -44,19 +37,12 @@ class General:
 
   @commands.command()
   async def add_groupme_link(self, *, g_id : str):
-    group = None
+    group, bot = self.get_group_bot(gid)
 
-    for g in groupy.Group.list():
-      if str(g.id) == str(g_id):
-        group = g
-        break
     if not group:
       await self.bot.say(formatter.error("I am not in a group with that id"))
       return
 
-    g_bot   = groupy.Bot.create('Navi', group,
-                                avatar_url=self.bot.user.avatar_url
-    )
     channel = ctx.message.channel
 
     self.conf['links'][channel.id] = g_id
@@ -102,6 +88,29 @@ class General:
 
     await asyncio.sleep(15)
     self.loop.create_task(self.poll())
+
+  self.get_group_bot(self, gid):
+    group = None
+    g_bot = None
+
+    for g in groupy.Group.list():
+      if str(g.id) == str(g_id):
+        group = g
+        break
+
+    if not group:
+      return None, None
+
+    for bot in groupy.Bot.list():
+      if str(bot.group_id) == str(g_id):
+        g_bot = bot
+        break
+
+    if not g_bot:
+      g_bot = groupy.Bot.create('Navi', group,
+                                avatar_url=self.bot.user.avatar_url
+      )
+    return group, g_bot
 
 def setup(bot):
   g = General(bot)

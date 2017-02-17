@@ -4,6 +4,7 @@
 #config files
 configs/
 configs.bac/
+groupy/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

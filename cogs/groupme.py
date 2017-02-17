@@ -3,12 +3,13 @@
 import re
 import groupy
 import asyncio
+from discord import Embed
 from discord.ext import commands
 from .utils.config import Config
 from .utils import format as formatter
 
-colours = [0x1abc9c, 0x11806a, 0x2ecc71, 0x1f8b4c, 0x3498db, 0x206694,
-           0x9b59b6, 0x71368a, 0xe91e63, 0xad1457, 0xf1c40f, 0xc27c0e,
+colours = [0x1abc9c, 0x11806a, 0xad1457, 0x1f8b4c, 0x3498db, 0x206694,
+           0x9b59b6, 0x71368a, 0xe91e63, 0x2ecc71, 0xf1c40f, 0xc27c0e,
            0xe67e22, 0xa84300, 0xe74c3c, 0x992d22]
 
 groupme_objects = {}
@@ -20,9 +21,8 @@ class GroupMe:
     self.loop     = bot.loop
     self.l_bots   = []
     self.g_bots   = {}
-    self.d_chans  = {}
     self.g_groups = {}
-
+    self.d_chans  = {}
 
     if 'g_old' not in self.conf:
       self.conf['g_old'] = {}
@@ -35,30 +35,36 @@ class GroupMe:
     groupy.config.API_KEY = self.conf['key']
 
     for discord_chan_id in self.conf['links']:
-      g_id         = self.conf['links'][discord_chan_id]
-      group, g_bot = self.get_group_bot(g_id)
+      for g_id in self.conf['links'][discord_chan_id]:
+        group, g_bot = self.get_group_bot(g_id)
 
-      if not group:
-        continue
+        #print('linking discord({}) to groupme({})'.format(discord_chan_id, g_id))
 
-      channel = self.bot.get_channel(discord_chan_id)
-      if not channel:                                                                                                                                   
-        print('error chan')
-        continue
+        if not group:
+          #print('could not find group')
+          continue
 
-      if g_id not in self.g_groups:
-        self.l_bots.append(g_bot)
-        self.g_groups[g_id] = group
+        channel = self.bot.get_channel(discord_chan_id)
+        if not channel:                                                                                                                                   
+          #print('error chan')
+          continue
 
-      if channel_id in self.g_bots:
-        self.g_bots[channel_id].append(g_bot)
-      else
-        self.g_bots[channel_id] = [g_bot]
+        if g_id not in self.g_groups:
+          #print('new g_groups: {} -> {}'.format(g_id, str(group))) 
+          self.l_bots.append(g_bot)
+          self.g_groups[g_id] = group
 
-      if g_id in self.d_chans:
-        self.d_chans[g_id].append(channel)
-      else
-        self.d_chans[g_id] = [channel]
+        if channel.id in self.g_bots:
+          self.g_bots[channel.id].append(g_bot)
+          #print('append g_bots: {}'.format(str(self.g_bots)))
+        else:
+          self.g_bots[channel.id] = [g_bot]
+          #print('new g_bots: {}'.format(str(self.g_bots)))
+
+        if g_id in self.d_chans:
+          self.d_chans[g_id].append(channel)
+        else:
+          self.d_chans[g_id] = [channel]
 
     self.loop.create_task(self.poll())
 
@@ -76,17 +82,19 @@ class GroupMe:
       self.l_bots.append(g_bot)
       self.g_groups[g_id] = group
 
-    if channel_id in self.g_bots:
-      self.g_bots[channel_id].append(g_bot)
-      self.conf['links'][channel_id].append(g_id)
-    else
-      self.g_bots[channel_id] = [g_bot]
-      self.conf['links'][channel_id] = [g_id]
+    if channel.id in self.g_bots:
+      self.g_bots[channel.id].append(g_bot)
+      self.conf['links'][channel.id].append(g_id)
+    else:
+      self.g_bots[channel.id] = [g_bot]
+      self.conf['links'][channel.id] = [g_id]
 
     if g_id in self.d_chans:
       self.d_chans[g_id].append(channel)
-    else
+    else:
       self.d_chans[g_id] = [channel]
+
+    if g_id not in self.g_groups:
       self.conf['g_old'][g_id] = None
 
     self.conf.save()
@@ -101,19 +109,23 @@ class GroupMe:
       return
 
     try:
-      g_bots = self.g_bots[message.channel]
+      g_bots = self.g_bots[message.channel.id]
       text  = u'<\u200b{}> {}'.format(message.author.name, message.content)
       for a in message.attachments:
         text += '\n{}'.format(str(a)) #TODO - I *think* attachments are strs
       for g_bot in g_bots:
         await self.loop.run_in_executor(None, g_bot.post, text)
     except:
+      #print(self.g_bots)
       pass
 
   async def link_from_groupme(self, message, channels):
     try:
+      #print('      send g->d - get message')
       text = message.text
+      #print('      send g->d - get attach')
       for a in message.attachments:
+        #print('        attach process')
         if type(a) == groupy.object.attachments.Location:
           text += '\n[{} - ({}, {})]'.format(a.name, a.lat, a.lng)
         elif type(a) == groupy.object.attachments.Image:
@@ -123,41 +135,59 @@ class GroupMe:
         elif type(a) == groupy.object.attachments.Emoji:
           pass #TODO maybe when their doc explain how this works
 
+      #print('      send g->d - get color')
       c = colours[message.name.__hash__() % len(colours)]
 
-      em = discord.Embed(title='', description=text, colour=c)
-      em.set_author(name=message.name, icon_url=messages.avatar_url)
+      #print('      send g->d - create embed')
+      em = Embed(title='', description=text, colour=c)
+      #print('      send g->d - set embed message')
+      em.set_author(name=message.name, icon_url=message.avatar_url)
+      #print('      send g->d - send embed to channel(s)')
       for channel in channels:
+        #print('        sending {} to {}'.format(str(em), str(channel)))
         await self.bot.send_message(channel, embed=em)
+      #print('      send g->d - all ok')
     except:
       pass
 
   async def poll(self):
+    #print('polling')
     for bot in self.l_bots:
+      #print('  group: {}'.format(str(self.g_groups[bot.group_id])))
       messages = []
       channels = self.d_chans[bot.group_id]
 
+      #print('    p refresh')
       self.g_groups[bot.group_id].refresh()
       all_messages = self.g_groups[bot.group_id].messages()
 
+      #print('    p splice')
       for message in all_messages:
+        #print('      check 1')
         if message.id == self.conf['g_old'][bot.group_id]:
           break
+        #print('      check 2') 
         if not message.text.startswith(u'<\u200b'):
           messages.append(message)
 
+      #print('    p save progress') 
       if len(all_messages) > 0:
         self.conf['g_old'][bot.group_id] = all_messages.newest.id
         self.conf.save()
 
+      #print('    p send')
       for message in reversed(messages):
         await self.link_from_groupme(message, channels)
 
+    #print('    p wait')
     await asyncio.sleep(4)
-    if self.bot.id in groupme_objects and groupme_objects[self.bot.id] == self:
-      self.loop.create_task(self.poll())
+    #print('    p queue')
+    if self.bot.user.id in groupme_objects and \
+       groupme_objects[self.bot.user.id] == self:
+         self.loop.create_task(self.poll())
     else:
-      print('cannot poll, must end')
+      pass
+      #print('cannot poll, must end')
 
   def get_group_bot(self, g_id):
     group = None
@@ -184,10 +214,10 @@ class GroupMe:
 
 
 def teardown(bot):
-  del groupme_objects[bot.id]
+  del groupme_objects[bot.user.id]
 
 def setup(bot):
   g = GroupMe(bot)
-  groupme_objects[bot.id] = g
+  groupme_objects[bot.user.id] = g
   bot.add_listener(g.link_from_discord, "on_message")
   bot.add_cog(g)

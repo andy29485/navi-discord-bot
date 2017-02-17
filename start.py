@@ -41,7 +41,7 @@ help_attrs = dict(hidden=True)
 bot = commands.Bot(command_prefix=prefix, description=description,
                    pm_help=None, help_attrs=help_attrs)
 
-@bot.event
+@bot.async_event
 async def on_ready():
   for cog in starting_cogs:                                                                                                                              
     try:                                                                                                                                                 
@@ -55,7 +55,7 @@ async def on_ready():
   if not hasattr(bot, 'uptime'):
     bot.uptime = datetime.datetime.utcnow()
 
-@bot.event
+@bot.async_event
 async def on_command_error(error, ctx):
   if isinstance(error, commands.NoPrivateMessage):
     await bot.send_message(ctx.message.author, formatter.error(
@@ -76,11 +76,11 @@ async def on_command_error(error, ctx):
   else:
     await bot.send_message(ctx.message.channel, formatter.error(str(error)))
 
-@bot.event
+@bot.async_event
 async def on_resumed():
   print('resuming...')
 
-@bot.event
+@bot.async_event
 async def on_command(command, ctx):
   msg = ctx.message
   chan = None
@@ -92,7 +92,7 @@ async def on_command(command, ctx):
   log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(
             msg, chan))
 
-@bot.event
+@bot.async_event
 async def on_message(message):
   if message.author.bot:
     return

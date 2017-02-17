@@ -43,6 +43,11 @@ bot = commands.Bot(command_prefix=prefix, description=description,
 
 @bot.event
 async def on_ready():
+  for cog in starting_cogs:                                                                                                                              
+    try:                                                                                                                                                 
+      bot.load_extension(cog)                                                                                                                            
+    except Exception as e:                                                                                                                               
+      print('Failed to load cog {}\n{}: {}'.format(cog, type(e).__name__, e))
   print('Logged in as:')
   print('Username: ' + bot.user.name + '#' +bot.user.discriminator)
   print('ID: ' + bot.user.id)
@@ -94,12 +99,6 @@ async def on_message(message):
 
   if not re.search('^[\\.!\\?\\$]{2,}', message.content):
     await bot.process_commands(message)
-
-for cog in starting_cogs:
-  try:
-    bot.load_extension(cog)
-  except Exception as e:
-    print('Failed to load cog {}\n{}: {}'.format(cog, type(e).__name__, e))
 
 auth = Config('configs/auth.json')
 

@@ -23,7 +23,7 @@ class Server:
       await self.bot.say('umm... no')
       return
 
-    deleted = await self.bot.purge_from(ctx.message.channel, num_to_delete)
+    deleted = await self.bot.purge_from(ctx.message.channel,limit=num_to_delete)
     await self.bot.say('Deleted {} message{}'.format(len(deleted),
                                                '' if len(deleted) == 1 else 's')
     )

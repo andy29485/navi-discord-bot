@@ -20,7 +20,7 @@ class General:
 
     for discord_chan_id in self.conf['links']:
       g_id    = self.conf['links'][discord_chan_id]
-      group, bot = self.get_group_bot(gid)
+      group, bot = self.get_group_bot(g_id)
 
       if not group:
         continue
@@ -37,7 +37,7 @@ class General:
 
   @commands.command()
   async def add_groupme_link(self, *, g_id : str):
-    group, bot = self.get_group_bot(gid)
+    group, bot = self.get_group_bot(g_id)
 
     if not group:
       await self.bot.say(formatter.error("I am not in a group with that id"))
@@ -89,7 +89,7 @@ class General:
     await asyncio.sleep(15)
     self.loop.create_task(self.poll())
 
-  def get_group_bot(self, gid):
+  def get_group_bot(self, g_id):
     group = None
     g_bot = None
 

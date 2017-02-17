@@ -49,14 +49,15 @@ class General:
     group = None
 
     for g in groupy.Group.list():
-      if g.id == g_id:
+      if str(g.id) == str(g_id):
         group = g
         break
     if not group:
       await self.bot.say(formatter.error("I am not in a group with that id"))
+      return
 
     g_bot   = groupy.Bot.create('Navi', group,
-                                image_url=self.bot.user.avatar_url
+                                avatar_url=self.bot.user.avatar_url
     )
     channel = ctx.message.channel
 

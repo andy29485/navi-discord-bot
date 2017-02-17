@@ -100,7 +100,7 @@ class General:
         await self.link_from_groupme(message, self.g_bots[bot])
 
     await asyncio.sleep(15)
-    asyncio.aync(self.poll)
+    self.loop.create_task(self.poll)
 
 def setup(bot):
   g = General(bot)

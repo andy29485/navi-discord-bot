@@ -2,10 +2,14 @@
 
 import re
 import asyncio
-from groupy import Bot, Group
+import importlib
 from discord.ext import commands
 from .utils.config import Config
 from .utils import format as formatter
+
+groupyimportlib.import_module('groupy')
+Bot   = groupy.Bot
+Group = groupy.Group
 
 class General:
   def __init__(self, bot):

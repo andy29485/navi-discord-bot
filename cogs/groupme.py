@@ -8,9 +8,9 @@ from discord.ext import commands
 from .utils.config import Config
 from .utils import format as formatter
 
-colours = [0x1abc9c, 0x11806a, 0xad1457, 0x1f8b4c, 0x3498db, 0x206694,
-           0x9b59b6, 0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0xc27c0e,
-           0x2ecc71, 0xa84300, 0xe74c3c, 0x992d22]
+colours = [0xad1457, 0x1f8b4c, 0x3498db, 0x206694, 0x9b59b6,
+           0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0xc27c0e,
+           0x2ecc71, 0xa84300, 0xe74c3c, 0x11806a, 0x1abc9c]
 
 groupme_objects = {}
 
@@ -140,8 +140,13 @@ class GroupMe:
 
       #print('      send g->d - create embed')
       em = Embed(title='', description=text, colour=c)
-      #print('      send g->d - set embed message')
-      em.set_author(name=message.name, icon_url=message.avatar_url)
+      #print('      send g->d - set author: {} [{}]'.format(str(message.name),
+      #                                               str(message.avatar_url)
+      #))
+      if message.avatar_url:
+        em.set_author(name=str(message.name), icon_url=str(message.avatar_url))
+      else:
+        em.set_author(name=str(message.name))
       #print('      send g->d - send embed to channel(s)')
       for channel in channels:
         #print('        sending {} to {}'.format(str(em), str(channel)))
@@ -186,8 +191,8 @@ class GroupMe:
        groupme_objects[self.bot.user.id] == self:
          self.loop.create_task(self.poll())
     else:
-      pass
       #print('cannot poll, must end')
+      pass
 
   def get_group_bot(self, g_id):
     group = None
@@ -196,7 +201,7 @@ class GroupMe:
     for g in groupy.Group.list():
       if str(g.id) == str(g_id):
         group = g
-        break
+        #break
 
     if not group:
       return None, None

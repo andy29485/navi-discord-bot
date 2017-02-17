@@ -37,7 +37,7 @@ class General:
 
   @commands.command(pass_context=True)
   async def add_groupme_link(self, ctx, g_id : str):
-    group, bot = self.get_group_bot(g_id)
+    group, g_bot = self.get_group_bot(g_id)
 
     if not group:
       await self.bot.say(formatter.error("I am not in a group with that id"))

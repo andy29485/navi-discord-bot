@@ -7,7 +7,6 @@ import asyncio
 from urllib import parse as urlencode
 from discord.ext import commands
 from .utils import format as formatter
-from .utils import perms
 from .utils.poll import Poll
 from .utils.config import Config
 

@@ -89,7 +89,7 @@ class General:
     await asyncio.sleep(15)
     self.loop.create_task(self.poll())
 
-  self.get_group_bot(self, gid):
+  def get_group_bot(self, gid):
     group = None
     g_bot = None
 

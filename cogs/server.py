@@ -13,6 +13,22 @@ class Server:
     self.bot      = bot
     self.timeouts = {}
 
+  @perms.has_perms(manage_messages=True)
+  @commands.command(name='prune', pass_context=True)
+  async def _prune(self. ctx, num_to_delete : int):
+    if num > 100:
+      await self.bot.say('Sorry, only up to 100')
+      return
+    if num < 1:
+      await self.bot.say('umm... no')
+      return
+
+    deleted = await self.bot.purge_from(ctx.message.channel, num_to_delete)
+    await self.bot.say('Deleted {} message{}'.format(len(deleted),
+                                               '' if len(deleted) == 1 else 's')
+    )
+    
+  
   @perms.has_perms(manage_roles=True)
   @commands.command(name='timeout_send', aliases=['ts'], pass_context=True)
   async def _timeout_send(self, ctx, member: discord.Member, time: float = 300):

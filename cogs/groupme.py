@@ -47,11 +47,12 @@ class GroupMe:
     channel = ctx.message.channel
 
     self.conf['links'][channel.id] = g_id
+    self.conf.save()
 
-    self.d_chans[channel] = g_bot
-    self.g_bots[g_bot]    = channel
-    self.g_old[g_id]      = None
-    self.g_groups[g_id]   = group
+    self.d_chans[channel.id] = g_bot
+    self.g_bots[g_bot]       = channel
+    self.g_old[g_id]         = None
+    self.g_groups[g_id]      = group
 
     await self.bot.say(formatter.ok())
 
@@ -60,11 +61,11 @@ class GroupMe:
       return
 
     try:
-      g_bot = self.d_chans[message.channel]
+      g_bot = self.d_chans[message.channel.id]
       text  = '<{}> {}'.format(message.author.nick, message.content)
       await loop.run_in_executor(None, g_bot.post, text)
     except:
-      pass
+      raise
 
 
   async def link_from_groupme(self, message, channel):
@@ -72,7 +73,7 @@ class GroupMe:
       text = '<{}> {}'.format(message.name, message.text)
       await self.bot.send_message(channel, text)
     except:
-      pass
+      raise
 
   async def poll(self):
     for bot in self.g_bots():

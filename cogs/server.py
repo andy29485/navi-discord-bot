@@ -16,10 +16,10 @@ class Server:
   @perms.has_perms(manage_messages=True)
   @commands.command(name='prune', pass_context=True)
   async def _prune(self, ctx, num_to_delete : int):
-    if num > 100:
+    if num_to_delete > 100:
       await self.bot.say('Sorry, only up to 100')
       return
-    if num < 1:
+    if num_to_delete < 1:
       await self.bot.say('umm... no')
       return
 

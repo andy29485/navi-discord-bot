@@ -39,7 +39,7 @@ class General:
       self.g_old[g_id]      = None
       self.g_groups[g_id]   = group
 
-    asyncio.aync(self.poll)
+    self.loop.create_task(self.poll())
     #TODO {'28986169':''}
 
 
@@ -48,7 +48,7 @@ class General:
     g_id  = ctx.message.content
     group = None
 
-    for g in Group.list():
+    for g in groupy.Group.list():
       if g.id == g_id:
         group = g
         break
@@ -86,7 +86,7 @@ class General:
     except:
       pass
 
-  async def poll():
+  async def poll(self):
     for bot in self.g_bots():
       messages     = []
       all_messages = self.g_groups[bot.group_id].messages()
@@ -100,7 +100,7 @@ class General:
         await self.link_from_groupme(message, self.g_bots[bot])
 
     await asyncio.sleep(15)
-    self.loop.create_task(self.poll)
+    self.loop.create_task(self.poll())
 
 def setup(bot):
   g = General(bot)

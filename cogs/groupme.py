@@ -35,8 +35,8 @@ class General:
     self.loop.create_task(self.poll())
 
 
-  @commands.command()
-  async def add_groupme_link(self, *, g_id : str):
+  @commands.command(pass_context=True)
+  async def add_groupme_link(self, ctx, g_id : str):
     group, bot = self.get_group_bot(g_id)
 
     if not group:

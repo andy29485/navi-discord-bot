@@ -39,7 +39,7 @@ class General:
       self.g_old[g_id]      = None
       self.g_groups[g_id]   = group
 
-    self.loop.call_later(5, self.poll)
+    asyncio.aync(self.poll)
     #TODO {'28986169':''}
 
 
@@ -99,7 +99,8 @@ class General:
       for message in reversed(messages):
         await self.link_from_groupme(message, self.g_bots[bot])
 
-    self.loop.call_later(15, self.poll)
+    await asyncio.sleep(15)
+    asyncio.aync(self.poll)
 
 def setup(bot):
   g = General(bot)

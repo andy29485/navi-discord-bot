@@ -40,12 +40,10 @@ class General:
       self.g_groups[g_id]   = group
 
     self.loop.create_task(self.poll())
-    #TODO {'28986169':''}
 
 
-  @commands.command(pass_context=True)
-  async def add_groupme_link(self, ctx):
-    g_id  = ctx.message.content
+  @commands.command()
+  async def add_groupme_link(self, *, g_id : str):
     group = None
 
     for g in groupy.Group.list():
@@ -60,6 +58,8 @@ class General:
                                 avatar_url=self.bot.user.avatar_url
     )
     channel = ctx.message.channel
+
+    self.conf['links'][channel.id] = g_id
 
     self.d_chans[channel] = g_bot
     self.g_bots[g_bot]    = channel

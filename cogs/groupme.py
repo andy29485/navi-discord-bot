@@ -7,14 +7,15 @@ from discord.ext import commands
 from .utils.config import Config
 from .utils import format as formatter
 
-class General:
+class GroupMe:
   def __init__(self, bot):
-    self.conf    = Config('configs/groupme.json')
-    self.bot     = bot
-    self.loop    = bot.loop
-    self.g_bots  = {}
-    self.g_old   = {}
-    self.d_chans = {}
+    self.conf     = Config('configs/groupme.json')
+    self.bot      = bot
+    self.loop     = bot.loop
+    self.g_bots   = {}
+    self.g_old    = {}
+    self.d_chans  = {}
+    self.g_groups = {}
 
     groupy.config.API_KEY = self.conf['key']
 
@@ -113,7 +114,7 @@ class General:
     return group, g_bot
 
 def setup(bot):
-  g = General(bot)
+  g = GroupMe(bot)
   bot.add_listener(g.link_from_discord, "on_message")
   bot.add_cog(g)
 

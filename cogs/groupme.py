@@ -9,8 +9,8 @@ from .utils.config import Config
 from .utils import format as formatter
 
 colours = [0x1abc9c, 0x11806a, 0xad1457, 0x1f8b4c, 0x3498db, 0x206694,
-           0x9b59b6, 0x71368a, 0xe91e63, 0x2ecc71, 0xf1c40f, 0xc27c0e,
-           0xe67e22, 0xa84300, 0xe74c3c, 0x992d22]
+           0x9b59b6, 0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0xc27c0e,
+           0x2ecc71, 0xa84300, 0xe74c3c, 0x992d22]
 
 groupme_objects = {}
 
@@ -29,9 +29,9 @@ class GroupMe:
     if 'links' not in self.conf:
       self.conf['links'] = {}
     if 'key' not in self.conf:
-      self.conf['key'] = input('please enter your GroupMe api key ')
+      self.conf['key'] = input('Please enter your GroupMe api key: ').strip()
     self.conf.save()
-    
+
     groupy.config.API_KEY = self.conf['key']
 
     for discord_chan_id in self.conf['links']:
@@ -45,7 +45,7 @@ class GroupMe:
           continue
 
         channel = self.bot.get_channel(discord_chan_id)
-        if not channel:                                                                                                                                   
+        if not channel:
           #print('error chan')
           continue
 
@@ -136,7 +136,7 @@ class GroupMe:
           pass #TODO maybe when their doc explain how this works
 
       #print('      send g->d - get color')
-      c = colours[message.name.__hash__() % len(colours)]
+      c = colours[str(message.name).strip().__hash__() % len(colours)]
 
       #print('      send g->d - create embed')
       em = Embed(title='', description=text, colour=c)

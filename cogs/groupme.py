@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import re
+import groupy
 import asyncio
-from groupy import Bot, Group
 from discord.ext import commands
 from .utils.config import Config
 from .utils import format as formatter
@@ -22,14 +22,16 @@ class General:
       g_id    = self.conf['links'][discord_chan_id]
       group   = None
 
-      for g in Group.list():
+      for g in groupy.Group.list():
         if g.id == g_id:
           group = g
           break
       if not group:
         continue
 
-      g_bot   = Bot.create('Navi', group, image_url=self.bot.user.avatar_url)
+      g_bot   = groupy.Bot.create('Navi', group,
+                                 image_url=self.bot.user.avatar_url
+      )
       channel = self.bot.get_channel(discord_chan_id)
 
       self.d_chans[channel] = g_bot
@@ -53,7 +55,9 @@ class General:
     if not group:
       await self.bot.say(formatter.error("I am not in a group with that id"))
 
-    g_bot   = Bot.create('Navi', group, image_url=self.bot.user.avatar_url)
+    g_bot   = groupy.Bot.create('Navi', group,
+                                image_url=self.bot.user.avatar_url
+    )
     channel = ctx.message.channel
 
     self.d_chans[channel] = g_bot

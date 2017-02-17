@@ -39,7 +39,7 @@ class General:
       self.g_old[g_id]      = None
       self.g_groups[g_id]   = group
 
-    self.loop.call_soon(self.poll)
+    self.loop.call_later(5, self.poll)
     #TODO {'28986169':''}
 
 

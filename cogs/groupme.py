@@ -106,35 +106,32 @@ class GroupMe:
     if message.author.bot:
       return
 
-    if message.content.startswith('.add_groupme_link'):
+    if re.search('^[\\.!\\?\\$]add_groupme_link', message.content):
       return
 
     try:
+      #print('   send d->h - get bots')
       g_bots = self.g_bots[message.channel.id]
-      text  = u'<\u200b{}> {}'.format(message.author.name, message.content)
+      #print('   send d->h - get message') 
+      text   = u'<\u200b{}> {}'.format(message.author.name, message.content)
+      attach = []
+      #print('   send d->h - get attach') 
       for a in message.attachments:
-        text += '\n{}'.format(str(a)) #TODO - I *think* attachments are strs
+        #print('     send d->h - get create attach: {}'.format(a['url'])) 
+        attach.append(groupy.object.attachments.Image(a['url']))
+      #print('   send d->h - send to bots') 
       for g_bot in g_bots:
-        await self.loop.run_in_executor(None, g_bot.post, text)
+        #print('   send d->h - sending to: {}'.format(str(g_bot)))
+        await self.loop.run_in_executor(None, g_bot.post, text, *attach)
     except:
       #print(self.g_bots)
+      #raise
       pass
 
   async def link_from_groupme(self, message, channels):
     try:
       #print('      send g->d - get message')
       text = message.text
-      #print('      send g->d - get attach')
-      for a in message.attachments:
-        #print('        attach process')
-        if type(a) == groupy.object.attachments.Location:
-          text += '\n[{} - ({}, {})]'.format(a.name, a.lat, a.lng)
-        elif type(a) == groupy.object.attachments.Image:
-          text += '\n[{}]'.format(a.url)
-        elif type(a) == groupy.object.attachments.Mentions:
-          pass #TODO at some point?
-        elif type(a) == groupy.object.attachments.Emoji:
-          pass #TODO maybe when their doc explain how this works
 
       name_hash = hashlib.md5()
       name_hash.update(str(message.name).strip().encode())
@@ -149,6 +146,26 @@ class GroupMe:
 
       #print('      send g->d - create embed')
       em = Embed(title='', description=text, colour=c)
+
+      #print('      send g->d - get attach')
+      for a in message.attachments:
+        #print('        attach process')
+        if type(a) == groupy.object.attachments.Location:
+          em.add_field(name='Location: '+a.name,                                                                                          
+                       value=('({}, {})'.format(a.lat, a.lng)),
+                       inline=False                                                                                                       
+          )
+        elif type(a) == groupy.object.attachments.Image:
+          #print('        found image: {}'.format(str(a.url)))
+          em.add_field(name='img',
+                       value=(str(a.url)),
+                       inline=False
+          )
+        elif type(a) == groupy.object.attachments.Mentions:
+          pass #TODO at some point?
+        elif type(a) == groupy.object.attachments.Emoji:
+          pass #TODO maybe when their doc explain how this works
+
       #print('      send g->d - set author: {} [{}]'.format(str(message.name),
       #                                               str(message.avatar_url)
       #))
@@ -162,6 +179,7 @@ class GroupMe:
         await self.bot.send_message(channel, embed=em)
       #print('      send g->d - all ok')
     except:
+      #raise
       pass
 
   async def poll(self):
@@ -181,7 +199,7 @@ class GroupMe:
         if message.id == self.conf['g_old'][bot.group_id]:
           break
         #print('      check 2') 
-        if not message.text.startswith(u'<\u200b'):
+        if not message.text or not message.text.startswith(u'<\u200b'):
           messages.append(message)
 
       #print('    p save progress') 

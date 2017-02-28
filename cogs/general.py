@@ -63,8 +63,8 @@ class General:
         await self.bot.send_message(message.channel, msg)
         return
 
-  @commands.command(aliases=["r"], pass_context=True)
-  async def roll(self, ctx, *dice):
+  @commands.command(name='roll', aliases=['r', 'clench'], pass_context=True)
+  async def _roll(self, ctx, *dice):
     'rolls dice given pattern [Nd]S'
     roll = '\n'.join(self.rolls(dice))
     message = ctx.message.author.mention + ':\n'
@@ -117,11 +117,17 @@ class General:
         message = 'Invalid roll'
       else:
         times = 1
+        sides = int(match.group(3))
         if match.group(2):
           times = int(match.group(2))
-        for i in range(times):
-          sides = int(match.group(3))
-          message += '{}, '.format(random.randint(1, sides))
+
+        if times > 100:
+          message = 'Cannot roll that many dice'
+        elif sides > 120:
+          message = 'Cannot find a dice with that many sides'
+        else:
+          for i in range(times):
+            message += '{}, '.format(random.randint(1, sides))
         message = message[:-2]
       out.append('{}: {}'.format(roll, message))
     return out

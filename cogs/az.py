@@ -61,6 +61,10 @@ class AZ:
     await self.bot.say('\n( ͡° ͜ʖ ͡° )'*first)
 
   @commands.command()
+  async def shrug(self):
+    await self.bot.say('\n¯\_(ツ)_/¯')
+
+  @commands.command()
   async def lennytipede(self):
     await self.bot.say(code(that))
 

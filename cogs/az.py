@@ -84,8 +84,10 @@ class AZ:
         search = search[:i] + search[j+1:]
         break
 
+    loop = asyncio.get_event_loop()
     try:
-      path = azfind.search(self.conf['path'], search)
+      f = loop.run_in_executor(None, azfind.search, self.conf['path'], search)
+      path = await f
     except:
       path = ''
 
@@ -94,7 +96,6 @@ class AZ:
       return
 
     try:
-      loop = asyncio.get_event_loop()
       future_url = loop.run_in_executor(None, self.get_url, path)
       url = await future_url
     except:

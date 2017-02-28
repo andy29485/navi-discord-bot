@@ -27,6 +27,7 @@ class General:
     chan = message.channel
     user = message.author
     mess = message.content
+    loop = asyncio.get_event_loop()
 
     #bots don't get a vote
     if user.bot:
@@ -37,7 +38,7 @@ class General:
       return
 
     if chan in self.polls:
-      self.polls[chan].vote(user, mess)
+      await loop.run_in_executor(None, self.polls[chan].vote, user, mess)
 
   async def respond(self, message):
     if message.author.bot:
@@ -46,6 +47,8 @@ class General:
     if len(message.content.strip()) < 2 or \
        message.content.strip()[0] in self.bot.command_prefix + ['$','?']:
       return
+
+    loop = asyncio.get_event_loop()
 
     for i in self.conf['responses']:
       if re.search("(?i){}".format(i[0]), message.content):
@@ -58,7 +61,7 @@ class General:
         for j in re.findall("\\(.*\\|.*\\)", rep):
           rep = rep.replace(j, random.choice(j[1:-1].split("|")))
         for j in subs:
-          rep = re.sub(j, subs[j], rep)
+          rep = await loop.run_in_executor(None, re.sub, j, subs[j], rep)
         msg = re.sub("(?i){}".format(i[0]), rep, message.content)
         await self.bot.send_message(message.channel, msg)
         return
@@ -66,7 +69,9 @@ class General:
   @commands.command(name='roll', aliases=['r', 'clench'], pass_context=True)
   async def _roll(self, ctx, *dice):
     'rolls dice given pattern [Nd]S'
-    roll = '\n'.join(self.rolls(dice))
+    loop = asyncio.get_event_loop()
+
+    roll = '\n'.join(await loop.run_in_executor(None, self.rolls, dice))
     message = ctx.message.author.mention + ':\n'
     if '\n' in roll:
       message += formatter.code(roll)

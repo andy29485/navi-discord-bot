@@ -122,13 +122,13 @@ class General:
           times = int(match.group(2))
 
         if times > 100:
-          message = 'Cannot roll that many dice'
+          message = 'Cannot roll that many dice  '
         elif sides > 120:
-          message = 'Cannot find a dice with that many sides'
+          message = 'Cannot find a dice with that many sides  '
         elif times < 1:
-          message = 'How?'
+          message = 'How?  '
         elif sides < 2:
-          message = 'No'
+          message = 'No  '
         else:
           for i in range(times):
             message += '{}, '.format(random.randint(1, sides))

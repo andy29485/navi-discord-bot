@@ -63,7 +63,7 @@ class General:
         await self.bot.send_message(message.channel, msg)
         return
 
-  @commands.command(pass_context=True)
+  @commands.command(aliases=["r"], pass_context=True)
   async def roll(self, ctx, *dice):
     'rolls dice given pattern [Nd]S'
     roll = '\n'.join(self.rolls(dice))
@@ -74,7 +74,7 @@ class General:
       message += formatter.inline(roll)
     await self.bot.say(message)
 
-  @commands.command(name="8", aliases=["8ball"])
+  @commands.command(name="8ball", aliases=["8"])
   async def _8ball(self, *, question : str):
     """Ask 8 ball a question
     Question must end with a question mark.

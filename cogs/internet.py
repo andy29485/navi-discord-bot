@@ -11,12 +11,17 @@ from lxml import etree
 class Search:
   def __init__(self, bot):
     self.bot = bot
-  
-  @commands.command(name='google', aliases=['g'])
+
+  @commands.command(name='duckduckgo', aliases=['ddg', 'd', 'g'])
   async def google(self, *, query):
-    """Searches google and gives you top results."""
+    """
+    Searches DuckDuckGo and gives you top results.
+
+    Google had too many licencing issues
+    and the `g` alias is kept for convinece
+    """
     try:
-      entries = await self.get_google_entries(query)
+      entries = await self.get_search_entries(query)
     except RuntimeError as e:
       await self.bot.say(str(e))
     else:
@@ -28,56 +33,34 @@ class Search:
         msg = entries[0]
 
       await self.bot.say(msg)
-  
-  async def get_google_entries(self, query):
+
+  async def get_search_entries(self, query):
+    url = 'http://api.duckduckgo.com/'
     params = {
-      'q': query,
-      'safe': 'on'
+      'q'      : query,
+      'format' :'json',
+      'pretty' :0
     }
     headers = {
-      'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) '
+      'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0)'
     }
 
     # list of entries
     entries = []
 
-    async with aiohttp.get('https://www.google.com/search', params=params, headers=headers) as resp:
+
+    async with aiohttp.get(url, params=params, headers=headers) as resp:
       if resp.status != 200:
-        raise RuntimeError('Google somehow failed to respond.')
+        raise RuntimeError('DuckDuckGo somehow failed to respond.')
 
-      root = etree.fromstring(await resp.text(), etree.HTMLParser())
+      results = resp.json()
 
-      """
-      Tree looks like this.. sort of..
-      <div class="g">
-          ...
-          <h3>
-              <a href="/url?q=<url>" ...>title</a>
-          </h3>
-          ...
-          <span class="st">
-              <span class="f">date here</span>
-              summary here, can contain <em>tag</em>
-          </span>
-      </div>
-      """
-
-      search_nodes = root.findall(".//div[@class='g']")
-      for node in search_nodes:
-        entry_node = node.find(".//span[@class='st']")
-        if entry_node is None or not entry_node.text:
-          continue
-
-        url_node = node.find('.//h3/a')
-        if url_node is None:
-          continue
-
-        url = url_node.attrib['href']
-        if not url.startswith('/url?'):
-          continue
-
-        summary = html2text.html2text(etree.tostring(entry_node).decode('utf-8'))
-        url     = parse_qs(url[5:])['q'][0]
+      if results['Answer']:
+        entries.append(results['Answer'])
+      for result in results['Results'] + results['RelatedTopics']:
+        summary = html2text.html2text(result['Result']).replace('\n', ' ')
+        url     = result(result['FirstURL'])
+        summery = re.sub(r'^\[[^\]]*\]\([^\)]*\) \\*- ', '', summery)
 
         # if I ever cared about the description, this is how
         entries.append('<{}>\n{}\n'.format(url, summary))

@@ -39,7 +39,7 @@ class Search:
     params = {
       'q'      : query,
       'format' :'json',
-      'pretty' :0
+      'pretty' : 0
     }
     headers = {
       'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0)'
@@ -53,7 +53,7 @@ class Search:
       if resp.status != 200:
         raise RuntimeError('DuckDuckGo somehow failed to respond.')
 
-      results = resp.json()
+      results = await resp.json()
 
       if results['Answer']:
         entries.append(results['Answer'])

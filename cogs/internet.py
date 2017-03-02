@@ -58,7 +58,7 @@ class Search:
       results = await resp.json()
 
       if results['Answer']:
-        entries.append(results['Answer'])
+        entries.append(results['Answer'].strip()+'\n')
 
     async with aiohttp.get(url_g, params=params_g, headers=headers) as resp:
       if resp.status != 200:

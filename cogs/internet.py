@@ -58,12 +58,24 @@ class Search:
       if results['Answer']:
         entries.append(results['Answer'])
       for result in results['Results'] + results['RelatedTopics']:
-        summary = html2text.html2text(result['Result']).replace('\n', ' ')
-        url     = result(result['FirstURL'])
-        summery = re.sub(r'^\[[^\]]*\]\([^\)]*\) \\*- ', '', summery)
+        try:
+          if 'Topics' in result:
+            for r in result['Topics']:
+              summary = html2text.html2text(r['Result']).replace('\n', ' ')
+              url     = r['FirstURL']
+              summery = re.sub(r'^\[[^\]]*\]\([^\)]*\) \\*- ', '', summery)
 
-        # if I ever cared about the description, this is how
-        entries.append('<{}>\n{}\n'.format(url, summary))
+              # if I ever cared about the description, this is how
+              entries.append('<{}>\n{}\n'.format(url, summary))
+          else:
+            summary = html2text.html2text(result['Result']).replace('\n', ' ')
+            url     = result['FirstURL']
+            summery = re.sub(r'^\[[^\]]*\]\([^\)]*\) \\*- ', '', summery)
+
+            # if I ever cared about the description, this is how
+            entries.append('<{}>\n{}\n'.format(url, summary))
+        except:
+          pass
     return entries
 
 def setup(bot):

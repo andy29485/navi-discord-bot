@@ -51,7 +51,7 @@ class GroupMe:
           continue
 
         if g_id not in self.g_groups:
-          #print('new g_groups: {} -> {}'.format(g_id, str(group))) 
+          #print('new g_groups: {} -> {}'.format(g_id, str(group)))
           self.l_bots.append(g_bot)
           self.g_groups[g_id] = group
 
@@ -125,18 +125,18 @@ class GroupMe:
       #print('      send g->d - get text')
       text = message.text if message.text else ''
 
-      name_hash = hashlib.md5()                                         
-      name_hash.update(str(message.name).strip().encode())              
-      name_hash = int(name_hash.hexdigest(), 16)                        
+      name_hash = hashlib.md5()
+      name_hash.update(str(message.name).strip().encode())
+      name_hash = int(name_hash.hexdigest(), 16)
       #print('      send g->d - get color (\"{}\" -> {} % {} = {:02X})'.format(\
-      #         str(message.name).strip(),                               
-      #         name_hash,                                               
-      #         len(colours),                                            
-      #         colours[name_hash % len(colours)]                        
-      #))                                                                
+      #         str(message.name).strip(),
+      #         name_hash,
+      #         len(colours),
+      #         colours[name_hash % len(colours)]
+      #))
       c = colours[name_hash % len(colours)]
 
-      #print('      send g->d - create embed')      
+      #print('      send g->d - create embed')
       em = Embed(colour=c)
 
       #print('      send g->d - get attach')

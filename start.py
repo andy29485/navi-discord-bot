@@ -25,7 +25,8 @@ starting_cogs = [
   'cogs.server',
   'cogs.regex',
   'cogs.groupme',
-  'cogs.dnd'
+  'cogs.dnd',
+  'cogs.emby'
 ]
 
 discord_logger = logging.getLogger('discord')

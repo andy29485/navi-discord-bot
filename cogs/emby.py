@@ -46,6 +46,10 @@ class E:
       await self.bot.say('No results found')
       return
 
+    types_map = {'Series':0, 'Movie':1, 'Audio':2, 'Person':3}
+    m_size    = len(types_map)
+    results   = sorted(results, key = lambda x : types_map.get(x.type, m_size))
+
     for result in results[:num]:
       await loop.run_in_executor(None, result.update)
       em = await loop.run_in_executor(None, makeEmbed, result)

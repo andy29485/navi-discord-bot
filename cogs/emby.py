@@ -7,6 +7,7 @@ from discord import Embed
 import asyncio
 import hashlib
 from embypy import Emby
+from embypy.objects import EmbyObject
 import re
 
 colours = [0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
@@ -42,9 +43,7 @@ class E:
       query = match.group(2)
 
     results = await loop.run_in_executor(None, self.conn.search, query)
-    results = [i for i in results
-                  if issubclass(type(i), embypy.objects.EmbyObject)
-    ]
+    results = [i for i in results if issubclass(type(i), EmbyObject)]
     if not results:
       await self.bot.say('No results found')
       return

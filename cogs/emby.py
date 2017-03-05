@@ -42,6 +42,9 @@ class E:
       query = match.group(2)
 
     results = await loop.run_in_executor(None, self.conn.search, query)
+    results = [i for i in results
+                  if issubclass(type(i), embypy.objects.EmbyObject)
+    ]
     if not results:
       await self.bot.say('No results found')
       return

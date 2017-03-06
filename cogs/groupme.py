@@ -39,7 +39,7 @@ class GroupMe:
       for g_id in self.conf['links'][discord_chan_id]:
         group, g_bot = self.get_group_bot(g_id)
 
-        #print('linking discord({}) to groupme({})'.format(discord_chan_id, g_id))
+        #print('linked discord({}) to groupme({})'.format(discord_chan_id,g_id))
 
         if not group:
           #print('could not find group')
@@ -179,28 +179,32 @@ class GroupMe:
       messages = []
       channels = self.d_chans[bot.group_id]
 
-      #print('    p refresh')
-      self.g_groups[bot.group_id].refresh()
-      all_messages = self.g_groups[bot.group_id].messages()
+      try:
+        #print('    p refresh')
+        self.g_groups[bot.group_id].refresh()
+        all_messages = self.g_groups[bot.group_id].messages()
 
-      #print('    p splice')
-      for message in all_messages:
-        #print('      check 1')
-        if message.id == self.conf['g_old'][bot.group_id]:
-          break
-        #print('      check 2') 
-        if not message.text or not message.text.startswith(u'<\u200b'):
-          messages.append(message)
+        #print('    p splice')
+        for message in all_messages:
+          #print('      check 1')
+          if message.id == self.conf['g_old'][bot.group_id]:
+            break
+          #print('      check 2') 
+          if not message.text or not message.text.startswith(u'<\u200b'):
+            messages.append(message)
 
-      #print('    p save progress') 
-      if len(all_messages) > 0:
-        self.conf['g_old'][bot.group_id] = all_messages.newest.id
-        self.conf.save()
+        #print('    p save progress') 
+        if len(all_messages) > 0:
+          self.conf['g_old'][bot.group_id] = all_messages.newest.id
+          self.conf.save()
 
-      #print('    p send')
-      for message in reversed(messages):
-        await self.link_from_groupme(message, channels)
-
+        #print('    p send')
+        for message in reversed(messages):
+          await self.link_from_groupme(message, channels)
+      except:
+        #print('    polling failed')
+        pass
+ 
     #print('    p wait')
     await asyncio.sleep(4)
     #print('    p queue')
@@ -236,7 +240,7 @@ class GroupMe:
 
 
 def teardown(bot):
-  print('tearing down')
+  #print('tearing down')
   del groupme_objects[bot.user.id]
 
 def setup(bot):

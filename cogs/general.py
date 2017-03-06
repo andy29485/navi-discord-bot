@@ -145,8 +145,12 @@ class General:
   async def choose(self, ctx, *, choices):
     """Chooses a value from a comma seperated list"""
     choices = split(choices)
+    choice  = random.choice(choices)
+    choice  = re.sub(r'(?i)^(should)\s+I\s+', 'You \1 ')
+    choice  = re.sub(r'(?i)^([wcs]hould|can)\s+(\S+)\s+', '\2 \1 ')
+
     message = ctx.message.author.mention + ':\n'
-    message += formatter.inline(random.choice(choices))
+    message += formatter.inline(choice)
     await self.bot.say(message)
 
   @commands.command(pass_context=True, aliases=['a', 'ask'])

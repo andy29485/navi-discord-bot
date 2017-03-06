@@ -5,7 +5,7 @@
 configs/
 configs.bac/
 groupy/
-embypy/
+embypy
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

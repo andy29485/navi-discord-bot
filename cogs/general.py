@@ -146,8 +146,8 @@ class General:
     """Chooses a value from a comma seperated list"""
     choices = split(choices)
     choice  = random.choice(choices)
-    choice  = re.sub(r'(?i)^(should)\s+I\s+', 'You \1 ')
-    choice  = re.sub(r'(?i)^([wcs]hould|can)\s+(\S+)\s+', '\2 \1 ')
+    choice  = re.sub(r'(?i)^(should)\s+I\s+', r'You \1 ', choice)
+    choice  = re.sub(r'(?i)^([wcs]hould|can)\s+(\S+)\s+', r'\2 \1 ', choice)
 
     message = ctx.message.author.mention + ':\n'
     message += formatter.inline(choice)

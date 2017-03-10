@@ -6,6 +6,7 @@ import re
 from .utils import perms
 from discord.ext.commands.errors import CheckFailure
 import discord
+from .utils.format import *
 from discord.ext import commands
 
 class Server:
@@ -26,11 +27,13 @@ class Server:
     message = ' '.join(message)
 
     deleted = await self.bot.purge_from(ctx.message.channel,limit=num_to_delete)
-    await self.bot.say('Deleted {} message{} {}'.format(
+    await self.bot.say(formatter.ok(
+                                    'Deleted {} message{} {}'.format(
                                          len(deleted),
                                          '' if len(deleted) == 1    else 's',
                                          '('+message+')' if message else ''
-                                       ),
+                                     )
+                                   )
     )
 
 

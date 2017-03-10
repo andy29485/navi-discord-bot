@@ -27,28 +27,30 @@ class E:
       await self.bot.say(formatter.error("Please specify valid subcommand"))
 
   @emby.command(name='search', aliases=['find', 's'], pass_context=True)
-  async def _add(self, ctx, *, query):
+  async def _add(self, ctx, *, *query):
     """searches for query on emby, displays first result
 
     if first "word" in query is a number, returns that many results
     """
 
-    loop = asyncio.get_event_loop()
-    num = 1
-    match = re.search(query, '^(\\d+)\\s(.*)$')
-    if match:
-      num   = int(match.group(1))
-      num   = num if num < 5 else 5
-      num   = num if num > 1 else 1
-      query = match.group(2)
+    if len(query) < 1:
+      await self.bot.say(formatter.error('missing query'))
+      return
+    elif len(query) > 1 and re.search('^\\d+$', query[0]):
+      num   = int(query[0])
+      query = ' '.join(query[1:])
+    else:
+      num   = 1
+      query = ' '.join(query)
 
+    loop = asyncio.get_event_loop()
     results = await loop.run_in_executor(None, self.conn.search, query)
     results = [i for i in results if issubclass(type(i), EmbyObject)]
     if not results:
       await self.bot.say('No results found')
       return
 
-    types_map = {'Series':0, 'Movie':1, 'Audio':2, 'Person':3}
+    types_map = {'BoxSet':0, 'Series':1, 'Movie':2, 'Audio':3, 'Person':4}
     m_size    = len(types_map)
     results   = sorted(results, key = lambda x : types_map.get(x.type, m_size))
 

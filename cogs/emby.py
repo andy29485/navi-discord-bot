@@ -26,22 +26,29 @@ class E:
     if ctx.invoked_subcommand is None:
       await self.bot.say(formatter.error("Please specify valid subcommand"))
 
+  @emby.command(name='lookup', aliases=['info', 'i'], pass_context=True)
+  async def _info(self, ctx, *, item_id):
+    loop = asyncio.get_event_loop()
+    item = await loop.run_in_executor(None, self.conn.info, item_id)
+    em   = await loop.run_in_executor(None, makeEmbed, item)
+    await self.bot.send_message(ctx.message.channel, embed=em)
+
   @emby.command(name='search', aliases=['find', 's'], pass_context=True)
-  async def _add(self, ctx, *, *query):
+  async def _search(self, ctx, *, query : str):
     """searches for query on emby, displays first result
 
     if first "word" in query is a number, returns that many results
     """
 
-    if len(query) < 1:
+    match = re.search(r'^(\d)+\s+(\S.*)$', query)
+    if not query:
       await self.bot.say(formatter.error('missing query'))
       return
-    elif len(query) > 1 and re.search('^\\d+$', query[0]):
-      num   = int(query[0])
-      query = ' '.join(query[1:])
+    elif match:
+      num   = int(match.group(1))
+      query = match.group(2)
     else:
       num   = 1
-      query = ' '.join(query)
 
     loop = asyncio.get_event_loop()
     results = await loop.run_in_executor(None, self.conn.search, query)

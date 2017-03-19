@@ -27,13 +27,12 @@ class Server:
     message = ' '.join(message)
 
     deleted = await self.bot.purge_from(ctx.message.channel,limit=num_to_delete)
-    await self.bot.say(formatter.ok(
-                                    'Deleted {} message{} {}'.format(
-                                         len(deleted),
-                                         '' if len(deleted) == 1    else 's',
-                                         '('+message+')' if message else ''
-                                     )
-                                   )
+    await self.bot.say(ok('Deleted {} message{} {}'.format(
+                             len(deleted),
+                             '' if len(deleted) == 1    else 's',
+                             '('+message+')' if message else ''
+                           )
+                         )
     )
 
 

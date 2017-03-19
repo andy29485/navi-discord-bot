@@ -73,6 +73,7 @@ class AZ:
   async def img(self, *search):
     if 'path' not in self.conf or not os.path.exists(self.conf['path']):
       await self.bot.say('{path} does not exist')
+      return
 
     search = [re.sub(r'[^\w\./#\*-]+', '', i).lower() for i in search]
     for i in range(len(search)):

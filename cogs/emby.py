@@ -27,17 +27,24 @@ class E:
       await self.bot.say(formatter.error("Please specify valid subcommand"))
 
   @emby.command(name='lookup', aliases=['info', 'i'], pass_context=True)
-  async def _info(self, ctx, *, item_id):
+  async def _info(self, ctx, *, *item_ids):
+    """print emby server info, or an embed for each item id"""
+
     loop = asyncio.get_event_loop()
-    item = await loop.run_in_executor(None, self.conn.info, item_id)
-    em   = await loop.run_in_executor(None, makeEmbed, item)
-    await self.bot.send_message(ctx.message.channel, embed=em)
+    for item_id in item_ids:
+      item = await loop.run_in_executor(None, self.conn.info, item_id)
+      em   = await loop.run_in_executor(None, makeEmbed, item)
+      await self.bot.send_message(ctx.message.channel, embed=em)
+    else:
+      info = await loop.run_in_executor(None, self.conn.info, item_id)
+      await self.bit.say(info)
 
   @emby.command(name='search', aliases=['find', 's'], pass_context=True)
   async def _search(self, ctx, *, query : str):
     """searches for query on emby, displays first result
 
     if first "word" in query is a number, returns that many results
+    (ignoring the number)
     """
 
     match = re.search(r'^(\d)+\s+(\S.*)$', query)

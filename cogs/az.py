@@ -96,7 +96,7 @@ class AZ:
     except:
       path = ''
 
-    if not path:
+    if not path or not path.strip():
       await self.bot.say("couldn't find anything matching: `{}`".format(search))
       return
 
@@ -106,6 +106,9 @@ class AZ:
     except:
       url = 'There was an error uploading the image\n ' + \
             'but at least I didn\'t crash :p'
+    if not url or not url.strip():
+      await self.bot.say("couldn't find anything matching: `{}`".format(search))
+      return
     await self.bot.say(url)
 
   def confirm_img(self, urls):

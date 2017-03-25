@@ -35,7 +35,7 @@ class Emby:
       em   = await loop.run_in_executor(None, makeEmbed, item)
       await self.bot.send_message(ctx.message.channel, embed=em)
     else:
-      info = await loop.run_in_executor(None, self.conn.info, item_id)
+      info = await loop.run_in_executor(None, self.conn.info)
       await self.bit.say(info)
 
   @emby.command(name='search', aliases=['find', 's'], pass_context=True)

@@ -6,7 +6,7 @@ from .utils.format import *
 from discord import Embed
 import asyncio
 import hashlib
-from embypy import Emby
+from embypy import Emby as EmbyPy
 from embypy.objects import EmbyObject
 import re
 
@@ -14,11 +14,11 @@ colours = [0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
            0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0x1abc9c,
            0x2ecc71, 0xa84300, 0xe74c3c, 0xad1457, 0x11806a]
 
-class E:
+class Emby:
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/emby.json')
-    self.conn = Emby(self.conf['address'], **self.conf['auth'])
+    self.conn = EmbyPy(self.conf['address'], **self.conf['auth'])
 
   @commands.group(pass_context=True)
   async def emby(self, ctx):
@@ -27,11 +27,10 @@ class E:
       await self.bot.say(formatter.error("Please specify valid subcommand"))
 
   @emby.command(name='lookup', aliases=['info', 'i'], pass_context=True)
-  async def _info(self, ctx, *, *item_ids):
+  async def _info(self, ctx, *, item_ids = ''):
     """print emby server info, or an embed for each item id"""
-
     loop = asyncio.get_event_loop()
-    for item_id in item_ids:
+    for item_id in item_ids.split():
       item = await loop.run_in_executor(None, self.conn.info, item_id)
       em   = await loop.run_in_executor(None, makeEmbed, item)
       await self.bot.send_message(ctx.message.channel, embed=em)
@@ -89,4 +88,4 @@ def getColour(string : str):
   return colours[str_hash % len(colours)]
 
 def setup(bot):
-  bot.add_cog(E(bot))
+  bot.add_cog(Emby(bot))

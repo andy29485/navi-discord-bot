@@ -34,7 +34,7 @@ class Emby:
       item = await loop.run_in_executor(None, self.conn.info, item_id)
       em   = await loop.run_in_executor(None, makeEmbed, item)
       await self.bot.send_message(ctx.message.channel, embed=em)
-    else:
+    if not item_ids:
       info = await loop.run_in_executor(None, self.conn.info)
       await self.bot.say(info)
 

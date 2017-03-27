@@ -36,6 +36,26 @@ class Server:
     )
 
 
+  @commands.command(name='topic', pass_context=True)
+  async def _prune(self, ctx, new_topic : str = ''):
+    """manage topic
+
+    if a new_topic is specified, changes the topic
+    otherwise, displays the current topic
+    """
+    c = ctx.message.channel
+    if new_topic:
+      if @perms.has_perms(manage_channels=True):
+        await self.bot.edit_channel(c, topic = new_topic)
+        await self.bot.say(ok('Topic for #{} has been changed'.format(c.name)))
+      else:
+        await self.bot.say(
+           error('You cannot change the topic for #{}'.format(c.name))
+        )
+    elif c.topic:
+      await self.bot.say('Topic for #{}: `{}`'.format(c.name, c.topic))
+    else:
+      await self.bot.say('#{} has no topic'.format(c.name))
   @perms.has_perms(manage_roles=True)
   @commands.command(name='timeout_send', aliases=['ts'], pass_context=True)
   async def _timeout_send(self, ctx, member: discord.Member, time: float = 300):
@@ -200,4 +220,3 @@ class Server:
 def setup(bot):
   g = Server(bot)
   bot.add_cog(g)
-

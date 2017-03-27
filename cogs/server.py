@@ -37,7 +37,7 @@ class Server:
 
 
   @commands.command(name='topic', pass_context=True)
-  async def _prune(self, ctx, new_topic : str = ''):
+  async def _prune(self, ctx, *, new_topic = ''):
     """manage topic
 
     if a new_topic is specified, changes the topic

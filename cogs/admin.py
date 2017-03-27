@@ -57,6 +57,7 @@ class Admin:
     import git
     loop = asyncio.get_event_loop()
     g = git.cmd.Git('.')
+    loop.run_in_executor(None, g.execute, ['git', 'reset', 'HEAD~1', '--hard'])
     loop.run_in_executor(None, g.pull)
     await self.bot.say(formatter.ok('restarting'))
     loop.stop()

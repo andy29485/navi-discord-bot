@@ -10,7 +10,7 @@ class DnD:
     self.conf = Config('configs/dnd.json')
 
   @commands.command(pass_context=True)
-  async def echo(self, ctx, first_word, everything_else):
+  async def echo(self, ctx, first_word, everything_else : str):
     """
     Short description - repeats user's message
 
@@ -18,7 +18,7 @@ class DnD:
     only appears when using `.help echo`
     The short description will appear in a general help
     """
-    #example `.echo hello world!`
+    # example `.echo hello world!`
     message = ctx.message.content # the full message `.echo hello world`
     first_word                    # just `hello`
     everything_else               # `hello world!`

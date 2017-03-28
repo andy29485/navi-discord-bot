@@ -5,12 +5,13 @@ import time
 import asyncio
 
 class Reminder:
-  def __init__(self, channel_id, user_id, message):
+  def __init__(self, channel_id, user_id, message, end_time=0):
     self.channel_id = channel_id
     self.user_id    = user_id
     self.message    = message
-    self.end_time   = -1
-    self.parse_time()
+    self.end_time   = end_time
+    if not end_time:
+      self.parse_time()
 
   def is_ready(self):
     return self.end_time <= time.time()
@@ -38,6 +39,14 @@ class Reminder:
       if match:
         offset += times[t]*match.group(1)
     self.end_time = offset
+
+  def to_dict(self):
+    dct = {'__reminder__':'true'}
+    dct['channel_id'] = self.channel_id
+    dct['user_id']    = self.user_id
+    dct['message']    = self.message
+    dct['end_time']   = self.end_time
+    return dct
 
   def insertInto(self, into):
     if not into or self.end_time > into[-1].end_time:

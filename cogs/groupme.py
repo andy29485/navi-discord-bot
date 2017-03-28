@@ -29,8 +29,12 @@ class GroupMe:
       self.conf['g_old'] = {}
     if 'links' not in self.conf:
       self.conf['links'] = {}
-    if 'key' not in self.conf:
+    if 'key' not in self.conf or not self.conf['key']:
       self.conf['key'] = input('Please enter your GroupMe api key: ').strip()
+
+    if not self.conf['key']:
+      raise RuntimeError('No groupme key provied')
+
     self.conf.save()
 
     groupy.config.API_KEY = self.conf['key']

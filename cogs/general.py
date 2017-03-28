@@ -23,6 +23,16 @@ class General:
 
     if 'reminders' not in self.conf:
       self.conf['reminders'] = []
+    if 'responses' not in self.conf:
+      self.conf['responses'] = {}
+    if 'reminders' not in self.conf:
+      self.conf['situations'] = []
+    if 'reminders' not in self.conf:
+      self.conf['polls'] = []
+    if 'reminders' not in self.conf:
+      self.conf['8-ball'] = []
+    self.conf.save()
+
     self.loop.create_task(self.check_reminders())
 
   @commands.command(hidden=True)

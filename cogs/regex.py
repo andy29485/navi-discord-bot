@@ -12,6 +12,8 @@ class Regex:
     self.bot = bot
     self.replacements = Config('configs/replace.json')
     self.permissions  = Config('configs/perms.json')
+    if 'rep-blacklist' not in self.permissions:
+      self.permissions['rep-blacklist'] = []
 
   @commands.group(pass_context=True)
   async def rep(self, ctx):

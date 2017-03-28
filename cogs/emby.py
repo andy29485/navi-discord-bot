@@ -18,6 +18,17 @@ class Emby:
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/emby.json')
+
+    if 'address' not in self.conf or not self.conf['address']:
+      self.conf['address'] = input('Enter emby url: ')
+      self.conf.save()
+    if 'auth' not in self.conf or not self.conf['auth']:
+      self.conf['auth'] = {}
+      self.conf['auth']['api_key']   = input('Enter emby api key: ')
+      self.conf['auth']['userid']    = input('Enter emby user id: ')
+      self.conf['auth']['device_id'] = input('Enter emby device id: ')
+      self.conf.save()
+
     self.conn = EmbyPy(self.conf['address'], **self.conf['auth'])
 
   @commands.group(pass_context=True)

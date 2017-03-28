@@ -21,12 +21,12 @@ class Reminder:
   def parse_time(self):
     offset = time.time()
     times = {
-             '(\\d+)\s+s(econds?)?'    : 1,
-             '(\\d+)\s+m(in(ute)?s?)?' : 60,
-             '(\\d+)\s+h(ours?)?'      : 360,
-             '(\\d+)\s+d(ays?)?'       : 8640,
-             '(\\d+)\s+w(eeks?)?'      : 60480,
-             '(\\d+)\s+months?'        : 254016
+             '(?i)(\\d+)\\s*s(econds?)?'    : 1,
+             '(?i)(\\d+)\\s*m(in(ute)?s?)?' : 60,
+             '(?i)(\\d+)\\s*h(ours?)?'      : 360,
+             '(?i)(\\d+)\\s*d(ays?)?'       : 8640,
+             '(?i)(\\d+)\\s*w(eeks?)?'      : 60480,
+             '(?i)(\\d+)\\s*months?'        : 254016
     }
     for t in times:
       match = re.search(t, self.message)

@@ -62,7 +62,7 @@ class General:
         rep = i[1]
         subs = {"\\{un\\}"         : message.author.name,
                 "\\{um\\}"         : message.author.mention,
-                "\\{ui\\}"         : message.author.id,
+                "\\{ui\\}"         : message.author.mention,
                 "\\{situations\\}" : random.choice(self.conf['situations'])
                }
         for j in re.findall("\\(.*\\|.*\\)", rep):

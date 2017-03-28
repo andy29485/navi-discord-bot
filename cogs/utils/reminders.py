@@ -16,7 +16,7 @@ class Reminder:
     return self.end_time <= time.time()
 
   def get_message(self):
-    return '@{}: {}'.format(self.user_id, self.message)
+    return '{}: {}'.format(self.user_id, self.message)
 
   def parse_time(self):
     offset = time.time()

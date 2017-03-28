@@ -45,7 +45,7 @@ class Server:
     """
     c = ctx.message.channel
     if new_topic:
-      if perms.has_perms(ctx.message, manage_channels=True):
+      if perms.check_permissions(ctx.message, manage_channels=True):
         await self.bot.edit_channel(c, topic = new_topic)
         await self.bot.say(ok('Topic for #{} has been changed'.format(c.name)))
       else:
@@ -56,6 +56,7 @@ class Server:
       await self.bot.say('Topic for #{}: `{}`'.format(c.name, c.topic))
     else:
       await self.bot.say('#{} has no topic'.format(c.name))
+
   @perms.has_perms(manage_roles=True)
   @commands.command(name='timeout_send', aliases=['ts'], pass_context=True)
   async def _timeout_send(self, ctx, member: discord.Member, time: float = 300):

@@ -173,7 +173,7 @@ class General:
     channel = ctx.message.channel
     r = Reminder(channel, author, message)
     r.insertInto(self.conf['reminders'])
-    self.conf['reminders'].save()
+    self.conf.save()
     await self.bot.say(formatter.ok())
 
   @commands.command(pass_context=True, aliases=['a', 'ask'])

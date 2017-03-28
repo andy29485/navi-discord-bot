@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from reminders import Reminder
+from cogs.utils.reminders import Reminder
 import json
 
 class Config(dict):

@@ -20,7 +20,7 @@ def in_group(group):
   return commands.check(lambda ctx: in_group_check(ctx.message, group))
 
 def has_perms(**perms):
-  return commands.check(lambda ctx: check_permissions(ctx.message, perms))
+  return commands.check(lambda ctx: check_permissions(ctx.message, **perms))
 
 # The permission system of the bot is based on a "just works" basis
 # You have permissions and the bot has permissions. If you meet the permissions
@@ -44,7 +44,7 @@ def in_group_check(msg, group):
       return True
   return False
 
-def check_permissions(msg, perms):
+def check_permissions(msg, **perms):
   if is_owner_check(msg):
     return True
 
@@ -56,7 +56,7 @@ def check_permissions(msg, perms):
 
 def role_or_permissions(ctx, check, **perms):
   #http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
-  if check_permissions(ctx, perms):
+  if check_permissions(ctx, **perms):
     return True
 
   chan   = ctx.message.channel
@@ -74,4 +74,3 @@ def is_in_servers(*server_ids):
       return False
     return server.id in server_ids
   return commands.check(predicate)
-

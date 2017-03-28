@@ -33,7 +33,7 @@ class Reminder:
              '(\\d+)\s+months?'        : 254016
     }
     for t in times:
-      match = re.serach(t, timestring)
+      match = re.search(t, timestring)
       self.message = re.sub(t, '', self.message).strip()
       if match:
         offset += times[t]*match.group(1)

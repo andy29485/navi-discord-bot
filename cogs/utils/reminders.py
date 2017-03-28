@@ -5,22 +5,22 @@ import time
 import asyncio
 
 class Reminder:
-   def __init__(self, channel_id, user_id, message):
-     self.channel_id = channel_id
-     self.user_id    = user_id
-     self.message    = message
-     self.end_time   = -1
-     self.parse_time()
+  def __init__(self, channel_id, user_id, message):
+    self.channel_id = channel_id
+    self.user_id    = user_id
+    self.message    = message
+    self.end_time   = -1
+    self.parse_time()
 
-   def is_ready(self):
-     return self.end_time <= time.time()
+  def is_ready(self):
+    return self.end_time <= time.time()
 
-   async def send(self, bot):
-     c = await bot.get_channel(self.channel_id)
-     await bot.send_message(c, self.get_message())
+  async def send(self, bot):
+    c = await bot.get_channel(self.channel_id)
+    await bot.send_message(c, self.get_message())
 
-   def get_message(self):
-     return '@{}: {}'.format(self.user_id, self.message)
+  def get_message(self):
+    return '@{}: {}'.format(self.user_id, self.message)
 
   def parse_time(self):
     offset = time.time()

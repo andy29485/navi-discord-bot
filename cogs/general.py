@@ -9,14 +9,21 @@ from discord.ext import commands
 from .utils import format as formatter
 from .utils.poll import Poll
 from .utils.config import Config
+from .utils.reminders import Reminder
+
 
 class General:
   def __init__(self, bot):
     self.bot           = bot
+    self.loop          = bot.loop
     self.stopwatches   = {}
     self.polls         = {}
     self.conf          = Config('configs/general.json')
     self.poll_sessions = []
+
+    if not self.conf['reminders']:
+      self.conf['reminders'] = []
+    self.loop.create_task(self.check_reminders())
 
   @commands.command(hidden=True)
   async def ping(self):
@@ -159,6 +166,16 @@ class General:
     message += formatter.inline(choice)
     await self.bot.say(message)
 
+  @commands.command(name='remindme', pass_context=True, aliases=['remind'])
+  async def _add_reminder(self, ctx, *, message : str):
+    """adds a reminder"""
+    author  = ctx.message.author
+    channel = ctx.message.channel
+    r = Reminder(channel, author, message)
+    r.insertInto(self.conf['reminders'])
+    self.conf['reminders'].save()
+    await self.bot.say(formatter.ok())
+
   @commands.command(pass_context=True, aliases=['a', 'ask'])
   async def question(self, ctx):
     """Answers a question"""
@@ -199,6 +216,16 @@ class General:
     self.polls[ctx.message.channel] = poll
     await poll.start()
 
+  async def check_reminders(self):
+    # if there are valid reminders, process them
+    while self.conf['reminders'] and self.conf['reminders'][0].is_ready():
+      r = self.conf['reminders'].pop(0)
+      await r.send(self.bot)
+
+    # wait a bit and check again
+    await asyncio.sleep(10)
+    self.loop.create_task(self.check_reminders())
+
 
 def split(choices):
   choices = re.split(r'(?i)\s*(?:,|\bor\b)\s*', choices)
@@ -209,4 +236,3 @@ def setup(bot):
   bot.add_listener(g.tally, "on_message")
   bot.add_listener(g.respond, "on_message")
   bot.add_cog(g)
-

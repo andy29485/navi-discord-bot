@@ -45,7 +45,7 @@ class Server:
     """
     c = ctx.message.channel
     if new_topic:
-      if perms.has_perms(manage_channels=True):
+      if perms.has_perms(ctx.message, manage_channels=True):
         await self.bot.edit_channel(c, topic = new_topic)
         await self.bot.say(ok('Topic for #{} has been changed'.format(c.name)))
       else:

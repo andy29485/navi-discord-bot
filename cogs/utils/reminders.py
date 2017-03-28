@@ -32,7 +32,7 @@ class Reminder:
       match = re.search(t, self.message)
       self.message = re.sub(t, '', self.message).strip()
       if match:
-        offset += times[t]*match.group(1)
+        offset += times[t]*float(match.group(1))
     self.end_time = offset
 
   def to_dict(self):

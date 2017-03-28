@@ -169,8 +169,8 @@ class General:
   @commands.command(name='remindme', pass_context=True, aliases=['remind'])
   async def _add_reminder(self, ctx, *, message : str):
     """adds a reminder"""
-    author  = ctx.message.author
-    channel = ctx.message.channel
+    author  = ctx.message.author.id
+    channel = ctx.message.channel.id
     r = Reminder(channel, author, message)
     r.insertInto(self.conf['reminders'])
     self.conf.save()

@@ -189,11 +189,11 @@ class GroupMe:
           #print('      check 1')
           if message.id == self.conf['g_old'][bot.group_id]:
             break
-          #print('      check 2') 
+          #print('      check 2')
           if not message.text or not message.text.startswith(u'<\u200b'):
             messages.append(message)
 
-        #print('    p save progress') 
+        #print('    p save progress')
         if len(all_messages) > 0:
           self.conf['g_old'][bot.group_id] = all_messages.newest.id
           self.conf.save()
@@ -204,9 +204,9 @@ class GroupMe:
       except:
         #print('    polling failed')
         pass
- 
+
     #print('    p wait')
-    await asyncio.sleep(4)
+    await asyncio.sleep(5 if messages else 25)
     #print('    p queue')
     if self.bot.user.id in groupme_objects and \
        groupme_objects[self.bot.user.id] == self:

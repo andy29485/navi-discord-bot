@@ -2,7 +2,6 @@
 
 import re
 import time
-import asyncio
 
 class Reminder:
   def __init__(self, channel_id, user_id, message, end_time=0):
@@ -15,10 +14,6 @@ class Reminder:
 
   def is_ready(self):
     return self.end_time <= time.time()
-
-  async def send(self, bot):
-    c = await bot.get_channel(self.channel_id)
-    await bot.send_message(c, self.get_message())
 
   def get_message(self):
     return '@{}: {}'.format(self.user_id, self.message)

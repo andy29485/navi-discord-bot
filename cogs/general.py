@@ -220,7 +220,8 @@ class General:
     # if there are valid reminders, process them
     while self.conf['reminders'] and self.conf['reminders'][0].is_ready():
       r = self.conf['reminders'].pop(0)
-      await r.send(self.bot)
+      c = await self.bot.get_channel(r.channel_id)
+      await self.bot.send_message(c, r.get_message())
 
     # wait a bit and check again
     await asyncio.sleep(10)

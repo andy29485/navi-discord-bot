@@ -21,7 +21,7 @@ class General:
     self.conf          = Config('configs/general.json')
     self.poll_sessions = []
 
-    if not self.conf['reminders']:
+    if 'reminders' not in self.conf:
       self.conf['reminders'] = []
     self.loop.create_task(self.check_reminders())
 

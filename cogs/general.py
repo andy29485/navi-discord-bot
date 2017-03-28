@@ -217,11 +217,16 @@ class General:
     await poll.start()
 
   async def check_reminders(self):
+    reminders_removed = False
     # if there are valid reminders, process them
     while self.conf['reminders'] and self.conf['reminders'][0].is_ready():
       r = self.conf['reminders'].pop(0)
       c = self.bot.get_channel(r.channel_id)
       await self.bot.send_message(c, r.get_message())
+      reminders_removed = True
+
+    if reminders_removed:
+      self.conf.save()
 
     # wait a bit and check again
     await asyncio.sleep(10)

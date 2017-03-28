@@ -62,7 +62,7 @@ class General:
         rep = i[1]
         subs = {"\\{un\\}"         : message.author.name,
                 "\\{um\\}"         : message.author.mention,
-                "\\{ui\\}"         : message.author.id,
+                "\\{ui\\}"         : message.author.mention,
                 "\\{situations\\}" : random.choice(self.conf['situations'])
                }
         for j in re.findall("\\(.*\\|.*\\)", rep):
@@ -169,7 +169,7 @@ class General:
   @commands.command(name='remindme', pass_context=True, aliases=['remind'])
   async def _add_reminder(self, ctx, *, message : str):
     """adds a reminder"""
-    author  = ctx.message.author.id
+    author  = ctx.message.author.mention
     channel = ctx.message.channel.id
     r = Reminder(channel, author, message)
     r.insertInto(self.conf['reminders'])

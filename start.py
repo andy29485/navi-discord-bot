@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 if __name__ == '__main__' and __package__ is None:
-  from os import sys, path
+  from os import sys, path, makedirs
   sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 import discord
@@ -28,6 +28,12 @@ starting_cogs = [
   'cogs.dnd',
   'cogs.emby'
 ]
+
+
+if not path.exists('configs'):
+  makedirs('configs')
+if not path.exists('logs'):
+  makedirs('logs')
 
 discord_logger = logging.getLogger('discord')
 discord_logger.setLevel(logging.CRITICAL)

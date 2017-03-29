@@ -61,10 +61,10 @@ class Reminder:
     return largest
 
 
-def pushUp(values, index, min = 0):
+def pushUp(values, index, first = 0):
   parent = (index-1)/2;
 
-  while(index >= min && values[i] > values[parent]:
+  while index >= first and values[i] > values[parent]:
     values[i], values[parent] = values[parent], values[i];
 
     index  = parent;

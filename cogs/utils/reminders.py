@@ -62,16 +62,16 @@ class Reminder:
 
 
 def pushUp(values, index, first = 0):
-  parent = (index-1)/2;
+  parent = (index-1)//2;
 
   while index >= first and values[index] > values[parent]:
     values[index], values[parent] = values[parent], values[index];
 
     index  = parent;
-    parent = (index-1)/2;
+    parent = (index-1)//2;
 
 def pushDown(values, index, last = 0):
-  if not max:
+  if not last:
     last = len(values)
 
   left    = 2*index + 1;

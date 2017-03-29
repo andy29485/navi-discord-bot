@@ -12,6 +12,12 @@ class Reminder:
     if not end_time:
       self.parse_time()
 
+  def __lt__(self, other):
+    return self.end_time < other.end_time
+
+  def __gt__(self, other):
+    return self.end_time > other.end_time
+
   def is_ready(self):
     return self.end_time <= time.time()
 
@@ -43,16 +49,38 @@ class Reminder:
     dct['end_time']   = self.end_time
     return dct
 
-  def insertInto(self, into):
-    if not into or self.end_time > into[-1].end_time:
-      into.append(self)
-      return
-    lo = 0
-    hi = len(into)
-    while lo < hi:
-      mid = (lo+hi)//2
-      if self.end_time > into[mid].end_time:
-        hi = mid
-      else:
-        lo = mid+1
-    into.insert(lo, self)
+  def insertInto(self, values):
+    i = len(values)
+    values.append(self)
+    pushUp(values, i)
+
+  def popFrom(self, values):
+    largest   = values[0]
+    values[0] = values.pop()
+    pushDown(values, 0, len(values))
+    return largest
+
+
+def pushUp(values, index, min = 0):
+  parent = (index-1)/2;
+
+  while(index >= min && values[i] > values[parent]:
+    values[i], values[parent] = values[parent], values[i];
+
+    index  = parent;
+    parent = (index-1)/2;
+
+def pushDown(values, index, last = 0):
+  if not max:
+    last = len(values)
+
+  left    = 2*index + 1;
+  right   = 2*index + 2;
+  largest = index;
+
+  largest = largest if (left> last or values[largest]>values[left])  else left
+  largest = largest if (right>last or values[largest]>values[right]) else right
+
+  if largest != index:
+    values[largest], values[index] = values[index], values[largest]
+    pushDown(values, largest, last)

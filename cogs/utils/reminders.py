@@ -64,8 +64,8 @@ class Reminder:
 def pushUp(values, index, first = 0):
   parent = (index-1)/2;
 
-  while index >= first and values[i] > values[parent]:
-    values[i], values[parent] = values[parent], values[i];
+  while index >= first and values[index] > values[parent]:
+    values[index], values[parent] = values[parent], values[index];
 
     index  = parent;
     parent = (index-1)/2;

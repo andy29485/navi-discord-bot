@@ -32,10 +32,10 @@ class Reminder:
     times = {
              '(?i)(\\d+)\\s*s(econds?)?'    : 1,
              '(?i)(\\d+)\\s*m(in(ute)?s?)?' : 60,
-             '(?i)(\\d+)\\s*h(ours?)?'      : 360,
-             '(?i)(\\d+)\\s*d(ays?)?'       : 8640,
-             '(?i)(\\d+)\\s*w(eeks?)?'      : 60480,
-             '(?i)(\\d+)\\s*months?'        : 254016
+             '(?i)(\\d+)\\s*h(ours?)?'      : 3600,
+             '(?i)(\\d+)\\s*d(ays?)?'       : 86400,
+             '(?i)(\\d+)\\s*w(eeks?)?'      : 604800,
+             '(?i)(\\d+)\\s*months?'        : 2628000
     }
     for t in times:
       match = re.search(t, self.message)

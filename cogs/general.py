@@ -164,10 +164,10 @@ class General:
     choices     = split(choices)
     choice      = random.choice(choices)
     choice_reps = {
-       r'(?i)^(should)\s+I\s+'                      : r'You \1 ',
-       r'(?i)^([wcs]hould|can|are|were)\s+(\S+)\s+' : r'\2 \1 ',
-       r'\?$'                                       : '.',
-       r'(?i)^am\s+I\s+'                            : 'Thou art '
+       r'(?i)^(should)\s+I\s+'                         : r'You \1 ',
+       r'(?i)^([wcs]hould|can|are|were|is)\s+(\S+)\s+' : r'\2 \1 ',
+       r'\?$'                                          : '.',
+       r'(?i)^am\s+I\s+'                               : 'Thou art '
     }
     for r in choice_reps:
       choice = re.sub(r, choice_reps[r], choice)

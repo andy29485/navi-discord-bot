@@ -4,6 +4,7 @@ from .utils import format as formatter
 import discord
 import inspect
 import asyncio
+import git
 import sys
 
 # to expose to the eval command
@@ -54,7 +55,6 @@ class Admin:
   @commands.command(hidden=True)
   @perms.is_owner()
   async def update(self):
-    import git
     loop = asyncio.get_event_loop()
     g = git.cmd.Git('.')
     loop.run_in_executor(None, g.execute, ['git', 'reset', 'HEAD~1', '--hard'])
@@ -62,8 +62,16 @@ class Admin:
     await self.bot.say(formatter.ok('restarting'))
     loop.stop()
     #concurrent.futures.ProcessPoolExecutor().shutdown()
-
     sys.exit()
+
+  @commands.command(hidden=True)
+  @perms.is_owner()
+  async def reboot(self):
+    loop = asyncio.get_event_loop()
+    g = git.cmd.Git('.')
+    g.execute()['sudo', 'reboot'])
+    sys.exit()
+
 
   @commands.command(pass_context=True, hidden=True)
   @perms.is_owner()

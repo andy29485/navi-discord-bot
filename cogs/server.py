@@ -72,6 +72,7 @@ class Server:
     server  = ctx.message.server
     channel = ctx.message.channel
 
+    if server in self.timeouts and member in self.timeouts[server]:
       await self.bot.say('{}\'s already in timeout...'.format(member.name))
       return
 

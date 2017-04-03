@@ -41,6 +41,7 @@ class Timeout:
    return d
 
   def ready():
+    return time.time() < self.end_time
 
   async def end(self, bot):
     pass

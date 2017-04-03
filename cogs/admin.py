@@ -69,7 +69,7 @@ class Admin:
   async def reboot(self):
     loop = asyncio.get_event_loop()
     g = git.cmd.Git('.')
-    g.execute()['sudo', 'reboot'])
+    g.execute(['sudo', 'reboot'])
     sys.exit()
 
 

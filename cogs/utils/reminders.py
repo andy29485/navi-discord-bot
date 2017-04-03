@@ -2,6 +2,7 @@
 
 import re
 import time
+import cogs.utils.heap
 
 class Reminder:
   def __init__(self, channel_id, user_id, message, end_time=0):
@@ -53,41 +54,7 @@ class Reminder:
     return dct
 
   def insertInto(self, values):
-    i = len(values)
-    values.append(self)
-    pushUp(values, i)
+    heap.insertInto(values, self)
 
   def popFrom(self, values):
-    largest   = values[0]
-    size      = len(values)-1
-    if size == 0:
-      values.pop()
-    elif size > 0:
-      values[0] = values.pop()
-      pushDown(values, 0, size-1)
-    return largest
-
-
-def pushUp(values, index, first = 0):
-  parent = (index-1)//2;
-
-  while parent >= first and values[index] < values[parent]:
-    values[index], values[parent] = values[parent], values[index];
-
-    index  = parent;
-    parent = (index-1)//2;
-
-def pushDown(values, index, last = 0):
-  if not last:
-    last = len(values)-1
-
-  left  = 2*index + 1
-  right = 2*index + 2
-  small = index
-
-  small = small if (left >last or values[small]<values[left])  else left
-  small = small if (right>last or values[small]<values[right]) else right
-
-  if small != index:
-    values[small], values[index] = values[index], values[small]
-    pushDown(values, small, last)
+    return heap.popFrom(values)

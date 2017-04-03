@@ -72,7 +72,6 @@ class Server:
     server  = ctx.message.server
     channel = ctx.message.channel
 
-    if server in self.timeouts and member in self.timeouts[server]:
       await self.bot.say('{}\'s already in timeout...'.format(member.name))
       return
 
@@ -84,11 +83,11 @@ class Server:
       await self.bot.say('not in a server at the moment')
       return
 
-    if time < 1:
+    if time < 10:
       await self.bot.say('And what would the point of that be?')
       return
 
-    if time > 1000:
+    if time > 4000:
       await self.bot.say('Too long, at this point consider banning them')
       return
 
@@ -166,7 +165,7 @@ class Server:
       )
       if not to_role:
         await self.bot.send_message(channel,
-                                    'no `timeout` role found/unable to create it'
+                                   'no `timeout` role found/unable to create it'
         )
         return
 

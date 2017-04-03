@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from cogs.utils.reminders import Reminder
+from cogs.utils.timeout import Timeout
 import json
 
 class Config(dict):
@@ -14,7 +15,7 @@ class Config(dict):
     self.clear()
     try:
       with open(self.name, 'r') as f:
-        d = json.load(f, object_hook=as_reminder)
+        d = json.load(f, object_hook=as_obj)
     except:
       d = {}
     for i in d:
@@ -22,7 +23,7 @@ class Config(dict):
 
   def save(self):
     with open(self.name, 'w') as f:
-      json.dump(self.copy(), f, cls=ReminderEncoder)
+      json.dump(self.copy(), f, cls=ObjEncoder)
 
   def __setitem__(self, key, value):
     super(Config,self).__setitem__(key, value)
@@ -44,16 +45,22 @@ class Config(dict):
   def itervalues(self):
     return (self[key] for key in self)
 
-def as_reminder(dct):
+def as_obj(dct):
   if '__reminder__' in dct:
     return Reminder(dct['channel_id'], dct['user_id'],
                     dct['message'], end_time=dct['end_time']
     )
+  elif '__timeout__' in dct:
+    return Reminder(dct['channel_id'], dct['server_id'], dct['user_id'],
+                    dct['roles'], dct['end_time'], importing=True
+    )
   return dct
 
-class ReminderEncoder(json.JSONEncoder):
+class ObjEncoder(json.JSONEncoder):
   def default(self, obj):
     if isinstance(obj, Reminder):
+      return obj.to_dict()
+    if isinstance(obj, Timeout):
       return obj.to_dict()
     # Let the base class default method raise the TypeError
     return json.JSONEncoder.default(self, obj)

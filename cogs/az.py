@@ -68,9 +68,9 @@ class AZ:
   async def lennytipede(self):
     await self.bot.say(code(that))
 
-  @commands.command()
+  @commands.command(pass_context=True)
   @perms.in_group('img')
-  async def img(self, *search):
+  async def img(self, ctx, *search):
     if 'path' not in self.conf or not os.path.exists(self.conf['path']):
       await self.bot.say('{path} does not exist')
       return
@@ -97,7 +97,7 @@ class AZ:
       path = ''
 
     if not path or not path.strip():
-      await self.bot.say("couldn't find anything matching: `{}`".format(search))
+      await self.bot.send_message(ctx.message.channel, "couldn't find anything matching: `{}`".format(search))
       return
 
     try:
@@ -106,14 +106,11 @@ class AZ:
     except:
       url = 'There was an error uploading the image\n ' + \
             'but at least I didn\'t crash :p'
-    if not url or not url.strip():
-      await self.bot.say("couldn't find anything matching: `{}`".format(search))
-      return
     await self.bot.say(url)
 
   def confirm_img(self, urls):
     for url in urls.split('\n'):
-      if url and requests.get(url, timeout=0.05).status_code != 200:
+      if url and requests.get(url, timeout=2).status_code != 200:
         return False
     return True
 

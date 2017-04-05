@@ -62,6 +62,7 @@ async def on_ready():
   print('------')
   if not hasattr(bot, 'uptime'):
     bot.uptime = datetime.datetime.utcnow()
+  bot.change_presence(game=discord.Game(name='{}help'.format(prefix[0])))
 
 @bot.async_event
 async def on_command_error(error, ctx):

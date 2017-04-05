@@ -29,7 +29,8 @@ class Emby:
       self.conf['auth']['device_id'] = input('Enter emby device id: ')
       self.conf.save()
 
-    self.conn = EmbyPy(self.conf['address'], **self.conf['auth'])
+    self.conn = EmbyPy(self.conf['address'], **self.conf['auth'], ws=True)
+    self.conn.connector.set_on_message(self.on_message)
 
   @commands.group(pass_context=True)
   async def emby(self, ctx):
@@ -82,6 +83,11 @@ class Emby:
       await loop.run_in_executor(None, result.update)
       em = await loop.run_in_executor(None, makeEmbed, result)
       await self.bot.send_message(ctx.message.channel, embed=em)
+
+  def on_message(self, message):
+    if message['MessageType'] == 'LibraryChanged':
+      for eid in message['ItemsAdded']:
+        print(eid+'has been added')
 
 def makeEmbed(item):
   em = Embed()

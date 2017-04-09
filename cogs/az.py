@@ -104,7 +104,7 @@ class AZ:
       future_url = loop.run_in_executor(None, self.get_url, path)
       url = await future_url
     except:
-      url = 'There was an error uploading the image\n ' + \
+      url = 'There was an error uploading the image, ' + \
             'but at least I didn\'t crash :p'
     await self.bot.say(url)
 

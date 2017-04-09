@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from discord.ext import commands
-from .utils.config import Config
-from .utils.format import *
+from cogs.utils.config import Config
+from cogs.utils.format import *
 from discord import Embed
 import asyncio
 import hashlib

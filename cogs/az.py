@@ -8,10 +8,10 @@ import discord
 import puush
 import os
 from discord.ext import commands
-from .utils.format import *
-from .utils import perms
-from .utils import find as azfind
-from .utils.config import Config
+from cogs.utils.format import *
+from cogs.utils import perms
+from cogs.utils import find as azfind
+from cogs.utils.config import Config
 
 
 that = """

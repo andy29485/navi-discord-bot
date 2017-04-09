@@ -6,10 +6,10 @@ import time
 import asyncio
 from urllib import parse as urlencode
 from discord.ext import commands
-from .utils import format as formatter
-from .utils.poll import Poll
-from .utils.config import Config
-from .utils.reminders import Reminder
+from cogs.utils import format as formatter
+from cogs.utils.poll import Poll
+from cogs.utils.config import Config
+from cogs.utils.reminders import Reminder
 
 
 class General:

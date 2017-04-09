@@ -2,7 +2,7 @@
 
 import asyncio
 from discord.ext import commands
-from .utils import format as formatter
+from cogs.utils import format as formatter
 import aiohttp
 import html2text
 from urllib.parse import parse_qs

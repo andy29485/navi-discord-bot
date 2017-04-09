@@ -2,7 +2,7 @@
 
 from discord.ext import commands
 import discord.utils
-from .config import Config
+from cogs.utils.config import Config
 
 config = Config('configs/perms.json')
 

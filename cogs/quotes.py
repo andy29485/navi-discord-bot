@@ -4,9 +4,9 @@ import asyncio
 import random
 from datetime import datetime
 from discord.ext import commands
-from .utils import format as formatter
-from .utils import perms
-from .utils.config import Config
+from cogs.utils import format as formatter
+from cogs.utils import perms
+from cogs.utils.config import Config
 
 class Quote:
   def __init__(self, bot):

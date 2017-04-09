@@ -2,7 +2,7 @@
 
 import re
 import time
-import cogs.utils.heap
+import cogs.utils.heap as heap
 
 class Reminder:
   def __init__(self, channel_id, user_id, message, end_time=0):

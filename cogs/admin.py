@@ -1,6 +1,6 @@
 from discord.ext import commands
-from .utils import perms
-from .utils import format as formatter
+from cogs.utils import perms
+from cogs.utils import format as formatter
 import discord
 import inspect
 import asyncio

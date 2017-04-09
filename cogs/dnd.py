@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 import asyncio
 from discord.ext import commands
-from .utils.config import Config
+from cogs.utils.config import Config
 
 class DnD:
   def __init__(self, bot):

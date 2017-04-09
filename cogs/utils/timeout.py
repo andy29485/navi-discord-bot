@@ -2,7 +2,7 @@
 
 import time
 import asyncio
-import cogs.utils.heap
+import cogs.utils.heap as heap
 
 # NOTE: depricated
 

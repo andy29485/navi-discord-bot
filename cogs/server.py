@@ -3,10 +3,10 @@
 import time
 import asyncio
 import re
-from .utils import perms
+from cogs.utils import perms
 from discord.ext.commands.errors import CheckFailure
 import discord
-from .utils.format import *
+from cogs.utils.format import *
 from discord.ext import commands
 
 class Server:

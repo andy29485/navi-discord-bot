@@ -3,9 +3,9 @@
 import re
 import asyncio
 from discord.ext import commands
-from .utils import format as formatter
-from .utils import perms
-from .utils.config import Config
+from cogs.utils import format as formatter
+from cogs.utils import perms
+from cogs.utils.config import Config
 
 class Regex:
   def __init__(self, bot):

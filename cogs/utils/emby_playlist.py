@@ -57,7 +57,7 @@ class Player:
     while True:
       self.play_next_song.clear()
       self.current = await self.songs.get()
-      await em = await makeEmbed(self.current.item, 'Now playing: ')
+      em = await makeEmbed(self.current.item, 'Now playing: ')
       await self.bot.send_message(self.current.channel, embed=em)
       self.current.player.start()
       await self.play_next_song.wait()

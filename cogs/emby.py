@@ -6,6 +6,7 @@ from cogs.utils.format import *
 from discord import Embed
 import asyncio
 import hashlib
+import logging
 from embypy import Emby as EmbyPy
 from embypy.objects import EmbyObject
 import re
@@ -87,7 +88,7 @@ class Emby:
   async def on_socket_message(self, message):
     if message['MessageType'] == 'LibraryChanged':
       for eid in message['ItemsAdded']:
-        print(eid+'has been added')
+        logging.info(eid+' has been added to emby')
 
 def makeEmbed(item):
   em = Embed()

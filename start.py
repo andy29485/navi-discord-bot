@@ -35,12 +35,8 @@ if not path.exists('configs'):
 if not path.exists('logs'):
   makedirs('logs')
 
-discord_logger = logging.getLogger('discord')
-discord_logger.setLevel(logging.CRITICAL)
-log = logging.getLogger()
-handler = logging.FileHandler(filename='logs/navi.log',
-                              encoding='utf-8', mode='w')
-log.addHandler(handler)
+import logging
+logging.basicConfig(filename='logs/navi.log',level=logging.DEBUG)
 
 prefix = ['.']
 description = 'Andy29485\'s bot'
@@ -73,9 +69,9 @@ async def on_command_error(error, ctx):
     await bot.send_message(ctx.message.channel, formatter.error(
                          'Sorry. This command is disabled and cannot be used.'))
   elif isinstance(error, commands.CommandInvokeError):
-    log.error('In {0.command.qualified_name}:'.format(ctx))
-    log.error(error.original.__traceback__)
-    log.error('{0.__class__.__name__}: {0}'.format(error.original))
+    logging.error('In {0.command.qualified_name}:'.format(ctx))
+    logging.error(error.original.__traceback__)
+    logging.error('{0.__class__.__name__}: {0}'.format(error.original))
     await bot.send_message(ctx.message.channel,formatter.error(
         'Command error: {}'.format(error))
     )

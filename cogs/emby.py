@@ -84,7 +84,7 @@ class Emby:
       em = await loop.run_in_executor(None, makeEmbed, result)
       await self.bot.send_message(ctx.message.channel, embed=em)
 
-  def on_socket_message(self, message):
+  async def on_socket_message(self, message):
     if message['MessageType'] == 'LibraryChanged':
       for eid in message['ItemsAdded']:
         print(eid+'has been added')

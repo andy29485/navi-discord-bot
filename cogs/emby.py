@@ -35,7 +35,7 @@ class Emby:
 
     self.conn = EmbyPy(self.conf['address'], **self.conf['auth'], ws=True)
     self.conn.connector.set_on_message(self.on_socket_message)
-    self.player = Player(self)
+    self.player = Player(bot)
 
   @commands.group(pass_context=True)
   async def emby(self, ctx):

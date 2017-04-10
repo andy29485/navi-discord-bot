@@ -3,10 +3,9 @@
 from discord.ext import commands
 from cogs.utils.config import Config
 from cogs.utils.format import *
+from cogs.utils.emby_playlist import Player
 from discord import Embed
-import discord
 import asyncio
-import requests
 import hashlib
 import logging
 from embypy import Emby as EmbyPy
@@ -18,66 +17,10 @@ colours = [0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
            0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0x1abc9c,
            0x2ecc71, 0xa84300, 0xe74c3c, 0xad1457, 0x11806a]
 
-if not discord.opus.is_loaded():
-  discord.opus.load_opus('opus')
-
-class VoiceEntry:
-  def __init__(self, message, player):
-    self.requester = message.author
-    self.channel   = message.channel
-    self.player    = player
-
-  def __str__(self):
-    fmt = '*{0.name}* requested by {1.display_name}'
-    duration = self.player.duration
-    if duration:
-      fmt = fmt + ' [length: {0[0]}m {0[1]}s]'.format(divmod(duration, 60))
-    return fmt.format(self.player, self.requester)
-
-class VoiceState:
-  def __init__(self, bot):
-    self.current        = None
-    self.voice          = None
-    self.bot            = bot
-    self.play_next_song = asyncio.Event()
-    self.songs          = asyncio.Queue()
-    self.skip_votes     = set() # a set of user_ids that voted
-    self.audio_player   = self.bot.loop.create_task(self.audio_player_task())
-
-  def is_playing(self):
-    if self.voice is None or self.current is None:
-      return False
-
-    player = self.current.player
-    return not player.is_done()
-
-  @property
-  def player(self):
-    return self.current.player
-
-  def skip(self):
-    self.skip_votes.clear()
-    if self.is_playing():
-      self.player.stop()
-
-  def toggle_next(self):
-    self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
-
-  async def audio_player_task(self):
-    while True:
-      self.play_next_song.clear()
-      self.current = await self.songs.get()
-      await self.bot.send_message(self.current.channel,
-                                  'Now playing ' + str(self.current)
-      )
-      self.current.player.start()
-      await self.play_next_song.wait()
-
 class Emby:
   def __init__(self, bot):
-    self.bot          = bot
-    self.conf         = Config('configs/emby.json')
-    self.voice_states = {}
+    self.bot  = bot
+    self.conf = Config('configs/emby.json')
 
     if 'address' not in self.conf or not self.conf['address']:
       self.conf['address'] = input('Enter emby url: ')
@@ -91,6 +34,7 @@ class Emby:
 
     self.conn = EmbyPy(self.conf['address'], **self.conf['auth'], ws=True)
     self.conn.connector.set_on_message(self.on_socket_message)
+    self.player = Player(self)
 
   @commands.group(pass_context=True)
   async def emby(self, ctx):
@@ -144,178 +88,50 @@ class Emby:
       em = await makeEmbed(result)
       await self.bot.send_message(ctx.message.channel, embed=em)
 
-  def get_voice_state(self, server):
-    state = self.voice_states.get(server.id)
-    if state is None:
-      state = VoiceState(self.bot)
-      self.voice_states[server.id] = state
-    return state
-
-  async def create_voice_client(self, channel):
-    voice = await self.bot.join_voice_channel(channel)
-    state = self.get_voice_state(channel.server)
-    state.voice = voice
-
-  def __unload(self):
-    for state in self.voice_states.values():
-      try:
-        state.audio_player.cancel()
-        if state.voice:
-          self.bot.loop.create_task(state.voice.disconnect())
-      except:
-        pass
-
-  @emby.command(pass_context=True, no_pm=True)
+  @emby.command(pass_context=True)
   async def join(self, ctx, *, channel : discord.Channel):
-    """Joins a voice channel."""
-    try:
-      await self.create_voice_client(channel)
-    except discord.ClientException:
-      await self.bot.say('Already in a voice channel.')
-    except discord.InvalidArgument:
-      await self.bot.say('That\'s not a voice channe;.')
-    else:
-      await self.bot.say('Joined ' + channel.name)
+    self.player(ctx, channel)
 
-  @emby.command(pass_context=True, no_pm=True)
+  @emby.command(pass_context=True)
   async def summon(self, ctx):
-    """Summons the bot to join your voice channel."""
-    summoned_channel = ctx.message.author.voice_channel
-    if summoned_channel is None:
-      await self.bot.say('You are not in a voice channel.')
-      return False
+    self.summon(ctx)
 
-    state = self.get_voice_state(ctx.message.server)
-    if state.voice is None:
-      state.voice = await self.bot.join_voice_channel(summoned_channel)
-    else:
-      await state.voice.move_to(summoned_channel)
-
-    return True
-
-  @emby.command(pass_context=True, no_pm=True)
+  @emby.command(pass_context=True)
   async def play(self, ctx, *, song : str):
-    """Plays a song.
-    If there is a song currently in the queue, then it is
-    queued until the next song is done playing.
-    This command automatically searches as well from YouTube.
-    The list of supported sites can be found here:
-    https://rg3.github.io/youtube-dl/supportedsites.html
-    """
-    state = self.get_voice_state(ctx.message.server)
-    opts = {
-      'default_search': 'auto',
-      'quiet': True,
-    }
+    self.player.play(ctx, song)
 
-    if state.voice is None:
-      success = await ctx.invoke(self.summon)
-      if not success:
-        return
+  @emby.command(pass_context=True)
+  async def volume(self, server, value : int):
+    self.player.volume(server, value)
 
-    try:
-      item = await loop.run_in_executor(None, self.conn.search, song)
-      item = [i for i in item if i.media_type == 'Audio'][0]
-    except:
-      self.bot.say('could not find song')
-    stream = requests.get(item.stream_url, stream=True, validate=False).raw
-
-    player = await state.voice.create_stream_player(stream,
-                                                    after=state.toggle_next
-    )
-    player.volume = 0.5
-    entry = VoiceEntry(ctx.message, player)
-    await self.bot.say('Queued ' + str(entry))
-    await state.songs.put(entry)
-
-  @emby.command(pass_context=True, no_pm=True)
-  async def volume(self, ctx, value : int):
-    """Sets the volume of the currently playing song."""
-
-    state = self.get_voice_state(ctx.message.server)
-    if state.is_playing():
-      player = state.player
-      player.volume = value / 100
-      await self.bot.say('Set the volume to {:.0%}'.format(player.volume))
-
-  @emby.command(pass_context=True, no_pm=True)
+  @emby.command(pass_context=True)
   async def pause(self, ctx):
-    """Pauses the currently played song."""
-    state = self.get_voice_state(ctx.message.server)
-    if state.is_playing():
-      player = state.player
-      player.pause()
+    self.pause.play(ctx)
 
-  @emby.command(pass_context=True, no_pm=True)
+  @emby.command(pass_context=True)
   async def resume(self, ctx):
-    """Resumes the currently played song."""
-    state = self.get_voice_state(ctx.message.server)
-    if state.is_playing():
-      player = state.player
-      player.resume()
+    self.resume.play(ctx)
 
-  @emby.command(pass_context=True, no_pm=True)
+  @emby.command(pass_context=True)
   async def stop(self, ctx):
-    """Stops playing audio and leaves the voice channel.
-    This also clears the queue.
-    """
-    server = ctx.message.server
-    state = self.get_voice_state(server)
+    self.player.stop(ctx)
 
-    if state.is_playing():
-      player = state.player
-      player.stop()
-
-    try:
-      state.audio_player.cancel()
-      del self.voice_states[server.id]
-      await state.voice.disconnect()
-    except:
-      pass
-
-  @emby.command(pass_context=True, no_pm=True)
+  @emby.command(pass_context=True)
   async def skip(self, ctx):
-    """Retweet to skip a song. The song requester can automatically skip.
-    3 skip likes on facebook are needed for the song to be skipped.
-    """
+    self.skip.stop(ctx)
 
-    state = self.get_voice_state(ctx.message.server)
-    if not state.is_playing():
-      await self.bot.say('Not playing any music right now...')
-      return
-
-    voter = ctx.message.author
-    if voter == state.current.requester:
-      await self.bot.say('Requester requested skipping song...')
-      state.skip()
-    elif voter.id not in state.skip_votes:
-      state.skip_votes.add(voter.id)
-      total_votes = len(state.skip_votes)
-      if total_votes >= 3:
-        await self.bot.say('Skip retweet passed, skipping song...')
-        state.skip()
-      else:
-        await self.bot.say('Skip retweet added, currently at [{}/3]'.format(total_votes))
-    else:
-      await self.bot.say('You have already voted to skip this song.')
-
-  @emby.command(pass_context=True, no_pm=True)
+  @emby.command(pass_context=True)
   async def playing(self, ctx):
-    """Shows info about the currently played song."""
-
-    state = self.get_voice_state(ctx.message.server)
-    if state.current is None:
-      await self.bot.say('Not playing anything.')
-    else:
-      skip_count = len(state.skip_votes)
-      await self.bot.say('Now playing {} [skips: {}/3]'.format(state.current, skip_count))
-
+    self.playing.stop(ctx)
 
   async def on_socket_message(self, message):
     if message['MessageType'] == 'LibraryChanged':
       for eid in message['ItemsAdded']:
         logging.info(eid+' has been added to emby')
         print(eid+' has been added to emby')
+
+  def __unload(self):
+    self.player.__unload()
 
 async def makeEmbed(item):
   loop = asyncio.get_event_loop()

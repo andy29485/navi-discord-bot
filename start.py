@@ -94,8 +94,9 @@ async def on_command(command, ctx):
   else:
     chan = '#{0.channel.name} ({0.server.name})'.format(msg)
 
-  log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(
-            msg, chan))
+  logging.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(
+            msg, chan)
+  )
 
 @bot.async_event
 async def on_message(message):

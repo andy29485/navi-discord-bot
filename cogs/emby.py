@@ -10,6 +10,7 @@ import logging
 from embypy import Emby as EmbyPy
 from embypy.objects import EmbyObject
 import re
+from cogs.utils import puush
 
 colours = [0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
            0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0x1abc9c,
@@ -45,7 +46,7 @@ class Emby:
     loop = asyncio.get_event_loop()
     for item_id in item_ids.split():
       item = await loop.run_in_executor(None, self.conn.info, item_id)
-      em   = await loop.run_in_executor(None, makeEmbed, item)
+      em   = await makeEmbed(item)
       await self.bot.send_message(ctx.message.channel, embed=em)
     if not item_ids:
       info = await loop.run_in_executor(None, self.conn.info)
@@ -82,24 +83,29 @@ class Emby:
 
     for result in results[:num]:
       await loop.run_in_executor(None, result.update)
-      em = await loop.run_in_executor(None, makeEmbed, result)
+      em = await makeEmbed(result)
       await self.bot.send_message(ctx.message.channel, embed=em)
 
   async def on_socket_message(self, message):
     if message['MessageType'] == 'LibraryChanged':
       for eid in message['ItemsAdded']:
         logging.info(eid+' has been added to emby')
+        print(eid+' has been added to emby')
 
-def makeEmbed(item):
+async def makeEmbed(item):
+  loop = asyncio.get_event_loop()
   em = Embed()
-  em.title       = item.name
+  img_url          = item.primary_image_url
+  if 'https' in img_url:
+    img_url        = await loop.run_in_executor(None, puush.get_url, img_url)
+  em.title         = item.name
   try:
     em.description = item.overview
   except:
     em.description = item.media_type
-  em.url         = item.url
-  em.colour      = getColour(item.id)
-  em.set_thumbnail(url=item.primary_image_url)
+  em.url           = item.url
+  em.colour        = getColour(item.id)
+  em.set_thumbnail(url=img_url)
   return em
 
 def getColour(string : str):

@@ -91,39 +91,39 @@ class Emby:
 
   @emby.command(pass_context=True)
   async def join(self, ctx, *, channel : discord.Channel):
-    self.player(ctx, channel)
+    await self.player(ctx, channel)
 
   @emby.command(pass_context=True)
   async def summon(self, ctx):
-    self.summon(ctx)
+    await self.summon(ctx)
 
   @emby.command(pass_context=True)
   async def play(self, ctx, *, song : str):
-    self.player.play(ctx, song)
+    await self.player.play(ctx, song)
 
   @emby.command(pass_context=True)
   async def volume(self, server, value : int):
-    self.player.volume(server, value)
+    await self.player.volume(server, value)
 
   @emby.command(pass_context=True)
   async def pause(self, ctx):
-    self.pause.play(ctx)
+    await self.pause.play(ctx)
 
   @emby.command(pass_context=True)
   async def resume(self, ctx):
-    self.resume.play(ctx)
+    await self.resume.play(ctx)
 
   @emby.command(pass_context=True)
   async def stop(self, ctx):
-    self.player.stop(ctx)
+    await self.player.stop(ctx)
 
   @emby.command(pass_context=True)
   async def skip(self, ctx):
-    self.skip.stop(ctx)
+    await self.skip.stop(ctx)
 
   @emby.command(pass_context=True)
   async def playing(self, ctx):
-    self.playing.stop(ctx)
+    await self.playing.stop(ctx)
 
   async def on_socket_message(self, message):
     if message['MessageType'] == 'LibraryChanged':

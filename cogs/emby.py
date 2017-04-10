@@ -92,7 +92,10 @@ class Emby:
 def makeEmbed(item):
   em = Embed()
   em.title       = item.name
-  em.description = item.overview
+  try:
+    em.description = item.overview
+  except:
+    em.description = item.media_type
   em.url         = item.url
   em.colour      = getColour(item.id)
   em.set_thumbnail(url=item.primary_image_url)

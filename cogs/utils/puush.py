@@ -26,8 +26,7 @@ def upload(paths, p=None):
   urls = ''
   for path in paths:
     if path.startswith('http'):
-      ext = path.rpartition('.')[2].lower()
-      t   = tempfile.NamedTemporaryFile(suffix=ext)
+g      t   = tempfile.NamedTemporaryFile()
       response = requests.get(path, stream=True, verify=False)
       t.write(response.raw.read())
       path = t.name

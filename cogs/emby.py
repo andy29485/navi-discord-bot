@@ -5,6 +5,7 @@ from cogs.utils.config import Config
 from cogs.utils.format import *
 from cogs.utils.emby_playlist import Player
 from discord import Embed
+import discord
 import asyncio
 import hashlib
 import logging

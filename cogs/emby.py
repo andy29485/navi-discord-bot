@@ -132,7 +132,7 @@ class Emby:
         print(eid+' has been added to emby')
 
   def __unload(self):
-    self.player.__unload()
+    self.player.unload()
 
 async def makeEmbed(item):
   loop = asyncio.get_event_loop()

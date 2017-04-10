@@ -26,17 +26,17 @@ class VoiceEntry:
     self.item   = item
     self.player = player
 
-class Player:
+class VoiceState:
   def __init__(self, bot):
+    self.vchan          = None
     self.current        = None
-    self.voice          = None
     self.bot            = bot
     self.play_next_song = asyncio.Event()
     self.songs          = asyncio.Queue()
     self.audio_player   = self.bot.loop.create_task(self.audio_player_loop())
 
   def is_playing(self):
-    if self.voice is None or self.current is None:
+    if self.vchan is None or self.current is None:
       return False
 
     player = self.current.player
@@ -62,6 +62,11 @@ class Player:
       self.current.player.start()
       await self.play_next_song.wait()
 
+class Player:
+  def __init__(self, bot):
+    self.voice_states = {}
+    self.bot          = bot
+
   def get_voice_state(self, server):
     state = self.voice_states.get(server.id)
     if state is None:
@@ -74,7 +79,7 @@ class Player:
     state = self.get_voice_state(channel.server)
     state.voice = voice
 
-  def __unload(self):
+  def unload(self):
     for state in self.voice_states.values():
       try:
         state.audio_player.cancel()

@@ -35,7 +35,6 @@ class Server:
                          )
     )
 
-
   @commands.command(name='topic', pass_context=True)
   async def _topic(self, ctx, *, new_topic = ''):
     """manage topic
@@ -189,7 +188,7 @@ class Server:
       for chan in server.channels:
         await self.bot.edit_channel_permissions(chan, to_role, po1)
       to_chan = await self.bot.create_channel(server, 'timeout_room', p1, p2)
-      me = discord.utils.find(lambda m: m.id == self.bot.user.id, server.members)
+      me = discord.utils.find(lambda m: m.id == self.bot.user.id,server.members)
       await self.bot.edit_channel_permissions(to_chan, me, po3)
 
     message = '{}: you are now under a {} second timeout'.format(

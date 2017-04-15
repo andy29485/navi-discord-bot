@@ -75,16 +75,16 @@ class Player:
     return state
 
   async def create_voice_client(self, channel):
-    voice = await self.bot.join_voice_channel(channel)
+    vchan = await self.bot.join_voice_channel(channel)
     state = self.get_voice_state(channel.server)
-    state.voice = voice
+    state.vchan = vchan
 
   def unload(self):
     for state in self.voice_states.values():
       try:
         state.audio_player.cancel()
-        if state.voice:
-          self.bot.loop.create_task(state.voice.disconnect())
+        if state.vchan:
+          self.bot.loop.create_task(state.vchan.disconnect())
       except:
         pass
 
@@ -107,10 +107,10 @@ class Player:
       return False
 
     state = self.get_voice_state(ctx.message.server)
-    if state.voice is None:
-      state.voice = await self.bot.join_voice_channel(summoned_channel)
+    if state.vchan is None:
+      state.vchan = await self.bot.join_voice_channel(summoned_channel)
     else:
-      await state.voice.move_to(summoned_channel)
+      await state.vchan.move_to(summoned_channel)
 
     return True
 
@@ -132,7 +132,7 @@ class Player:
         self.bot.say('could not find song')
     print(item.stream_url)
     stream = requests.get(item.stream_url, stream=True, validate=False).raw
-    player = await state.voice.create_stream_player(stream,
+    player = await state.vchan.create_stream_player(stream,
                                                     after=state.toggle_next
     )
     player.volume = 0.5

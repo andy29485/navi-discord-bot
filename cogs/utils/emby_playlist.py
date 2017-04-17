@@ -19,7 +19,10 @@ colours = [0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
            0x2ecc71, 0xa84300, 0xe74c3c, 0xad1457, 0x11806a]
 
 if not discord.opus.is_loaded():
-  discord.opus.load_opus('opus')
+  try:
+    discord.opus.load_opus('opus')
+  except:
+    discord.opus.load_opus(find_library('opus'))
 
 class VoiceEntry:
   def __init__(self, item, player):

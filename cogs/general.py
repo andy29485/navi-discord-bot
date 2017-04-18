@@ -25,11 +25,11 @@ class General:
       self.conf['reminders'] = []
     if 'responses' not in self.conf:
       self.conf['responses'] = {}
-    if 'reminders' not in self.conf:
+    if 'situations' not in self.conf:
       self.conf['situations'] = []
-    if 'reminders' not in self.conf:
+    if 'polls' not in self.conf:
       self.conf['polls'] = []
-    if 'reminders' not in self.conf:
+    if '8-ball' not in self.conf:
       self.conf['8-ball'] = []
     self.conf.save()
 

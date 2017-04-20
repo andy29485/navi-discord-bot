@@ -150,7 +150,10 @@ class GroupMe:
           text += '\n[{} - ({}, {})]'.format(a.name, a.lat, a.lng)
         elif type(a) == groupy.object.attachments.Image:
           #print('        image: {}'.format(str(a.url)))
-          text += '\n[{}]'.format(a.url)
+          for channel in channels:
+            await self.bot.send_message(channel,
+                       '<{}> {}'.format(str(message.name), a.url)
+            )
           #em.set_image(str(a.url))
         elif type(a) == groupy.object.attachments.Mentions:
           pass #TODO at some point?
@@ -160,18 +163,19 @@ class GroupMe:
       #print('      send g->d - set author: {} [{}]'.format(str(message.name),
       #                                               str(message.avatar_url)
       #))
-      if message.avatar_url:
-        em.set_author(name=str(message.name), icon_url=str(message.avatar_url))
-      else:
-        em.set_author(name=str(message.name))
+      if text:
+        if message.avatar_url:
+          em.set_author(name=str(message.name), icon_url=str(message.avatar_url))
+        else:
+          em.set_author(name=str(message.name))
 
-      em.description = text
+        em.description = text
 
-      #print('      send g->d - send embed to channel(s)')
-      for channel in channels:
-        #print('        sending {} to {}'.format(str(em), str(channel)))
-        await self.bot.send_message(channel, embed=em)
-      #print('      send g->d - all ok')
+        #print('      send g->d - send embed to channel(s)')
+        for channel in channels:
+          #print('        sending {} to {}'.format(str(em), str(channel)))
+          await self.bot.send_message(channel, embed=em)
+        #print('      send g->d - all ok')
     except Error as err:
       #print(err)
       pass

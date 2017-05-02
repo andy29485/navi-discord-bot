@@ -2,7 +2,7 @@
 
 from discord.ext import commands
 from cogs.utils.config import Config
-from cogs.utils.format import *
+import cogs.utils.format as formatter
 from cogs.utils.emby_playlist import Player
 from discord import Embed
 import discord
@@ -43,11 +43,11 @@ class Emby:
     self.loop.create_task(self.poll())
 
   async def poll(self):
-    latest = await loop.run_in_executor(None, self.conn.latest)
+    latest = await self.loop.run_in_executor(None, self.conn.latest)
     for l in latest:
       if self.conf['watching']['last'] == l.id:
         break
-      item  = await loop.run_in_executor(None, l.update)
+      item  = await self.loop.run_in_executor(None, l.update)
       try:
         chans = self.conf['watching'].get(item.parent_id, [])
         for chan_id in chans:
@@ -71,28 +71,43 @@ class Emby:
     """print emby server info, or an embed for each item id"""
     for item_id in item_ids.split():
       item = await self.loop.run_in_executor(None, self.conn.info, item_id)
-      em   = await makeEmbed(item)
+      em   = await makeEmbed(item, 'New item added: ')
       await self.bot.send_message(ctx.message.channel, embed=em)
     if not item_ids:
       info = await self.loop.run_in_executor(None, self.conn.info)
       await self.bot.say(info)
 
-  @emby.command(name='watch', pass_context=True)
+  @emby.command(name='watch', aliases=['w'], pass_context=True)
   async def _watch(self, ctx, *, item_ids = ''):
+    """
+    Add show id to follow list
+
+    Usage: .emby watch <show id>
+    When an episode for that show is added to emby,
+    the bot will alert this channel of that
+    """
     for item_id in item_ids.split():
       watching = self.conf['watching'].get(item_id)
       if watching and ctx.message.channel.id not in watching:
         self.conf['watching'].get(item_id).append(ctx.message.channel.id)
       elif not watching:
         self.conf['watching'][item_id] = [ctx.message.channel.id]
+    await self.bot.say(formatter.ok())
     self.conf.save()
 
-  @emby.command(name='unwatch', pass_context=True)
+  @emby.command(name='unwatch', aliases=['uwatch', 'uw'], pass_context=True)
   async def _uwatch(self, ctx, *, item_ids = ''):
+    """
+    Remove show id from this channel;s follow list
+
+    Usage: .emby unwatch <show id>
+    see ".emby watch" for more details
+    """
     for item_id in item_ids.split():
       watching = self.conf['watching'].get(item_id)
       if watching and ctx.message.channel.id in watching:
         self.conf['watching'].get(item_id).remove(ctx.message.channel.id)
+    await self.bot.say(formatter.ok())
     self.conf.save()
 
   @emby.command(name='search', aliases=['find', 's'], pass_context=True)
@@ -173,12 +188,12 @@ class Emby:
   def __unload(self):
     self.player.unload()
 
-async def makeEmbed(item):
+async def makeEmbed(item, message=''):
   em = Embed()
   img_url          = item.primary_image_url
   if 'https' in img_url:
-    img_url        = await self.loop.run_in_executor(None, puush.get_url, img_url)
-  em.title         = item.name
+    img_url        = await self.loop.run_in_executor(None,puush.get_url,img_url)
+  em.title         = message+item.name
   try:
     em.description = item.overview
   except:

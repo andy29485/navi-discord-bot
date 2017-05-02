@@ -26,6 +26,9 @@ class Emby:
     if 'address' not in self.conf or not self.conf['address']:
       self.conf['address'] = input('Enter emby url: ')
       self.conf.save()
+    if 'watching' not in self.conf:
+      self.conf['watching'] = {'last':None}
+      self.conf.save()
     if 'auth' not in self.conf or not self.conf['auth']:
       self.conf['auth'] = {}
       self.conf['auth']['api_key']   = input('Enter emby api key: ')
@@ -36,6 +39,25 @@ class Emby:
     self.conn = EmbyPy(self.conf['address'], **self.conf['auth'], ws=True)
     self.conn.connector.set_on_message(self.on_socket_message)
     self.player = Player(bot)
+    self.loop.create_task(self.poll())
+
+  async def poll(self):
+    latest = await loop.run_in_executor(None, self.conn.latest)
+    for l in latest:
+      if self.conf['watching']['last'] == l.id:
+        break
+      item  = await loop.run_in_executor(None, l.update)
+      try:
+        chans = self.conf['watching'].get(item.parent_id, [])
+        for chan_id in chans:
+          self.bot.get_channel(chan_id)
+          em   = await makeEmbed(item)
+          await self.bot.send_message(chan, embed=em)
+      except:
+        pass
+    self.conf['watching']['last'] = latest[0].id
+    await asyncio.sleep(30)
+    self.loop.create_task(self.poll())
 
   @commands.group(pass_context=True)
   async def emby(self, ctx):
@@ -54,6 +76,24 @@ class Emby:
     if not item_ids:
       info = await loop.run_in_executor(None, self.conn.info)
       await self.bot.say(info)
+
+  @emby.command(name='watch', pass_context=True)
+  async def _watch(self, ctx, *, item_ids = ''):
+    for item_id in item_ids.split()
+      watching = self.conf['watching'].get(item_id)
+      if watching and ctx.message.channel.id not in watching:
+        self.conf['watching'].get(item_id).append(ctx.message.channel.id)
+      elif not watching:
+        self.conf['watching'][item_id] = [ctx.message.channel.id]
+    self.conf.save()
+
+@emby.command(name='unwatch', pass_context=True)
+async def _watch(self, ctx, *, item_ids = ''):
+  for item_id in item_ids.split()
+    watching = self.conf['watching'].get(item_id)
+    if watching and ctx.message.channel.id in watching:
+      self.conf['watching'].get(item_id).remove(ctx.message.channel.id)
+  self.conf.save()
 
   @emby.command(name='search', aliases=['find', 's'], pass_context=True)
   async def _search(self, ctx, *, query : str):

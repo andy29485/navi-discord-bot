@@ -39,6 +39,7 @@ class Emby:
     self.conn = EmbyPy(self.conf['address'], **self.conf['auth'], ws=True)
     self.conn.connector.set_on_message(self.on_socket_message)
     self.player = Player(bot)
+    self.loop = self.bot.loop
     self.loop.create_task(self.poll())
 
   async def poll(self):
@@ -68,18 +69,17 @@ class Emby:
   @emby.command(name='lookup', aliases=['info', 'i'], pass_context=True)
   async def _info(self, ctx, *, item_ids = ''):
     """print emby server info, or an embed for each item id"""
-    loop = asyncio.get_event_loop()
     for item_id in item_ids.split():
-      item = await loop.run_in_executor(None, self.conn.info, item_id)
+      item = await self.loop.run_in_executor(None, self.conn.info, item_id)
       em   = await makeEmbed(item)
       await self.bot.send_message(ctx.message.channel, embed=em)
     if not item_ids:
-      info = await loop.run_in_executor(None, self.conn.info)
+      info = await self.loop.run_in_executor(None, self.conn.info)
       await self.bot.say(info)
 
   @emby.command(name='watch', pass_context=True)
   async def _watch(self, ctx, *, item_ids = ''):
-    for item_id in item_ids.split()
+    for item_id in item_ids.split():
       watching = self.conf['watching'].get(item_id)
       if watching and ctx.message.channel.id not in watching:
         self.conf['watching'].get(item_id).append(ctx.message.channel.id)
@@ -87,13 +87,13 @@ class Emby:
         self.conf['watching'][item_id] = [ctx.message.channel.id]
     self.conf.save()
 
-@emby.command(name='unwatch', pass_context=True)
-async def _watch(self, ctx, *, item_ids = ''):
-  for item_id in item_ids.split()
-    watching = self.conf['watching'].get(item_id)
-    if watching and ctx.message.channel.id in watching:
-      self.conf['watching'].get(item_id).remove(ctx.message.channel.id)
-  self.conf.save()
+  @emby.command(name='unwatch', pass_context=True)
+  async def _uwatch(self, ctx, *, item_ids = ''):
+    for item_id in item_ids.split():
+      watching = self.conf['watching'].get(item_id)
+      if watching and ctx.message.channel.id in watching:
+        self.conf['watching'].get(item_id).remove(ctx.message.channel.id)
+    self.conf.save()
 
   @emby.command(name='search', aliases=['find', 's'], pass_context=True)
   async def _search(self, ctx, *, query : str):
@@ -113,8 +113,7 @@ async def _watch(self, ctx, *, item_ids = ''):
     else:
       num   = 1
 
-    loop = asyncio.get_event_loop()
-    results = await loop.run_in_executor(None, self.conn.search, query)
+    results = await self.loop.run_in_executor(None, self.conn.search, query)
     results = [i for i in results if issubclass(type(i), EmbyObject)]
     if not results:
       await self.bot.say('No results found')
@@ -125,7 +124,7 @@ async def _watch(self, ctx, *, item_ids = ''):
     results   = sorted(results, key = lambda x : types_map.get(x.type, m_size))
 
     for result in results[:num]:
-      await loop.run_in_executor(None, result.update)
+      await self.loop.run_in_executor(None, result.update)
       em = await makeEmbed(result)
       await self.bot.send_message(ctx.message.channel, embed=em)
 
@@ -175,11 +174,10 @@ async def _watch(self, ctx, *, item_ids = ''):
     self.player.unload()
 
 async def makeEmbed(item):
-  loop = asyncio.get_event_loop()
   em = Embed()
   img_url          = item.primary_image_url
   if 'https' in img_url:
-    img_url        = await loop.run_in_executor(None, puush.get_url, img_url)
+    img_url        = await self.loop.run_in_executor(None, puush.get_url, img_url)
   em.title         = item.name
   try:
     em.description = item.overview

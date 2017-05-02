@@ -26,7 +26,7 @@ class Emby:
     if 'address' not in self.conf or not self.conf['address']:
       self.conf['address'] = input('Enter emby url: ')
       self.conf.save()
-    if 'watching' not in self.conf:
+    if 'watching' not in self.conf or 'last' not in self.conf['watching']:
       self.conf['watching'] = {'last':None}
       self.conf.save()
     if 'auth' not in self.conf or not self.conf['auth']:
@@ -36,8 +36,8 @@ class Emby:
       self.conf['auth']['device_id'] = input('Enter emby device id: ')
       self.conf.save()
 
-    self.conn = EmbyPy(self.conf['address'], **self.conf['auth'], ws=True)
-    self.conn.connector.set_on_message(self.on_socket_message)
+    self.conn = EmbyPy(self.conf['address'], **self.conf['auth'], ws=False)
+    #self.conn.connector.set_on_message(self.on_socket_message)
     self.player = Player(bot)
     self.loop = self.bot.loop
     self.loop.create_task(self.poll())
@@ -51,12 +51,13 @@ class Emby:
       try:
         chans = self.conf['watching'].get(item.parent_id, [])
         for chan_id in chans:
-          self.bot.get_channel(chan_id)
-          em   = await makeEmbed(item)
+          chan = self.bot.get_channel(chan_id)
+          em   = await makeEmbed(item, 'New item added: ')
           await self.bot.send_message(chan, embed=em)
       except:
         pass
     self.conf['watching']['last'] = latest[0].id
+    self.conf.save()
     await asyncio.sleep(30)
     self.loop.create_task(self.poll())
 
@@ -189,10 +190,11 @@ class Emby:
     self.player.unload()
 
 async def makeEmbed(item, message=''):
+  loop = asyncio.get_event_loop()
   em = Embed()
   img_url          = item.primary_image_url
   if 'https' in img_url:
-    img_url        = await self.loop.run_in_executor(None,puush.get_url,img_url)
+    img_url        = await loop.run_in_executor(None,puush.get_url,img_url)
   em.title         = message+item.name
   try:
     em.description = item.overview

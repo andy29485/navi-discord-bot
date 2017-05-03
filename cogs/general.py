@@ -168,7 +168,7 @@ class General:
        r'(?i)^([wcs]hould|can|are|were|is)\s+(\S+)\s+' : r'\2 \1 ',
        r'\?$'                                          : '.',
        r'(?i)^am\s+I\s+'                               : 'Thou art ',
-       r'(?i)\bI\b'                                    : 'you',
+       r'(?i)\b(I|me)\b'                               : 'you',
        r'(?i)\bmy\b'                                   : 'your'
     }
     for r in choice_reps:

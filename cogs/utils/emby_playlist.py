@@ -158,7 +158,7 @@ class Player:
     em = await makeEmbed(item, 'Queued: ')
     await self.bot.say(embed=em)
     await state.songs.put(entry)
-    print(state.songs.empty() + ' line 161')
+    print('empty - line 161' if state.songs.empty() else 'not empty - line 161')
 
   async def volume(self, server, value : int):
     state = self.get_voice_state(server)

@@ -38,7 +38,7 @@ class Emby:
 
     self.conn = EmbyPy(self.conf['address'], **self.conf['auth'], ws=False)
     #self.conn.connector.set_on_message(self.on_socket_message)
-    self.player = Player(bot)
+    self.player = Player(bot, self.conn)
     self.loop = self.bot.loop
     self.loop.create_task(self.poll())
 

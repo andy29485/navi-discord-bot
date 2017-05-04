@@ -25,9 +25,10 @@ if not discord.opus.is_loaded():
     discord.opus.load_opus(find_library('opus'))
 
 class VoiceEntry:
-  def __init__(self, item, player):
-    self.item   = item
-    self.player = player
+  def __init__(self, item, player, channel):
+    self.item    = item
+    self.player  = player
+    self.channel = channel
 
 class VoiceState:
   def __init__(self, bot):
@@ -39,11 +40,10 @@ class VoiceState:
     self.audio_player   = self.bot.loop.create_task(self.audio_player_loop())
 
   def is_playing(self):
-    if self.vchan is None or self.current is None:
+    if self.vchan is None or self.current is None or self.current.player is None:
       return False
 
-    player = self.current.player
-    return not player.is_done()
+    return not self.current.player.is_done()
 
   @property
   def player(self):
@@ -56,19 +56,32 @@ class VoiceState:
   def toggle_next(self):
     self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
-  async def audio_player_loop(self):
+  async def audio_player_loop(self): #TODO - some way to exit
     while True:
-      self.play_next_song.clear()
-      self.current = await self.songs.get()
-      em = await makeEmbed(self.current.item, 'Now playing: ')
-      await self.bot.send_message(self.current.channel, embed=em)
-      self.current.player.start()
-      await self.play_next_song.wait()
+      try:
+        print(1)
+        self.play_next_song.clear()
+        print(2)
+        self.current = self.songs.get_nowait()
+        print('3 - ', + str(self.current) + '"')
+        em = await makeEmbed(self.current.item, 'Now playing: ')
+        print(4)
+        await self.bot.send_message(self.current.channel, embed=em)
+        print(5)
+        self.current.player.start()
+        print(5)
+        await self.play_next_song.wait()
+        self.songs.task_done()
+      except:
+        print('empty - line 76')
+        await asyncio.sleep(10)
+
 
 class Player:
-  def __init__(self, bot):
+  def __init__(self, bot, conn):
     self.voice_states = {}
     self.bot          = bot
+    self.conn         = conn
 
   def get_voice_state(self, server):
     state = self.voice_states.get(server.id)
@@ -121,28 +134,31 @@ class Player:
     state = self.get_voice_state(ctx.message.server)
     item  = None
 
-    success = await ctx.invoke(self.summon)
+    success = await self.summon(ctx)
     if not success:
       return
 
     try:
-      item = await loop.run_in_executor(None, self.conn.info, song)
+      item = await self.bot.loop.run_in_executor(None, self.conn.info, song)
     except:
       try:
-        item = await loop.run_in_executor(None, self.conn.search, song)
+        item = await self.bot.loop.run_in_executor(None, self.conn.search, song)
         item = [i for i in item if i.media_type == 'Audio'][0]
       except:
-        self.bot.say('could not find song')
+        raise
+        await self.bot.say('could not find song')
+        return
     print(item.stream_url)
-    stream = requests.get(item.stream_url, stream=True, validate=False).raw
-    player = await state.vchan.create_stream_player(stream,
-                                                    after=state.toggle_next
+    stream = item.stream()
+    player = state.vchan.create_stream_player(stream,
+                                              after=state.toggle_next
     )
     player.volume = 0.5
-    entry = VoiceEntry(ctx.message, player)
-    em = await makeEmbed(itme, 'Queued: ')
+    entry = VoiceEntry(item, player, ctx.message.channel)
+    em = await makeEmbed(item, 'Queued: ')
     await self.bot.say(embed=em)
     await state.songs.put(entry)
+    print(state.songs.empty() + ' line 161')
 
   async def volume(self, server, value : int):
     state = self.get_voice_state(server)
@@ -215,3 +231,9 @@ async def makeEmbed(item, message=''):
   em.colour        = getColour(item.id)
   em.set_thumbnail(url=img_url)
   return em
+
+def getColour(string : str):
+  str_hash = hashlib.md5()
+  str_hash.update(string.strip().encode())
+  str_hash = int(str_hash.hexdigest(), 16)
+  return colours[str_hash % len(colours)]

@@ -32,6 +32,19 @@ that = """
 .........(█)
 ..........*"""
 
+that2 = """
+      ( ͡° ͜ʖ ͡°)
+　＿    ノ ＼
+`/　`/ ⌒Ｙ⌒ Ｙ　ヽ
+( 　(三ヽ人　 /　　|
+|　ﾉ⌒＼ ￣￣ヽ　 ノ
+ヽ＿＿＿＞､＿＿_／   
+　　 ｜( 王 ﾉ〈
+　　 /ﾐ`ー―彡ヽ
+　　/　ヽ_／　 |
+　 ｜　　/    ｜
+"""
+
 class AZ:
   def __init__(self, bot):
     self.bot = bot
@@ -55,6 +68,10 @@ class AZ:
   @commands.command()
   async def lennytipede(self):
     await self.bot.say(code(that))
+
+  @commands.command()
+  async def macholenny(self):
+    await self.bot.say(code(that2))
 
   @commands.command(pass_context=True)
   @perms.in_group('img')

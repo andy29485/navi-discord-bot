@@ -74,7 +74,7 @@ class Emby:
     """print emby server info, or an embed for each item id"""
     for item_id in item_ids.split():
       item = await self.loop.run_in_executor(None, self.conn.info, item_id)
-      em   = await makeEmbed(item, 'New item added: ')
+      em   = await makeEmbed(item)
       await self.bot.send_message(ctx.message.channel, embed=em)
     if not item_ids:
       info = await self.loop.run_in_executor(None, self.conn.info)

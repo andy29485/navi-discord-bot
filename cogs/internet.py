@@ -37,13 +37,22 @@ class Search:
   @commands.command(pass_context=True, name='jisho', aliases=['j'])
   async def _jisho(self, context, *, search: str):
     result = await self.jisho.lookup(search)
-    em = discord.Embed(title=lookup, color=discord.Color.green(),
+    if len(result) == 0:
+      await self.bot.say('no results found')
+    else:
+      result = result[0]
+    em = discord.Embed(title=search, color=discord.Color.green(),
                        url='https://jisho.org/search/{}'.format(search)
     )
     em.add_field(name='**English**', value=', '.join(result['english']))
-    em.add_field(name='**Part**', value=result['parts_of_speech'])
-    em.add_field(name='\\a**Words**', value=', '.join(result['words']))
-    em.add_field(name='**Readings**', value=', '.join(result['readings']))
+    if result['parts_of_speech']:
+      em.add_field(name='**Part**', value=', '.join(result['parts_of_speech']))
+    else:
+      em.add_field(name=u'\u200b', value=u'\u200b', inline=True)
+    if result['words']:
+      em.add_field(name='**Words**', value=', '.join(result['words']))
+    if result['readings']:
+      em.add_field(name='**Readings**', value=', '.join(result['readings']))
     await self.bot.say(embed=em)
 
   async def get_search_entries(self, query):

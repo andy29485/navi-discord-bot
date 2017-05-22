@@ -47,8 +47,7 @@ class Search:
     em.add_field(name='**English**', value=', '.join(result['english']))
     if result['parts_of_speech']:
       em.add_field(name='**Part**', value=', '.join(result['parts_of_speech']))
-    else:
-      em.add_field(name=u'\u200b', value=u'\u200b', inline=True)
+    em.add_field(name=u'\u200b', value=u'\u200b', inline=True)
     if result['words']:
       em.add_field(name='**Words**', value=', '.join(result['words']))
     if result['readings']:

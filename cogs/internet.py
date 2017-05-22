@@ -73,56 +73,56 @@ class Search:
     # list of entries
     entries = []
 
+    async with aiohttp.ClientSession() as session:
+      async with session.get(url_d, params=params_d, headers=headers) as resp:
+        if resp.status != 200:
+          raise RuntimeError('DuckDuckGo somehow failed to respond.')
 
-    async with aiohttp.get(url_d, params=params_d, headers=headers) as resp:
-      if resp.status != 200:
-        raise RuntimeError('DuckDuckGo somehow failed to respond.')
+        results = await resp.json()
 
-      results = await resp.json()
+        if results['Answer']:
+          entries.append(results['Answer'].strip()+'\n')
 
-      if results['Answer']:
-        entries.append(results['Answer'].strip()+'\n')
+      async with session.get(url_g, params=params_g, headers=headers) as resp:
+        if resp.status != 200:
+          raise RuntimeError('Google somehow failed to respond.')
 
-    async with aiohttp.get(url_g, params=params_g, headers=headers) as resp:
-      if resp.status != 200:
-        raise RuntimeError('Google somehow failed to respond.')
+        root = etree.fromstring(await resp.text(), etree.HTMLParser())
 
-      root = etree.fromstring(await resp.text(), etree.HTMLParser())
+        """
+        Tree looks like this.. sort of..
+        <div class="g">
+            ...
+            <h3>
+                <a href="/url?q=<url>" ...>title</a>
+            </h3>
+            ...
+            <span class="st">
+                <span class="f">date here</span>
+                summary here, can contain <em>tag</em>
+            </span>
+        </div>
+        """
 
-      """
-      Tree looks like this.. sort of..
-      <div class="g">
-          ...
-          <h3>
-              <a href="/url?q=<url>" ...>title</a>
-          </h3>
-          ...
-          <span class="st">
-              <span class="f">date here</span>
-              summary here, can contain <em>tag</em>
-          </span>
-      </div>
-      """
+        search_nodes = root.findall(".//div[@class='g']")
+        for node in search_nodes:
+          entry_node = node.find(".//span[@class='st']")
+          if entry_node is None or not entry_node.text:
+            continue
 
-      search_nodes = root.findall(".//div[@class='g']")
-      for node in search_nodes:
-        entry_node = node.find(".//span[@class='st']")
-        if entry_node is None or not entry_node.text:
-          continue
+          url_node = node.find('.//h3/a')
+          if url_node is None:
+            continue
 
-        url_node = node.find('.//h3/a')
-        if url_node is None:
-          continue
+          url = url_node.attrib['href']
+          if not url.startswith('/url?'):
+            continue
 
-        url = url_node.attrib['href']
-        if not url.startswith('/url?'):
-          continue
+          summary = html2text.html2text(etree.tostring(entry_node).decode('utf-8'))
+          url     = parse_qs(url[5:])['q'][0]
 
-        summary = html2text.html2text(etree.tostring(entry_node).decode('utf-8'))
-        url     = parse_qs(url[5:])['q'][0]
-
-        # if I ever cared about the description, this is how
-        entries.append('<{}>\n{}\n'.format(url, summary))
+          # if I ever cared about the description, this is how
+          entries.append('<{}>\n{}\n'.format(url, summary))
     return entries
 
 def setup(bot):

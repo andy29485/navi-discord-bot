@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import asyncio
+import json
 from discord.ext import commands
 import discord
 from cogs.utils import format as formatter
@@ -77,9 +78,7 @@ class Search:
       async with session.get(url_d, params=params_d, headers=headers) as resp:
         if resp.status != 200:
           raise RuntimeError('DuckDuckGo somehow failed to respond.')
-
-        results = await resp.json()
-
+        results = json.loads(await resp.text())
         if results['Answer']:
           entries.append(results['Answer'].strip()+'\n')
 

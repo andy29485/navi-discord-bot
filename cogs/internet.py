@@ -2,15 +2,18 @@
 
 import asyncio
 from discord.ext import commands
+import discord
 from cogs.utils import format as formatter
 import aiohttp
 import html2text
 from urllib.parse import parse_qs
 from lxml import etree
+import asyncjisho
 
 class Search:
   def __init__(self, bot):
-    self.bot = bot
+    self.bot   = bot
+    self.jisho = asyncjisho.Jisho()
 
   @commands.command(name='search', aliases=['ddg', 'd', 's', 'g'])
   async def google(self, *, query):
@@ -30,6 +33,18 @@ class Search:
         msg = entries[0]
 
       await self.bot.say(msg)
+
+  @commands.command(pass_context=True, name='jisho', aliases=['j'])
+  async def _jisho(self, context, *, search: str):
+    result = await self.jisho.lookup(search)
+    em = discord.Embed(title=lookup, color=discord.Color.green(),
+                       url='https://jisho.org/search/{}'.format(search)
+    )
+    em.add_field(name='**English**', value=', '.join(result['english']))
+    em.add_field(name='**Part**', value=result['parts_of_speech'])
+    em.add_field(name='\\a**Words**', value=', '.join(result['words']))
+    em.add_field(name='**Readings**', value=', '.join(result['readings']))
+    await self.bot.say(embed=em)
 
   async def get_search_entries(self, query):
     url_d = 'http://api.duckduckgo.com/'

@@ -45,6 +45,24 @@ that2 = """
 　 ｜　　/    ｜
 """
 
+that3 = '''
+                         ______
+                      .-"""".._'.       _,##
+               _..__ |.-"""-.|  |   _,##'`-._
+              (_____)||_____||  |_,##'`-._,##'`
+              _|   |.;-""-.  |  |#'`-._,##'`
+           _.;_ `--' `\    \ |.'`\._,##'`
+          /( ͡° ͜ʖ ͡°)`\     |.-";.`_, |##'`
+          |\_____/| _..;__  |'-' /
+          '.____.'_.-`)\--' /'-'`
+           //||\\(_.-'_,'-'`
+         (`-...-')_,##'`
+  jgs _,##`-..,-;##`
+   _,##'`-._,##'`
+_,##'`-._,##'`
+  `-._,##'`
+'''
+
 class AZ:
   def __init__(self, bot):
     self.bot = bot
@@ -72,6 +90,10 @@ class AZ:
   @commands.command()
   async def macholenny(self):
     await self.bot.say(code(that2))
+
+  @commands.command()
+  async def lennytrain(self):
+    await self.bot.say(code(that3))
 
   @commands.command(pass_context=True)
   @perms.in_group('img')

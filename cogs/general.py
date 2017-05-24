@@ -80,7 +80,8 @@ class General:
         for j in subs:
           rep = await loop.run_in_executor(None, re.sub, j, subs[j], rep)
         msg = re.sub("(?i){}".format(i[0]), rep, message.content)
-        await self.bot.send_message(message.channel, msg)
+        if msg:
+          await self.bot.send_message(message.channel, msg)
         return
 
   @commands.command(name='roll', aliases=['r', 'clench'], pass_context=True)

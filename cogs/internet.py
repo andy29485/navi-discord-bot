@@ -42,8 +42,9 @@ class Search:
       await self.bot.say('no results found')
     else:
       result = result[0]
+    #TODO use https once jisho finially implements it
     em = discord.Embed(title=search, color=discord.Color.green(),
-                       url='https://jisho.org/search/{}'.format(search)
+                       url='http://jisho.org/search/{}'.format(search)
     )
     em.add_field(name='**English**', value=', '.join(result['english']))
     if result['parts_of_speech']:
@@ -119,6 +120,14 @@ class Search:
 
           summary = html2text.html2text(etree.tostring(entry_node).decode('utf-8'))
           url     = parse_qs(url[5:])['q'][0]
+
+          rep = {
+             '&amp;'    : '&',
+             '[\\s\n]+' : ' '
+          }
+
+          for r in rep:
+            summary = re.sub(r, rep[r], summary)
 
           # if I ever cared about the description, this is how
           entries.append('<{}>\n{}\n'.format(url, summary))

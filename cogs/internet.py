@@ -9,6 +9,7 @@ import aiohttp
 import html2text
 from urllib.parse import parse_qs
 from lxml import etree
+import re
 import asyncjisho
 
 class Search:

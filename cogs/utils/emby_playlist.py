@@ -230,6 +230,8 @@ async def makeEmbed(item, message=''):
   em.url           = item.url
   em.colour        = getColour(item.id)
   em.set_thumbnail(url=img_url)
+  if item.genres:
+    em.add_field(name='Tags', value=', '.join(item.genres))
   return em
 
 def getColour(string : str):

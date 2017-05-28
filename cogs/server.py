@@ -103,7 +103,7 @@ class Server:
           )
         )
       )
-      raise
+      #raise
 
   @commands.command(name='timeout_end', aliases=['te'], pass_context=True)
   async def _timeout_end(self, ctx, member: discord.Member):
@@ -153,7 +153,7 @@ class Server:
     self.timeouts[server][member] = roles
     criteria = lambda m: re.search('(?i)^time?[ _-]?out.*', m.name)
 
-    to_role = discord.utils.find(criteria ,server.roles   )
+    to_role = discord.utils.find(criteria, server.roles   )
     to_chan = discord.utils.find(criteria, server.channels)
 
     if not to_role:
@@ -169,24 +169,24 @@ class Server:
         )
         return
 
-    if not to_chan:
-      po1 = discord.PermissionOverwrite(read_messages        = False,
-                                        read_message_history = False,
-                                        send_messages        = False
-      )
-      po2 = discord.PermissionOverwrite(read_messages        = True,
-                                        read_message_history = False,
-                                        send_messages        = True
-      )
-      po3 = discord.PermissionOverwrite(read_messages        = True,
-                                        read_message_history = True,
-                                        send_messages        = True
-      )
+    po1 = discord.PermissionOverwrite(read_messages        = False,
+                                      read_message_history = False,
+                                      send_messages        = False
+    )
+    po2 = discord.PermissionOverwrite(read_messages        = True,
+                                      read_message_history = False,
+                                      send_messages        = True
+    )
+    po3 = discord.PermissionOverwrite(read_messages        = True,
+                                      read_message_history = True,
+                                      send_messages        = True
+    )
 
+    for chan in server.channels:
+      await self.bot.edit_channel_permissions(chan, to_role, po1)
+    if not to_chan:
       p1 = discord.ChannelPermissions(target=server.default_role, overwrite=po1)
       p2 = discord.ChannelPermissions(target=to_role,             overwrite=po2)
-      for chan in server.channels:
-        await self.bot.edit_channel_permissions(chan, to_role, po1)
       to_chan = await self.bot.create_channel(server, 'timeout_room', p1, p2)
       me = discord.utils.find(lambda m: m.id == self.bot.user.id,server.members)
       await self.bot.edit_channel_permissions(to_chan, me, po3)

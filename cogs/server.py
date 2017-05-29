@@ -188,8 +188,8 @@ class Server:
       p1 = discord.ChannelPermissions(target=server.default_role, overwrite=po1)
       p2 = discord.ChannelPermissions(target=to_role,             overwrite=po2)
       to_chan = await self.bot.create_channel(server, 'timeout_room', p1, p2)
-      me = discord.utils.find(lambda m: m.id == self.bot.user.id,server.members)
-      await self.bot.edit_channel_permissions(to_chan, me, po3)
+    me = discord.utils.find(lambda m: m.id == self.bot.user.id,server.members)
+    await self.bot.edit_channel_permissions(to_chan, me, po3)
 
     message = '{}: you are now under a {} second timeout'.format(
                 member.mention,

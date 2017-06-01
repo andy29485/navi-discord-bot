@@ -3,7 +3,7 @@
 import re
 import time
 import cogs.utils.heap as heap
-from dateutil import parser
+from datetime
 
 class Reminder:
   tm = [re.compile(r'([T _-]*(?P<hour>\d\d?):(?P<min>\d\d)'+
@@ -50,7 +50,7 @@ class Reminder:
     }
     m_time = None
     m_date = None
-    if re.search(r'(?i)^(me)?\s*in', self.message):
+    if re.search(r'(?i)^(me)?\s*at', self.message):
       date_time = datetime.datetime.today()
       for t in Reminder.tm:
         m_time = t.search(self.message)
@@ -82,7 +82,7 @@ class Reminder:
             date_time = date_time.replace(day=d)
       if m_time or m_date:
         offset = date_time.timestamp()
-    if not re.search(r'(?i)^(me)?\s*in',self.message) or not (m_date or m_time):
+    if not re.search(r'(?i)^(me)?\s*at',self.message) or not (m_date or m_time):
       for t in times:
         match = re.search(t, self.message)
         self.message = re.sub(t, '', self.message).strip()

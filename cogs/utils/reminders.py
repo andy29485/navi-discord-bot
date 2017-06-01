@@ -40,7 +40,7 @@ class Reminder:
          '(?i)(\\d+)\\s*months?'        : 2628000
     }
     if re.search(r'(?i)^(me)?\s*in', self.message):
-      offset = parser.parse(self.message).timestamp()
+      offset = parser.parse(self.message, fuzzy=True).timestamp()
     for t in times:
       match = re.search(t, self.message)
       self.message = re.sub(t, '', self.message).strip()

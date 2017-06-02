@@ -3,11 +3,11 @@
 import re
 import time
 import cogs.utils.heap as heap
-from datetime
+import datetime
 
 class Reminder:
-  tm = [re.compile(r'([T _-]*(?P<hour>\d\d?):(?P<min>\d\d)'+
-                  r'(:(?P<sec>\d\d))?(\s+(?P<meridiem>AM|PM))?)?'
+  tm = [re.compile(r'[T _-]*(?P<hour>\d\d?):(?P<min>\d\d)'+
+                  r'(:(?P<sec>\d\d))?(\s+(?P<meridiem>[APap][Mm]))?'
         )
        ]
   dt = [re.compile(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)'),
@@ -55,10 +55,9 @@ class Reminder:
       for t in Reminder.tm:
         m_time = t.search(self.message)
         if m_time:
-          self.message = self.message.replace(m_time.group(0), '')
           if m_time.group('hour'):
             h = int(m_time.group('hour'))
-            if m_time.group('meridiem').lower() == 'pm':
+            if str(m_time.group('meridiem')).lower() == 'pm':
               h += 12
             date_time = date_time.replace(hour=h)
           if m_time.group('min'):
@@ -67,6 +66,7 @@ class Reminder:
           if m_time.group('sec'):
             s = int(m_time.group('sec'))
             date_time = date_time.replace(second=s)
+          self.message = self.message.replace(m_time.group(0), '')
           break
       for d in Reminder.dt:
         m_date = d.search(self.message)
@@ -80,6 +80,7 @@ class Reminder:
           if m_date.group('day'):
             d = int(m_date.group('day'))
             date_time = date_time.replace(day=d)
+          self.message = self.message.replace(m_date.group(0), '')
       if m_time or m_date:
         offset = date_time.timestamp()
     if not re.search(r'(?i)^(me)?\s*at',self.message) or not (m_date or m_time):

@@ -27,7 +27,7 @@ class NSFW:
       await self.bot.say(formatter.error("Please specify valid subcommand"))
 
     channel = ctx.message.channel
-    if 'nsfw' not in channel.name.lower() and not channel.is_private():
+    if 'nsfw' not in channel.name.lower() and not channel.is_private:
       await self.bot.say('not in nsfw channel')
       ctx.invoked_subcommand = None
       return

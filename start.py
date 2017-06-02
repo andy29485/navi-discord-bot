@@ -37,7 +37,8 @@ if not path.exists('logs'):
   makedirs('logs')
 
 import logging
-logging.basicConfig(filename='logs/navi.log',level=logging.DEBUG)
+logging.basicConfig(filename='logs/%Y-%m-%d.log',level=logging.INFO)
+logging.basicConfig(filename='logs/error.log',level=logging.DEBUG)
 
 prefix = ['.']
 description = 'Andy29485\'s bot'

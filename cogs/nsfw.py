@@ -7,8 +7,9 @@ import pybooru
 from discord import Embed
 from discord.ext import commands
 from cogs.utils.config import Config
+import cogs.utils.format as formatter
 
-class Nsfw:
+class NSFW:
   def __init__(self, bot):
     self.bot      = bot
     self.conf     = Config('configs/nsfw.json')
@@ -24,7 +25,9 @@ class Nsfw:
     """NSFW stuff"""
     if ctx.invoked_subcommand is None:
       await self.bot.say(formatter.error("Please specify valid subcommand"))
-    if 'nsfw' not in ctx.message.channel.name.lower():
+
+    channel = ctx.message.channel
+    if 'nsfw' not in channel.name.lower() and not channel.is_private():
       await self.bot.say('not in nsfw channel')
       ctx.invoked_subcommand = None
       return
@@ -61,34 +64,33 @@ class Nsfw:
 
     await self.bot.say(embed=em)
 
-@nsfw.command(name='yandere', aliases=['y'])
-async def _yandre(self, search_tags : str):
-  """
-    searches yande.re for an image
+  @nsfw.command(name='yandere', aliases=['y'])
+  async def _yandre(self, search_tags : str):
+    """
+      searches yande.re for an image
 
-    usage: .nsfw yandere tags1 tag2, tag_3, etc...
-    must specify at least 1 tag
-    will potentially return nsfw images
-  """
-  tags  = re.split(',?\\s+', search_tags)
-  posts = self.yandere.post_list(limit=100,tags=tags,random=True)
-  em    = Embed()
+      usage: .nsfw yandere tags1 tag2, tag_3, etc...
+      must specify at least 1 tag
+      will potentially return nsfw images
+    """
+    tags  = re.split(',?\\s+', search_tags)
+    posts = self.yandere.post_list(limit=100,tags=tags,random=True)
+    em    = Embed()
 
-  post = random.choice(posts)
+    post = random.choice(posts)
 
-  if not post:
-    await self.bot.say('could not find anything')
-    return
+    if not post:
+      await self.bot.say('could not find anything')
+      return
 
-  em.title = search_tags
-  em.url   = 'https://yande.re/post/show/{}'.format(post['id'])
-  u        = post['file_url']
-  em.set_image(url=u)
-  if post['tags']:
-    em.set_footer(text=post['tags'])
+    em.title = search_tags
+    em.url   = 'https://yande.re/post/show/{}'.format(post['id'])
+    u        = post['file_url']
+    em.set_image(url=u)
+    if post['tags']:
+      em.set_footer(text=post['tags'])
 
-  await self.bot.say(embed=em)
-
+    await self.bot.say(embed=em)
 
 def setup(bot):
-  bot.add_cog(Nsfw(bot))
+  bot.add_cog(NSFW(bot))

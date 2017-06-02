@@ -20,6 +20,13 @@ class Nsfw:
 
   @commands.command(name='danbooru', aliases=['db'])
   async def _danbooru(self, search_tags : str):
+    """
+      searches danbooru for an image with specified tag
+      usage: .danbooru tags1 tag2, tag_3, etc...
+
+      must specify at least 1 tag
+      will potentially return nsfw images
+    """
     tags  = re.split(',?\\s+', search_tags)
     posts = self.danbooru.post_list(limit=1,tags=tags,random=True)
     em    = Embed()
@@ -32,7 +39,12 @@ class Nsfw:
 
     em.title = search_tags
     em.url   = 'https://danbooru.donmai.us/posts/{}'.format(post['id'])
-    em.set_image(url='https://danbooru.donmai.us'+post['large_file_url'])
+    u        = 'https://danbooru.donmai.us'
+    if 'large_file_url' in post:
+      u += post['large_file_url']
+    else:
+      u += post['file_url']
+    em.set_image(url=u)
     if post['tag_string']:
       em.set_footer(text=post['tag_string'])
 

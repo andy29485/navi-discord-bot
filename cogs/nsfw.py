@@ -24,7 +24,7 @@ class NSFW:
   async def nsfw(self, ctx):
     """NSFW stuff"""
     channel = ctx.message.channel
-    if 'nsfw' not in channel.name.lower() and not channel.is_private:
+    if not channel.is_private and 'nsfw' not in channel.name.lower():
       await self.bot.say(formatter.error('not in nsfw channel'))
       ctx.invoked_subcommand = None
       return

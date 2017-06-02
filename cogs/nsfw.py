@@ -21,8 +21,8 @@ class NSFW:
     self.danbooru = pybooru.Danbooru('danbooru', **self.conf['danbooru-conf'])
 
   @commands.group(pass_context=True)
-  """NSFW stuff"""
   async def nsfw(self, ctx):
+    """NSFW stuff"""
     channel = ctx.message.channel
     if 'nsfw' not in channel.name.lower() and not channel.is_private:
       await self.bot.say(formatter.error('not in nsfw channel'))

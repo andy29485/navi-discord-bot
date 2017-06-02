@@ -81,6 +81,7 @@ class Reminder:
             d = int(m_date.group('day'))
             date_time = date_time.replace(day=d)
           self.message = self.message.replace(m_date.group(0), '')
+          break
       if m_time or m_date:
         offset = date_time.timestamp()
     if not re.search(r'(?i)^(me)?\s*at',self.message) or not (m_date or m_time):

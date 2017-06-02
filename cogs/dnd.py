@@ -1,5 +1,5 @@
-
 #!/usr/bin/env python3
+
 import asyncio
 from discord.ext import commands
 from cogs.utils.config import Config

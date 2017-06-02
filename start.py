@@ -35,6 +35,7 @@ if not path.exists('logs'):
   makedirs('logs')
 
 import logging
+from logging.handlers import TimedRotatingFileHandler
 current_path = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger('navi')
 logger.setLevel(logging.DEBUG)
@@ -47,7 +48,7 @@ debug_log.setLevel(logging.DEBUG)
 errror_log = logging.FileHandler(os.path.join(current_path, 'logs/error.log'))
 errror_log.setLevel(logging.ERROR)
 
-fh = logging.TimedRotatingFileHandler('navi',  when='midnight')
+fh = TimedRotatingFileHandler('navi',  when='midnight')
 fh.suffix = '%Y-%m-%d.log'
 
 logger.addHandler(debug_log)

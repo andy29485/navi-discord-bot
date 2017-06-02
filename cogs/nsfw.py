@@ -25,6 +25,7 @@ class NSFW:
     """NSFW stuff"""
     if ctx.invoked_subcommand is None:
       await self.bot.say(formatter.error("Please specify valid subcommand"))
+      return
 
     channel = ctx.message.channel
     if 'nsfw' not in channel.name.lower() and not channel.is_private:

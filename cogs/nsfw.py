@@ -32,7 +32,7 @@ class Nsfw:
 
     em.title = search_tags
     em.url   = 'https://danbooru.donmai.us/posts/{}'.format(post['id'])
-    em.set_image(url=post['large_file_url'])
+    em.set_image(url='https://danbooru.donmai.us'+post['large_file_url'])
     if post['tag_string']:
       em.set_footer(text=post['tag_string'])
 

@@ -26,7 +26,8 @@ starting_cogs = [
   'cogs.regex',
   'cogs.groupme',
   'cogs.dnd',
-  'cogs.emby'
+  'cogs.emby',
+  'cogs.nsfw'
 ]
 
 

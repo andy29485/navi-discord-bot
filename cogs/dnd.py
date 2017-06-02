@@ -10,7 +10,7 @@ class DnD:
     self.conf = Config('configs/dnd.json')
 
   @commands.command(pass_context=True)
-  async def echo(self, ctx, first_word, everything_else : str):
+  async def echo(self, ctx, *, entire_message : str):
     """
     Short description - repeats user's message
 
@@ -20,9 +20,8 @@ class DnD:
     """
     # example `.echo hello world!`
     #   ctx.message.content           # the full message `.echo hello world`
-    #   first_word                    # just `hello`
-    #   everything_else               # `hello world!`
-    await self.bot.say(everything_else)
+    #   entire_message                # `hello world!`
+    await self.bot.say(entire_message)
 
 def setup(bot):
   d = DnD(bot)

@@ -57,8 +57,13 @@ class NSFW:
     u        = 'https://danbooru.donmai.us'
     if 'large_file_url' in post:
       u += post['large_file_url']
-    else:
+    elif 'file_url' in post:
       u += post['file_url']
+    else:
+      await self.bot.say('''
+              Sorry, there seems to be a premium tag in the query,
+              send me $20 if you you want to search it.
+      ''')
     em.set_image(url=u)
     if post['tag_string']:
       em.set_footer(text=post['tag_string'])
@@ -75,7 +80,7 @@ class NSFW:
       will potentially return nsfw images
     """
     tags  = re.split(',?\\s+', search_tags)
-    posts = self.yandere.post_list(limit=100,tags=tags,random=True)
+    posts = self.yandere.post_list(limit=100,tags=tags)
     em    = Embed()
 
     post = random.choice(posts)

@@ -21,16 +21,16 @@ class NSFW:
     self.danbooru = pybooru.Danbooru('danbooru', **self.conf['danbooru-conf'])
 
   @commands.group(pass_context=True)
+  """NSFW stuff"""
   async def nsfw(self, ctx):
-    """NSFW stuff"""
-    if ctx.invoked_subcommand is None:
-      await self.bot.say(formatter.error("Please specify valid subcommand"))
-      return
-
     channel = ctx.message.channel
     if 'nsfw' not in channel.name.lower() and not channel.is_private:
-      await self.bot.say('not in nsfw channel')
+      await self.bot.say(formatter.error('not in nsfw channel'))
       ctx.invoked_subcommand = None
+      return
+
+    if ctx.invoked_subcommand is None:
+      await self.bot.say(formatter.error("Please specify valid subcommand"))
       return
 
   @nsfw.command(name='danbooru', aliases=['d'])

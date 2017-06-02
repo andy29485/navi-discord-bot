@@ -8,10 +8,8 @@ import discord
 from discord.ext import commands
 import asyncio
 import aiohttp
-import re, sys
-import logging
 import datetime
-import logging.handlers
+import re, sys, os
 from cogs import *
 from cogs.utils.config import Config
 import cogs.utils.format as formatter
@@ -37,8 +35,24 @@ if not path.exists('logs'):
   makedirs('logs')
 
 import logging
-logging.basicConfig(filename='logs/%Y-%m-%d.log',level=logging.INFO)
-logging.basicConfig(filename='logs/error.log',level=logging.DEBUG)
+current_path = os.path.dirname(os.path.realpath(__file__))
+logger = logging.getLogger('navi')
+logger.setLevel(logging.DEBUG)
+
+#to log debug messages
+debug_log = logging.FileHandler(os.path.join(current_path, 'logs/navi.log'))
+debug_log.setLevel(logging.DEBUG)
+
+#to log errors
+errror_log = logging.FileHandler(os.path.join(current_path, 'logs/error.log'))
+errror_log.setLevel(logging.ERROR)
+
+fh = TimedRotatingFileHandler('navi',  when='midnight')
+fh.suffix = '%Y-%m-%d.log'
+
+logger.addHandler(debug_log)
+logger.addHandler(errror_log)
+logger.addHandler(fh)
 
 prefix = ['.']
 description = 'Andy29485\'s bot'
@@ -71,9 +85,9 @@ async def on_command_error(error, ctx):
     await bot.send_message(ctx.message.channel, formatter.error(
                          'Sorry. This command is disabled and cannot be used.'))
   elif isinstance(error, commands.CommandInvokeError):
-    logging.error('In {0.command.qualified_name}:'.format(ctx))
-    logging.error(error.original.__traceback__)
-    logging.error('{0.__class__.__name__}: {0}'.format(error.original))
+    logger.error('In {0.command.qualified_name}:'.format(ctx))
+    logger.error(error.original.__traceback__)
+    logger.error('{0.__class__.__name__}: {0}'.format(error.original))
     await bot.send_message(ctx.message.channel,formatter.error(
         'Command error: {}'.format(error))
     )
@@ -96,7 +110,7 @@ async def on_command(command, ctx):
   else:
     chan = '#{0.channel.name} ({0.server.name})'.format(msg)
 
-  logging.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(
+  logger.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(
             msg, chan)
   )
 

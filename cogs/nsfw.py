@@ -26,9 +26,9 @@ class NSFW:
     if 'safebooru-conf' not in self.conf:
       self.conf['safebooru-conf'] = {}
 
-    self.yandere  = pybooru.Moebooru('yandere',   **self.conf['yandere-conf'])
-    self.danbooru = pybooru.Danbooru('danbooru',  **self.conf['danbooru-conf'])
-    self.danbooru = pybooru.Danbooru('safebooru', **self.conf['safebooru-conf'])
+    self.yandere  =  pybooru.Moebooru('yandere',  **self.conf['yandere-conf'])
+    self.danbooru =  pybooru.Danbooru('danbooru', **self.conf['danbooru-conf'])
+    self.safebooru = pybooru.Danbooru('safebooru',**self.conf['safebooru-conf'])
 
   @commands.group(pass_context=True)
   async def nsfw(self, ctx):

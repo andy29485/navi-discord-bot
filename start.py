@@ -48,7 +48,9 @@ debug_log.setLevel(logging.DEBUG)
 errror_log = logging.FileHandler(os.path.join(current_path, 'logs/error.log'))
 errror_log.setLevel(logging.ERROR)
 
-fh = TimedRotatingFileHandler('navi',  when='midnight')
+fh = TimedRotatingFileHandler(os.path.join(current_path, 'logs/navi'),
+                              when='midnight'
+)
 fh.suffix = '%Y-%m-%d.log'
 
 logger.addHandler(debug_log)

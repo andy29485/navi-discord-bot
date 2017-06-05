@@ -93,11 +93,11 @@ class NSFW:
     posts = self.yandere.post_list(limit=100,tags=tags)
     em    = Embed()
 
-    post = random.choice(posts)
-
-    if not post:
+    if not posts:
       await self.bot.say('could not find anything')
       return
+
+    post = random.choice(posts)
 
     em.title = search_tags
     em.url   = 'https://yande.re/post/show/{}'.format(post['id'])

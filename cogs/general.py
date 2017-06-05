@@ -134,15 +134,18 @@ class General:
       dice = ['20']
 
     for roll in dice:
-      match = re.search('^((\\d+)?d)?(\\d+)$', roll, re.I)
+      match = re.search('^((\\d+)?d)?(\\d+)([+-]\\d+)?$', roll, re.I)
       message = ''
       if not match:
         message = 'Invalid roll'
       else:
         times = 1
         sides = int(match.group(3))
+        add   = 0
         if match.group(2):
           times = int(match.group(2))
+        if match.group(4):
+          add   = int(match.group(4))
 
         if times > 100:
           message = 'Cannot roll that many dice  '
@@ -154,7 +157,7 @@ class General:
           message = 'No  '
         else:
           for i in range(times):
-            message += '{}, '.format(random.randint(1, sides))
+            message += '{}, '.format(random.randint(1, sides)+add)
         message = message[:-2]
       out.append('{}: {}'.format(roll, message))
     return out

@@ -12,86 +12,25 @@ from cogs.utils import find as azfind
 from cogs.utils.config import Config
 
 
-that = """
-╚═( ͡° ͜ʖ ͡° )═╝
-..╚═(███)═╝
-.╚═(███)═╝
-..╚═(███)═╝
-...╚═(███)═╝
-....╚═(███)═╝
-...╚═(███)═╝
-..╚═(███)═╝
-.╚═(███)═╝
-╚═(███)═╝
-.╚═(███)═╝
-..╚═(███)═╝
-...╚═(███)═╝
-...╚═(███)═╝
-.....╚(███)╝
-.......╚(██)╝
-.........(█)
-..........*"""
-
-that2 = """
-      ( ͡° ͜ʖ ͡°)
-　＿    ノ ＼
-`/　`/ ⌒Ｙ⌒ Ｙ　ヽ
-( 　(三ヽ人　 /　　|
-|　ﾉ⌒＼ ￣￣ヽ　 ノ
-ヽ＿＿＿＞､＿＿_／
-　　 ｜( 王 ﾉ〈
-　　 /ﾐ`ー―彡ヽ
-　　/　ヽ_／　 |
-　 ｜　　/    ｜
-"""
-
-that3 = '''
-                         ______
-                      .-"""".._'.       _,##
-               _..__ |.-"""-.|  |   _,##'`-._
-              (_____)||_____||  |_,##'`-._,##'`
-              _|   |.;-""-.  |  |#'`-._,##'`
-           _.;_ `--' `\    \ |.'`\._,##'`
-          /( ͡° ͜ʖ ͡°)`\     |.-";.`_, |##'`
-          |\_____/| _..;__  |'-' /
-          '.____.'_.-`)\--' /'-'`
-           //||\\(_.-'_,'-'`
-         (`-...-')_,##'`
-  jgs _,##`-..,-;##`
-   _,##'`-._,##'`
-_,##'`-._,##'`
-  `-._,##'`
-'''
-
-that4 = '''
-░░░░░░░░░░░░▄▄▄▄░░░░░░░░░░░░░░░░░░░░░░░▄▄▄▄▄
-░░░█░░░░▄▀█▀▀▄░░▀▀▀▄░░░░▐█░░░░░░░░░▄▀█▀▀▄░░░▀█▄
-░░█░░░░▀░▐▌░░▐▌░░░░░▀░░░▐█░░░░░░░░▀░▐▌░░▐▌░░░░█▀
-░▐▌░░░░░░░▀▄▄▀░░░░░░░░░░▐█▄▄░░░░░░░░░▀▄▄▀░░░░░▐▌
-░█░░░░░░░░░░░░░░░░░░░░░░░░░▀█░░░░░░░░░░░░░░░░░░█
-▐█░░░░░░░░░░░░░░░░░░░░░░░░░░█▌░░░░░░░░░░░░░░░░░█
-▐█░░░░░░░░░░░░░░░░░░░░░░░░░░█▌░░░░░░░░░░░░░░░░░█
-░█░░░░░░░░░░░░░░░░░░░░█▄░░░▄█░░░░░░░░░░░░░░░░░░█
-░▐▌░░░░░░░░░░░░░░░░░░░░▀███▀░░░░░░░░░░░░░░░░░░▐▌
-░░█░░░░░░░░░░░░░░░░░▀▄░░░░░░░░░░▄▀░░░░░░░░░░░░█
-░░░█░░░░░░░░░░░░░░░░░░▀▄▄▄▄▄▄▄▀▀░░░░░░░░░░░░░█
-'''
-
 class AZ:
   def __init__(self, bot):
-    self.bot = bot
+    self.bot  = bot
+    self.conf = Config('configs/az.json')
 
   @commands.command()
-  async def lenny(self, first=None):
+  async def lenny(self, first=''):
     try:
-      first = int(first)
-      if first < 1:
-        first = 1
-      if first > 10:
-        first = 10
+      num = int(first)
+      if num < 1:
+        num = 1
+      if num > 10:
+        num = 10
     except:
-      first = 1
-    await self.bot.say('\n( ͡° ͜ʖ ͡° )'*first)
+      num = 1
+    if num == 1 and first.lower() in self.conf['lenny']:
+      await self.bot.say(code(self.conf['lenny'][first]))
+    else:
+      await self.bot.say('\n( ͡° ͜ʖ ͡° )'*num)
 
   @commands.command()
   async def shrug(self):
@@ -165,23 +104,6 @@ class AZ:
         await self.bot.say(ok())
         return
     await self.bot.say('could not find role to change')
-
-
-  @commands.command()
-  async def lennytipede(self):
-    await self.bot.say(code(that))
-
-  @commands.command()
-  async def macholenny(self):
-    await self.bot.say(code(that2))
-
-  @commands.command()
-  async def lennytrain(self):
-    await self.bot.say(code(that3))
-
-  @commands.command()
-  async def megalenny(self):
-    await self.bot.say(code(that4))
 
   @commands.command(pass_context=True)
   @perms.in_group('img')

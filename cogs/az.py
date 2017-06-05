@@ -14,7 +14,8 @@ from cogs.utils.config import Config
 
 class AZ:
   def __init__(self, bot):
-    self.bot = bot
+    self.bot  = bot
+    self.conf = Config('configs/az.json')
 
   @commands.command()
   async def lenny(self, first=''):

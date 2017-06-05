@@ -44,7 +44,7 @@ class NSFW:
       return
 
   @nsfw.command(name='danbooru', aliases=['d'])
-  async def _danbooru(self, *, search_tags : str):
+  async def _danbooru(self, *, search_tags : str = ''):
     """
       searches danbooru for an image
 
@@ -53,6 +53,22 @@ class NSFW:
       will potentially return nsfw images
     """
     tags  = re.split(',?\\s+', search_tags)
+    for i in range(len(tags)):
+      if re.search('^(//|#)', tags[i]):
+        tags = tags[:i]
+        break
+
+    for i in range(len(tags)):
+      if re.search('^(/\\*)', tags[i]):
+        for j in range(i, len(tags)):
+          if re.search('^(\\*/)', tags[j]):
+            break
+        tags = tags[:i] + tags[j+1:]
+        break
+
+    if not tags:
+      tags = ['rating:e']
+
     posts = self.danbooru.post_list(limit=1,tags=tags,random=True)
     em    = Embed()
 
@@ -90,6 +106,22 @@ class NSFW:
       will potentially return nsfw images
     """
     tags  = re.split(',?\\s+', search_tags)
+    for i in range(len(tags)):
+      if re.search('^(//|#)', tags[i]):
+        tags = tags[:i]
+        break
+
+    for i in range(len(tags)):
+      if re.search('^(/\\*)', tags[i]):
+        for j in range(i, len(tags)):
+          if re.search('^(\\*/)', tags[j]):
+            break
+        tags = tags[:i] + tags[j+1:]
+        break
+
+    if not tags:
+      tags = ['rating:e']
+
     posts = self.yandere.post_list(limit=100,tags=tags)
     em    = Embed()
 
@@ -130,6 +162,7 @@ class NSFW:
             break
         tags = tags[:i] + tags[j+1:]
         break
+
     posts = self.safebooru.post_list(limit=1,tags=tags,random=True)
     em    = Embed()
 

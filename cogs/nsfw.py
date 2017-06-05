@@ -44,7 +44,7 @@ class NSFW:
       return
 
   @nsfw.command(name='danbooru', aliases=['d'])
-  async def _danbooru(self, search_tags : str):
+  async def _danbooru(self, *, search_tags : str):
     """
       searches danbooru for an image
 
@@ -81,7 +81,7 @@ class NSFW:
     await self.bot.say(embed=em)
 
   @nsfw.command(name='yandere', aliases=['y'])
-  async def _yandre(self, search_tags : str):
+  async def _yandre(self, *, search_tags : str):
     """
       searches yande.re for an image
 
@@ -109,7 +109,7 @@ class NSFW:
     await self.bot.say(embed=em)
 
   @commands.command(name='safebooru', aliases=['s', 'safe'])
-  async def _safebooru(self, search_tags : str):
+  async def _safebooru(self, *, search_tags : str):
     """
       searches safebooru for an image
 
@@ -118,6 +118,18 @@ class NSFW:
       will should not return nsfw images
     """
     tags  = re.split(',?\\s+', search_tags)
+    for i in range(len(tags)):
+      if re.search('^(//|#)', tags[i]):
+        tags = tags[:i]
+        break
+
+    for i in range(len(tags)):
+      if re.search('^(/\\*)', tags[i]):
+        for j in range(i, len(tags)):
+          if re.search('^(\\*/)', tags[j]):
+            break
+        tags = tags[:i] + tags[j+1:]
+        break
     posts = self.safebooru.post_list(limit=1,tags=tags,random=True)
     em    = Embed()
 

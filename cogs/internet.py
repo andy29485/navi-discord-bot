@@ -17,7 +17,7 @@ class Search:
     self.bot   = bot
     self.jisho = asyncjisho.Jisho()
 
-  @commands.command(name='search', aliases=['ddg', 'd', 's', 'g'])
+  @commands.command(name='search', aliases=['ddg', 'd', 'g'])
   async def google(self, *, query):
     """
     Searches DuckDuckGo and Google and gives you top results.

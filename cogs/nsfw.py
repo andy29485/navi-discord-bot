@@ -108,7 +108,7 @@ class NSFW:
 
     await self.bot.say(embed=em)
 
-  @nsfw.command(name='safebooru', aliases=['s', 'safe'])
+  @commands.command(name='safebooru', aliases=['s', 'safe'])
   async def _safebooru(self, search_tags : str):
     """
       searches safebooru for an image

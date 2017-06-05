@@ -17,7 +17,7 @@ class AZ:
     self.bot = bot
 
   @commands.command()
-  async def lenny(self, first=None):
+  async def lenny(self, first=''):
     try:
       num = int(first)
       if num < 1:

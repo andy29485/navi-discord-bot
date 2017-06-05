@@ -36,14 +36,6 @@ class AZ:
   async def shrug(self):
     await self.bot.say('\n¯\_(ツ)_/¯')
 
-  @commands.command()
-  async def lennytipede(self):
-    await self.bot.say(code(that))
-
-  @commands.command()
-  async def macholenny(self):
-    await self.bot.say(code(that2))
-
   @commands.command(pass_context=True)
   @perms.in_group('img')
   async def img(self, ctx, *search):

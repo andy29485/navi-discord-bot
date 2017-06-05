@@ -28,9 +28,9 @@ class AZ:
     except:
       num = 1
     if num == 1 and first.lower() in self.conf['lenny']:
-      await self.bot.say(code(self.conf['lenny']['first']))
+      await self.bot.say(code(self.conf['lenny'][first]))
     else:
-      await self.bot.say('\n( ͡° ͜ʖ ͡° )'*first)
+      await self.bot.say('\n( ͡° ͜ʖ ͡° )'*num)
 
   @commands.command()
   async def shrug(self):

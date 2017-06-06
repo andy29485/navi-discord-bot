@@ -86,7 +86,12 @@ class General:
 
   @commands.command(name='roll', aliases=['r', 'clench'], pass_context=True)
   async def _roll(self, ctx, *dice):
-    'rolls dice given pattern [Nd]S'
+    """rolls dice given pattern [Nd]S[(+|-)C]
+
+    N: number of dice to roll
+    S: side on the dice
+    C: constant to add or subtract from each die roll
+    """
     loop = asyncio.get_event_loop()
 
     roll = '\n'.join(await loop.run_in_executor(None, self.rolls, dice))
@@ -100,6 +105,7 @@ class General:
   @commands.command(name="8ball", aliases=["8"])
   async def _8ball(self, *, question : str):
     """Ask 8 ball a question
+
     Question must end with a question mark.
     """
     if question.endswith("?") and question != "?":
@@ -184,7 +190,27 @@ class General:
 
   @commands.command(name='remindme', pass_context=True, aliases=['remind'])
   async def _add_reminder(self, ctx, *, message : str):
-    """adds a reminder"""
+    """
+    adds a reminder
+
+    'at' must be used when specifing exact time
+    'in' is optional for offsets
+    'me' can be seperate or part of the command name (also optinal)
+    cannot mix offsets and exact times
+
+    Samples:
+    .remind me in 5 h message
+    .remind me in 5 hours 3 m message
+    .remind me 1 week message
+    .remind me 7 months message
+    .remindme in 7 months message
+    .remind me at 2017-10-23 message
+    .remind me at 2017-10-23T05:11:56 message
+    .remindme at 2017-10-23 05:11:56 message
+    .remindme at 10/23/2017 5:11 PM message
+    .remind at 7:11 message
+    .remind at 7:11:15 message
+"""
     author  = ctx.message.author.mention
     channel = ctx.message.channel.id
     r = Reminder(channel, author, message)
@@ -194,7 +220,7 @@ class General:
 
   @commands.command(pass_context=True, aliases=['a', 'ask'])
   async def question(self, ctx):
-    """Answers a question"""
+    """Answers a question with yes/no"""
     message = ctx.message.author.mention + ':\n'
     message += formatter.inline(random.choice(['yes', 'no']))
     await self.bot.say(message)
@@ -233,20 +259,20 @@ class General:
     await poll.start()
 
   async def check_reminders(self):
-    reminders_removed = False
-    # if there are valid reminders, process them
-    while self.conf['reminders'] and self.conf['reminders'][0].is_ready():
-      r = self.conf['reminders'][0].popFrom(self.conf['reminders'])
-      c = self.bot.get_channel(r.channel_id)
-      await self.bot.send_message(c, r.get_message())
-      reminders_removed = True
+    while True:
+      reminders_removed = False
+      # if there are valid reminders, process them
+      while self.conf['reminders'] and self.conf['reminders'][0].is_ready():
+        r = self.conf['reminders'][0].popFrom(self.conf['reminders'])
+        c = self.bot.get_channel(r.channel_id)
+        await self.bot.send_message(c, r.get_message())
+        reminders_removed = True
 
-    if reminders_removed:
-      self.conf.save()
+      if reminders_removed:
+        self.conf.save()
 
-    # wait a bit and check again
-    await asyncio.sleep(10)
-    self.loop.create_task(self.check_reminders())
+      # wait a bit and check again
+      await asyncio.sleep(10)
 
 
 def split(choices):

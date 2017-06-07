@@ -25,6 +25,7 @@ starting_cogs = [
   'cogs.groupme',
   'cogs.dnd',
   'cogs.emby',
+  'cogs.music',
   'cogs.nsfw'
 ]
 

@@ -2,7 +2,6 @@
 
 from discord.ext import commands
 from cogs.utils.config import Config
-from cogs.utils.emby_playlist import Player
 import cogs.utils.emby_helper as emby_helper
 import cogs.utils.format as formatter
 import discord

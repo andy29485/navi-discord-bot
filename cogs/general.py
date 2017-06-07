@@ -10,7 +10,7 @@ from cogs.utils import format as formatter
 from cogs.utils.poll import Poll
 from cogs.utils.config import Config
 from cogs.utils.reminders import Reminder
-
+from datetime import datetime
 
 class General:
   def __init__(self, bot):
@@ -190,7 +190,8 @@ class General:
     r = Reminder(channel, author, message)
     r.insertInto(self.conf['reminders'])
     self.conf.save()
-    await self.bot.say(formatter.ok())
+    t = datetime.fromtimestamp(r.end_time).isoformat()
+    await self.bot.say(formatter.ok('Will remind you at {}'.format(t)))
 
   @commands.command(pass_context=True, aliases=['a', 'ask'])
   async def question(self, ctx):

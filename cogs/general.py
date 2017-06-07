@@ -80,7 +80,7 @@ class General:
         for j in subs:
           rep = await loop.run_in_executor(None, re.sub, j, subs[j], rep)
         msg = re.sub("(?i){}".format(i[0]), rep, message.content)
-        if msg:
+        if rep:
           await self.bot.send_message(message.channel, msg)
         return
 

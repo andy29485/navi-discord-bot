@@ -7,7 +7,7 @@ import datetime
 
 class Reminder:
   tm = [re.compile(r'[T _-]*(?P<hour>\d\d?):(?P<min>\d\d)'+
-                  r'(:(?P<sec>\d\d))?(\s*(?P<meridiem>[APap][Mm]))?'
+                   r'(:(?P<sec>\d\d))?(\s*(?P<meridiem>[APap]\.?[Mm]\.?))?'
         )
        ]
   dt = [re.compile(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)'),

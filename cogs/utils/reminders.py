@@ -7,7 +7,7 @@ import datetime
 
 class Reminder:
   tm = [re.compile(r'[T _-]*(?P<hour>\d\d?):(?P<min>\d\d)'+
-                  r'(:(?P<sec>\d\d))?(\s+(?P<meridiem>[APap][Mm]))?'
+                  r'(:(?P<sec>\d\d))?(\s*(?P<meridiem>[APap][Mm]))?'
         )
        ]
   dt = [re.compile(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)'),
@@ -15,6 +15,14 @@ class Reminder:
                    r'[/\.-](?P<year>\d\d(\d\d)?)'
         )
        ]
+  times = {
+       '(?i)(\\d+)\\s*s(econds?)?'    : 1,
+       '(?i)(\\d+)\\s*m(in(ute)?s?)?' : 60,
+       '(?i)(\\d+)\\s*h(ours?)?'      : 3600,
+       '(?i)(\\d+)\\s*d(ays?)?'       : 86400,
+       '(?i)(\\d+)\\s*w(eeks?)?'      : 604800,
+       '(?i)(\\d+)\\s*months?'        : 2628000
+  }
   def __init__(self, channel_id, user_id, message, end_time=0):
     self.channel_id = channel_id
     self.user_id    = user_id
@@ -40,14 +48,6 @@ class Reminder:
 
   def parse_time(self):
     offset = time.time()
-    times = {
-         '(?i)(\\d+)\\s*s(econds?)?'    : 1,
-         '(?i)(\\d+)\\s*m(in(ute)?s?)?' : 60,
-         '(?i)(\\d+)\\s*h(ours?)?'      : 3600,
-         '(?i)(\\d+)\\s*d(ays?)?'       : 86400,
-         '(?i)(\\d+)\\s*w(eeks?)?'      : 604800,
-         '(?i)(\\d+)\\s*months?'        : 2628000
-    }
     m_time = None
     m_date = None
     if re.search(r'(?i)^(me)?\s*at', self.message):
@@ -57,8 +57,13 @@ class Reminder:
         if m_time:
           if m_time.group('hour'):
             h = int(m_time.group('hour'))
-            if str(m_time.group('meridiem')).lower() == 'pm':
-              h += 12
+            mer = str(m_time.group('meridiem')).lower()
+            if mer == 'pm':
+              if h < 12:
+                h += 12
+            elif mer == 'am':
+              if h == 12:
+                h = 0
             date_time = date_time.replace(hour=h)
           if m_time.group('min'):
             m = int(m_time.group('min'))
@@ -85,7 +90,7 @@ class Reminder:
       if m_time or m_date:
         offset = date_time.timestamp()
     if not re.search(r'(?i)^(me)?\s*at',self.message) or not (m_date or m_time):
-      for t in times:
+      for t in Reminder.times:
         match = re.search(t, self.message)
         self.message = re.sub(t, '', self.message).strip()
         if match:

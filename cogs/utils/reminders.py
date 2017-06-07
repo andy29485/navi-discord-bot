@@ -58,10 +58,10 @@ class Reminder:
           if m_time.group('hour'):
             h = int(m_time.group('hour'))
             mer = str(m_time.group('meridiem')).lower()
-            if mer == 'pm':
+            if mer[0] == 'p':
               if h < 12:
                 h += 12
-            elif mer == 'am':
+            elif mer[0] == 'a':
               if h == 12:
                 h = 0
             date_time = date_time.replace(hour=h)

@@ -16,13 +16,14 @@ if not discord.opus.is_loaded():
     discord.opus.load_opus(find_library('opus'))
 
 class VoiceEntry:
-  def __init__(self, message, player):
+  def __init__(self, message, player, item):
     self.requester = message.author
     self.channel   = message.channel
     self.player    = player
+    self.item      = item
 
   def __str__(self):
-    fmt='*{0.title}* uploaded by {0.uploader} and requested by {1.display_name}'
+    fmt = '*{0.title}* by {0.uploader} and requested by {1.display_name}'
     duration = self.player.duration
     if duration:
       fmt = fmt + ' [length: {0[0]}m {0[1]}s]'.format(divmod(duration, 60))
@@ -62,9 +63,8 @@ class VoiceState:
     while True:
       self.play_next_song.clear()
       self.current = await self.songs.get()
-      await self.bot.send_message(self.current.channel,
-                                  'Now playing ' + str(self.current)
-      )
+      em = await emby_helper.makeEmbed(self.curren.item, 'Now playing: ')
+      await self.bot.send_message(self.current.channel, embed=em)
       self.current.player.start()
       await self.play_next_song.wait()
 
@@ -172,10 +172,8 @@ class Music:
         except:
           await self.bot.say('could not find song')
           return
-      print(item.stream_url)
-      stream = item.stream()
-      player = state.vchan.create_stream_player(stream,
-                                                after=state.toggle_next
+      player = state.vchan.create_ffmpeg_player(item.stream_url,
+                                                options='-b:a 64k -bufsize 64k'
       )
       player.duration = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
       player.title    = item.name
@@ -187,8 +185,9 @@ class Music:
       )
     else:
       player.volume = 0.6
-      entry = VoiceEntry(ctx.message, player)
-      await self.bot.say('Enqueued: ' + str(entry))
+      entry = VoiceEntry(ctx.message, player, item)
+      em = await emby_helper.makeEmbed(entry, 'Now playing: ')
+      await self.bot.say(embed=em)
       await state.songs.put(entry)
 
   @commands.command(pass_context=True, no_pm=True)

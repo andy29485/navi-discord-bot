@@ -94,7 +94,7 @@ class Reminder:
         match = re.search(t, self.message)
         self.message = re.sub(t, '', self.message).strip()
         if match:
-          offset += times[t]*float(match.group(1))
+          offset += Reminder.times[t]*float(match.group(1))
     self.message = re.sub(r'(?i)^(me\s+)?(at|in)?\s*', '', self.message).strip()
     self.end_time = offset
 

@@ -43,25 +43,25 @@ class Emby:
     self.loop.create_task(self.poll())
 
   async def poll(self):
-    latest = await self.loop.run_in_executor(None, self.conn.latest)
-    for l in latest:
-      if self.conf['watching']['last'] == l.id:
-        break
-      item = ttm  = await self.loop.run_in_executor(None, l.update)
-      while ttm.parent_id:
-        ttm = await self.loop.run_in_executor(None,self.conn.info,ttm.parent_id)
-        try:
-          chans = self.conf['watching'].get(ttm.id, [])
-          for chan_id in chans:
-            chan = self.bot.get_channel(chan_id)
-            em   = await makeEmbed(item, 'New item added: ')
-            await self.bot.send_message(chan, embed=em)
-        except:
+    while True:
+      latest = await self.loop.run_in_executor(None, self.conn.latest)
+      for l in latest:
+        if self.conf['watching']['last'] == l.id:
           break
-    self.conf['watching']['last'] = latest[0].id
-    self.conf.save()
-    await asyncio.sleep(30)
-    self.loop.create_task(self.poll())
+        item = t  = await self.loop.run_in_executor(None, l.update)
+        while t.parent_id:
+          t = await self.loop.run_in_executor(None,self.conn.info,t.parent_id)
+          try:
+            chans = self.conf['watching'].get(t.id, [])
+            for chan_id in chans:
+              chan = self.bot.get_channel(chan_id)
+              em   = await makeEmbed(item, 'New item added: ')
+              await self.bot.send_message(chan, embed=em)
+          except:
+            break
+      self.conf['watching']['last'] = latest[0].id
+      self.conf.save()
+      await asyncio.sleep(30)
 
   @commands.group(pass_context=True)
   async def emby(self, ctx):

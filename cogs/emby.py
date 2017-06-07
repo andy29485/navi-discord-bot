@@ -7,7 +7,6 @@ import cogs.utils.emby_helper as emby_helper
 import cogs.utils.format as formatter
 import discord
 import asyncio
-import hashlib
 import logging
 from embypy import Emby as EmbyPy
 from embypy.objects import EmbyObject

@@ -2,6 +2,7 @@
 
 from cogs.utils import puush
 from discord import Embed
+import hashlib
 import asyncio
 
 colours = [0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,

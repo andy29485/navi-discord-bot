@@ -8,6 +8,7 @@ from cogs.utils.format import *
 from embypy import Emby as EmbyPy
 from embypy.objects import EmbyObject
 from cogs.utils.config import Config
+
 if not discord.opus.is_loaded():
   try:
     discord.opus.load_opus('opus')
@@ -170,12 +171,14 @@ class Music:
                                                 after=state.toggle_next
       )
     except Exception as e:
-      fmt = 'An error occurred while processing this request: ```py\n{}: {}\n```'
-      await self.bot.send_message(ctx.message.channel, fmt.format(type(e).__name__, e))
+      fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
+      await self.bot.send_message(ctx.message.channel,
+                                  fmt.format(type(e).__name__, e)
+      )
     else:
       player.volume = 0.6
       entry = VoiceEntry(ctx.message, player)
-      await self.bot.say('Enqueued ' + str(entry))
+      await self.bot.say('Enqueued: ' + str(entry))
       await state.songs.put(entry)
 
   @commands.command(pass_context=True, no_pm=True)

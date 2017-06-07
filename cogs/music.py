@@ -101,14 +101,14 @@ class Music:
   async def create_voice_client(self, channel):
     voice = await self.bot.join_voice_channel(channel)
     state = self.get_voice_state(channel.server)
-    state.voice = voice
+    state.vchan = voice
 
   def __unload(self):
     for state in self.voice_states.values():
       try:
         state.audio_player.cancel()
-        if state.voice:
-          self.bot.loop.create_task(state.voice.disconnect())
+        if state.vchan:
+          self.bot.loop.create_task(state.vchan.disconnect())
       except:
         pass
 
@@ -133,10 +133,10 @@ class Music:
       return False
 
     state = self.get_voice_state(ctx.message.server)
-    if state.voice is None:
-      state.voice = await self.bot.join_voice_channel(summoned_channel)
+    if state.vchan is None:
+      state.vchan = await self.bot.join_voice_channel(summoned_channel)
     else:
-      await state.voice.move_to(summoned_channel)
+      await state.vchan.move_to(summoned_channel)
 
     return True
 
@@ -157,7 +157,7 @@ class Music:
         'quiet': True,
     }
 
-    if state.voice is None:
+    if state.vchan is None:
       success = await ctx.invoke(self.summon)
       if not success:
         return
@@ -230,7 +230,7 @@ class Music:
     try:
       state.audio_player.cancel()
       del self.voice_states[server.id]
-      await state.voice.disconnect()
+      await state.vchan.disconnect()
     except:
       pass
 

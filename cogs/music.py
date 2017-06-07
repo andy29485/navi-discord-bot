@@ -5,7 +5,9 @@ import discord
 from discord.ext import commands
 import cogs.utils.emby_helper as emby_helper
 from cogs.utils.format import *
-
+from embypy import Emby as EmbyPy
+from embypy.objects import EmbyObject
+from cogs.utils.config import Config
 if not discord.opus.is_loaded():
   try:
     discord.opus.load_opus('opus')
@@ -157,7 +159,7 @@ class Music:
         item = await self.bot.loop.run_in_executor(None, self.conn.info, song)
       except:
         try:
-          item = await self.bot.loop.run_in_executor(None, self.conn.search, song)
+          item = await self.bot.loop.run_in_executor(None,self.conn.search,song)
           item = [i for i in item if i.media_type == 'Audio'][0]
         except:
           await self.bot.say('could not find song')

@@ -18,8 +18,8 @@ if not discord.opus.is_loaded():
 class VoiceEntry:
   def __init__(self, message, player):
     self.requester = message.author
-    self.channel = message.channel
-    self.player = player
+    self.channel   = message.channel
+    self.player    = player
 
   def __str__(self):
     fmt='*{0.title}* uploaded by {0.uploader} and requested by {1.display_name}'
@@ -177,6 +177,9 @@ class Music:
       player = state.vchan.create_stream_player(stream,
                                                 after=state.toggle_next
       )
+      player.duration = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
+      player.title    = item.name
+      player.uploader = ', '.join(item.artists)
     except Exception as e:
       fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
       await self.bot.send_message(ctx.message.channel,

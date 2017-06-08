@@ -3,6 +3,7 @@
 import asyncio
 import discord
 from discord.ext import commands
+from ctypes.util import find_library
 import cogs.utils.emby_helper as emby_helper
 from cogs.utils.format import *
 from embypy import Emby as EmbyPy
@@ -60,7 +61,7 @@ class VoiceState:
     self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
   async def audio_player_task(self):
-    while True:
+    while self == self.bot.get_cog('Music'):
       self.play_next_song.clear()
       self.current = await self.songs.get()
       if self.current.item:
@@ -177,7 +178,8 @@ class Music:
         except:
           await self.bot.say('could not find song')
           return
-      player = state.vchan.create_ffmpeg_player(item.stream_url,
+      url = item.stream_url.replace('.mp3', '?static=true')
+      player = state.vchan.create_ffmpeg_player(url,
                                                 options='-b:a 64k -bufsize 64k'
       )
       player.duration = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
@@ -191,7 +193,7 @@ class Music:
     else:
       player.volume = 0.6
       entry = VoiceEntry(ctx.message, player, item)
-      em = await emby_helper.makeEmbed(item, 'Now playing: ')
+      em = await emby_helper.makeEmbed(item, 'Queued: ')
       await self.bot.say(embed=em)
       await state.songs.put(entry)
 
@@ -284,4 +286,9 @@ class Music:
       )
 
 def setup(bot):
-  bot.add_cog(Music(bot))
+  print(0)
+  try:
+    bot.add_cog(Music(bot))
+  except Exception as e:
+    print(e)
+  print(2)

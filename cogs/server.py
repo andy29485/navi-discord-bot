@@ -91,11 +91,19 @@ class Server:
         buf = tmp
       else:
         buf += tmp
+      if message.embeds:
+        out.append(buf)
+        buf = ''
+        for embed in message.embeds:
+          out.append(embed)
     if buf:
       out.append(buf)
 
     for mes in out:
-      await self.bot.say(mes)
+      if type(mes) == str:
+        await self.bot.say(mes)
+      else:
+        await self.bot.say(embed=mes)
 
     while len(logs) > 0:
       if len(logs) > 1:

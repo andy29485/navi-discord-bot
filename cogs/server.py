@@ -2,6 +2,7 @@
 
 import time
 import asyncio
+import requests
 import re
 from cogs.utils import perms
 from discord.ext.commands.errors import CheckFailure
@@ -91,8 +92,10 @@ class Server:
     buf = ''
     out = []
     for message in logs:
-      if message.content:
+      if message.content or message.attachments:
         tmp = '<{0.author.name}> {0.content}\n'.format(message)
+        for a in message.attachments:
+          tmp += '\n{filename}: {url}'.format(**a)
       else:
         tmp = ''
       if len(buf) + len(tmp) > 1900:
@@ -113,7 +116,6 @@ class Server:
         if mes:
           await self.bot.say(mes)
       else:
-        #logs.remove(mes)
         await self.bot.say(embed=EmWrap(mes))
 
     while len(logs) > 0:

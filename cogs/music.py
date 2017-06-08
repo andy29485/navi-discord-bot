@@ -63,8 +63,13 @@ class VoiceState:
     while True:
       self.play_next_song.clear()
       self.current = await self.songs.get()
-      em = await emby_helper.makeEmbed(self.curren.item, 'Now playing: ')
-      await self.bot.send_message(self.current.channel, embed=em)
+      if self.current.item:
+        em = await emby_helper.makeEmbed(self.current.item, 'Now playing: ')
+        await self.bot.send_message(self.current.channel, embed=em)
+      else:
+        await self.bot.send_message(self.current.channel,
+          'Now playing: ' + str(self.current)
+        )
       self.current.player.start()
       await self.play_next_song.wait()
 
@@ -186,7 +191,7 @@ class Music:
     else:
       player.volume = 0.6
       entry = VoiceEntry(ctx.message, player, item)
-      em = await emby_helper.makeEmbed(entry, 'Now playing: ')
+      em = await emby_helper.makeEmbed(item, 'Now playing: ')
       await self.bot.say(embed=em)
       await state.songs.put(entry)
 

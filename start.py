@@ -15,10 +15,18 @@ from cogs.utils.config import Config
 import cogs.utils.format as formatter
 
 starting_cogs = [
-  
+  'cogs.general',
+  'cogs.az',
   'cogs.admin',
-  
-  'cogs.music'
+  'cogs.internet',
+  'cogs.quotes',
+  'cogs.server',
+  'cogs.regex',
+  'cogs.groupme',
+  'cogs.dnd',
+  'cogs.emby',
+  'cogs.music',
+  'cogs.nsfw'
 ]
 
 

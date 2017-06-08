@@ -13,6 +13,7 @@ class Server:
   def __init__(self, bot):
     self.bot      = bot
     self.timeouts = {}
+    self.cut      = {}
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='prune', pass_context=True)
@@ -34,6 +35,62 @@ class Server:
                            )
                          )
     )
+
+  @perms.has_perms(manage_messages=True)
+  @commands.command(name='cut', pass_context=True)
+  async def _cut(self, ctx, num_to_cut : int):
+    #if num_to_cut > 100:
+    #  await self.bot.say('Sorry, only up to 100')
+    #  return
+    if num_to_cut < 1:
+      await self.bot.say('umm... no')
+      return
+
+    aid  = ctx.message.author.id
+    chan = ctx.message.channel
+    cid  = chan.id
+    await self.bot.delete_message(ctx.message)
+    print(1)
+    logs = []
+    async for m in self.bot.logs_from(chan, num_to_cut):
+      logs.insert(0, m)
+
+    self.cut[aid] = logs
+
+  @perms.has_perms(manage_messages=True)
+  @commands.command(name='paste', pass_context=True)
+  async def _paste(self, ctx):
+    aid  = ctx.message.author.id
+    logs = self.cut.pop(aid, [])
+
+    if not logs:
+      await self.bot.say('You have not cut anything')
+      return
+
+    buf = ''
+    out = []
+    for message in logs:
+      tmp = '<{0.author.name}> {0.content}\n'.format(message)
+      if len(buf) + len(tmp) > 1900:
+        out.append(buf)
+        buf = tmp
+      else:
+        buf += tmp
+    if buf:
+      out.append(buf)
+
+    for mes in out:
+      await self.bot.say(mes)
+
+    while len(logs) > 0:
+      if len(logs) > 1:
+        await self.bot.delete_messages(logs[:100])
+        logs = logs[100:]
+      else:
+        await self.bot.delete_message(logs[0])
+
+    if aid in self.cut:
+      del self.cut[aid]
 
   @commands.command(name='topic', pass_context=True)
   async def _topic(self, ctx, *, new_topic = ''):

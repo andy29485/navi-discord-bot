@@ -67,6 +67,8 @@ class Server:
       await self.bot.say('You have not cut anything')
       return
 
+    await self.bot.delete_message(ctx.message)
+    
     buf = ''
     out = []
     for message in logs:

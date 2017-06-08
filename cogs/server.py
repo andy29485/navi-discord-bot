@@ -65,14 +65,14 @@ class Server:
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='paste', pass_context=True)
-  '''
-  paste cutted messages to current channel
-
-  needs manage_messages perm in the current channel to use
-  deletes original messages
-  see .cut
-  '''
   async def _paste(self, ctx):
+    '''
+    paste cutted messages to current channel
+
+    needs manage_messages perm in the current channel to use
+    deletes original messages
+    see .cut
+    '''
     aid  = ctx.message.author.id
     logs = self.cut.pop(aid, [])
 

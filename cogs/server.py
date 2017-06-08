@@ -39,6 +39,13 @@ class Server:
   @perms.has_perms(manage_messages=True)
   @commands.command(name='cut', pass_context=True)
   async def _cut(self, ctx, num_to_cut : int):
+    '''
+    cuts num_to_cut messages from the current channel
+
+    messages will not be deleted until paste
+    needs manage_messages perm in the current channel to use
+    see .paste
+    '''
     #if num_to_cut > 100:
     #  await self.bot.say('Sorry, only up to 100')
     #  return
@@ -50,7 +57,6 @@ class Server:
     chan = ctx.message.channel
     cid  = chan.id
     await self.bot.delete_message(ctx.message)
-    print(1)
     logs = []
     async for m in self.bot.logs_from(chan, num_to_cut):
       logs.insert(0, m)
@@ -59,6 +65,13 @@ class Server:
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='paste', pass_context=True)
+  '''
+  paste cutted messages to current channel
+
+  needs manage_messages perm in the current channel to use
+  deletes original messages
+  see .cut
+  '''
   async def _paste(self, ctx):
     aid  = ctx.message.author.id
     logs = self.cut.pop(aid, [])
@@ -68,7 +81,7 @@ class Server:
       return
 
     await self.bot.delete_message(ctx.message)
-    
+
     buf = ''
     out = []
     for message in logs:

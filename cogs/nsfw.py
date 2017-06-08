@@ -48,8 +48,9 @@ class NSFW:
     """
       searches danbooru for an image
 
-      usage: .nsfw danbooru tags1 tag2, tag_3, etc...
-      must specify at least 1 tag
+      usage: .nsfw danbooru [num] tags1 tag2, tag_3, etc...
+      (optional) num: number of posts to show [1,5]
+      if not tags are given, rating:e is assumed
       will potentially return nsfw images
     """
     tags  = re.split(',?\\s+', search_tags)
@@ -107,8 +108,9 @@ class NSFW:
     """
       searches yande.re for an image
 
-      usage: .nsfw yandere tags1 tag2, tag_3, etc...
-      must specify at least 1 tag
+      usage: .nsfw yandere [num] tags1 tag2, tag_3, etc...
+      (optional) num: number of posts to show [1,5]
+      if not tags are given, rating:e is assumed
       will potentially return nsfw images
     """
     tags  = re.split(',?\\s+', search_tags)
@@ -158,6 +160,14 @@ class NSFW:
 
   @commands.command(name='safebooru', aliases=['s', 'safe'])
   async def _safebooru(self, *, search_tags : str):
+    """
+      searches safebooru for an image
+
+      usage: .safebooru [num] tags1 tag2, tag_3, etc...
+      (optional) num: number of posts to show [1,5]
+      at least 1 tag must be specified
+      will potentially return nsfw images
+    """
     tags  = re.split(',?\\s+', search_tags)
     for i in range(len(tags)):
       if re.search('^(//|#)', tags[i]):

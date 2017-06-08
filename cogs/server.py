@@ -9,6 +9,12 @@ import discord
 from cogs.utils.format import *
 from discord.ext import commands
 
+class EmWrap:
+  def __init__(self, d):
+    self.d = d
+  def to_dict(self):
+    return self.d
+
 class Server:
   def __init__(self, bot):
     self.bot      = bot
@@ -85,7 +91,10 @@ class Server:
     buf = ''
     out = []
     for message in logs:
-      tmp = '<{0.author.name}> {0.content}\n'.format(message)
+      if message.content:
+        tmp = '<{0.author.name}> {0.content}\n'.format(message)
+      else:
+        tmp = ''
       if len(buf) + len(tmp) > 1900:
         out.append(buf)
         buf = tmp
@@ -101,9 +110,11 @@ class Server:
 
     for mes in out:
       if type(mes) == str:
-        await self.bot.say(mes)
+        if mes:
+          await self.bot.say(mes)
       else:
-        await self.bot.say(embed=mes)
+        #logs.remove(mes)
+        await self.bot.say(embed=EmWrap(mes))
 
     while len(logs) > 0:
       if len(logs) > 1:
@@ -111,6 +122,7 @@ class Server:
         logs = logs[100:]
       else:
         await self.bot.delete_message(logs[0])
+        logs.remove(logs[0])
 
     if aid in self.cut:
       del self.cut[aid]

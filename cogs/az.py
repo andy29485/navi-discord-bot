@@ -36,6 +36,10 @@ class AZ:
   async def shrug(self):
     await self.bot.say('\n¯\_(ツ)_/¯')
 
+  @commands.command(pass_context=True)
+  async def me(self, ctx, *, message : str):
+    await self.bot.say('*{} {}*'.format(ctx.message.author.name, message))
+
   @commands.command(pass_context=True,name='set_colour',aliases=['sc'])
   @perms.is_in_servers('168702989324779520')
   @perms.has_role_check(lambda r: r.id == '258405421813989387')

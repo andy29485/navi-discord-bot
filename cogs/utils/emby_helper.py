@@ -23,12 +23,13 @@ async def makeEmbed(item, message=''):
   em.url           = item.url
   em.colour        = getColour(item.id)
   em.set_thumbnail(url=img_url)
-  if item.genres:
+  if hasattr(item, 'genres') and item.genres:
     em.add_field(name='Tags', value=', '.join(item.genres))
-  if 'RunTimeTicks' in item.object_dict:
+  if 'RunTimeTicks' in item.object:
     d = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
-    d = '{:02}:{:02}:{:02}'.format(d//3600, d//60, d%60)
-    em.add_field(name='Duration', value=d)
+    if d > 1:
+      d = '{:02}:{:02}:{:02}'.format(d//3600, d//60, d%60)
+      em.add_field(name='Duration', value=d)
   return em
 
 def getColour(string : str):

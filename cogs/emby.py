@@ -19,7 +19,7 @@ class Emby:
     self.loop.create_task(self.poll())
 
   async def poll(self):
-    while True:
+    while self == self.bot.get_cog('Emby')::
       latest = await self.loop.run_in_executor(None, self.conn.latest)
       for l in latest:
         if self.conf['watching']['last'] == l.id:

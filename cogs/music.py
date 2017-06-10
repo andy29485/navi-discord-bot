@@ -29,10 +29,11 @@ class VoiceEntry:
 
 
 class VoiceState:
-  def __init__(self, bot):
+  def __init__(self, bot, cog):
     self.current = None
     self.vchan = None
     self.bot = bot
+    self.cog = cog
     self.play_next_song = asyncio.Event()
     self.songs = asyncio.Queue()
     self.skip_votes = set() # a set of user_ids that voted
@@ -58,7 +59,7 @@ class VoiceState:
     self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
   async def audio_player_task(self):
-    while True:
+    while self.cog == self.bot.get_cog('Music')::
       self.play_next_song.clear()
       self.current = await self.songs.get()
       if self.current.item:
@@ -81,7 +82,7 @@ class Music:
   def get_voice_state(self, server):
     state = self.voice_states.get(server.id)
     if state is None:
-      state = VoiceState(self.bot)
+      state = VoiceState(self.bot, self)
       self.voice_states[server.id] = state
 
     return state

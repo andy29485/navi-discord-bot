@@ -33,11 +33,15 @@ async def makeEmbed(item, message=''):
   em = Embed()
   img_url          = item.primary_image_url
   if 'https' in img_url:
-    img_url        = await loop.run_in_executor(None,puush.get_url,img_url)
+    img_url        = await loop.run_in_executor(None, puush.get_url, img_url)
   em.title         = message+item.name
-  try:
-    em.description = item.overview
-  except:
+  if hasattr(item, 'genres'):
+    if len(item.overview) > 250:
+      des = item.overview[:247] + '...'
+    else:
+      des = item.overview
+    em.description = des
+  else:
     em.description = item.media_type
   em.url           = item.url
   em.colour        = getColour(item.id)

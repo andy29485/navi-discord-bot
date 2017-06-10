@@ -348,7 +348,7 @@ class General:
     await poll.start()
 
   async def check_reminders(self):
-    while True:
+    while self == self.bot.get_cog('General'):
       reminders_removed = False
       # if there are valid reminders, process them
       while self.conf['reminders'] and self.conf['reminders'][0].is_ready():

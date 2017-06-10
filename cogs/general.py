@@ -10,7 +10,7 @@ from cogs.utils import format as formatter
 from cogs.utils.poll import Poll
 from cogs.utils.config import Config
 from cogs.utils.reminders import Reminder
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class General:
   def __init__(self, bot):
@@ -113,19 +113,86 @@ class General:
     else:
       await self.bot.say("That doesn't look like a question.")
 
-  @commands.command(aliases=["sw"], pass_context=True)
+  @commands.group(aliases=["sw"], pass_context=True)
   async def stopwatch(self, ctx):
-    """Starts/stops stopwatch"""
-    author = ctx.message.author
-    if not author.id in self.stopwatches:
-      self.stopwatches[author.id] = int(time.perf_counter())
-      await self.bot.say(author.mention + " Stopwatch started!")
+    """manages user stopwatch"""
+    if ctx.invoked_subcommand is None:
+      aid = ctx.message.author.id
+      if aid in self.stopwatches and self.stopwatches[aid][0]:
+        await self._sw_stop(ctx)
+      else:
+        await self._sw_start(ctx)
+
+  @stopwatch.command(name='start',
+                     aliases=['unpause','u','resume','r'],
+                     pass_context=True)
+  async def _sw_start_wrap(self, ctx):
+    await self._sw_start(ctx)
+
+  async def _sw_start(self, ctx):
+    aid = ctx.message.author.id
+    tme = ctx.message.timestamp.timestamp()
+    if aid in self.stopwatches and self.stopwatches[aid][0]:
+      await self.bot.send_message(ctx.message.channel,
+                                  'You\'ve already started a stopwatch.'
+      )
+    elif aid in self.stopwatches:
+      self.stopwatches[aid][0] = tme
+      await self.bot.send_message(ctx.message.channel, 'Stopwatch resumed.')
     else:
-      tmp = abs(self.stopwatches[author.id] - int(time.perf_counter()))
-      tmp = str(datetime.timedelta(seconds=tmp))
-      await self.bot.say("{} Stopwatch stopped! Time: **{}**".format(
-                         author.mention, tmp))
-      self.stopwatches.pop(author.id, None)
+      self.stopwatches[aid] = [tme, 0]
+      await self.bot.send_message(ctx.message.channel, 'Stopwatch started.')
+
+  @stopwatch.command(name='stop', aliases=['end','e'], pass_context=True)
+  async def _sw_stop_wrap(self, ctx):
+    await self._sw_stop(ctx)
+
+  async def _sw_stop(self, ctx):
+    aid = ctx.message.author.id
+    now = ctx.message.timestamp.timestamp()
+    old = self.stopwatches.pop(aid, None)
+    if old:
+      if old[0]:
+        tme = now - old[0] + old[1]
+      else:
+        tme = old[1]
+      tme = str(timedelta(seconds=tme))
+      await self.bot.send_message(ctx.message.channel,
+                                  'Stopwatch stopped: **{}**'.format(tme)
+      )
+    else:
+      await self.bot.send_message(ctx.message.channel,
+                                  'No stop watches started, cannot stop.'
+      )
+
+  @stopwatch.command(name='lap', aliases=['l','look','peak'], pass_context=True)
+  async def _sw_lap(self, ctx):
+    aid = ctx.message.author.id
+    now = ctx.message.timestamp.timestamp()
+    if aid in self.stopwatches:
+      old = self.stopwatches[aid]
+      if old[0]:
+        tme = now - old[0] + old[1]
+      else:
+        tme = old[1]
+      tme   = str(timedelta(seconds=tme))
+      await self.bot.say("Lap time: **{}**".format(tme))
+    else:
+      await self.bot.say('No stop watches started, cannot lap.')
+
+  @stopwatch.command(name='pause', aliases=['p','hold','h'], pass_context=True)
+  async def _sw_pause(self, ctx):
+    aid = ctx.message.author.id
+    now = ctx.message.timestamp.timestamp()
+    if aid in self.stopwatches and self.stopwatches[aid][0]:
+      old = now - self.stopwatches[aid][0] + self.stopwatches[aid][1]
+      self.stopwatches[aid] = [0, old]
+      old = str(timedelta(seconds=old))
+      await self.bot.say("Stopwatch paused: **{}**".format(old))
+    elif aid in self.stopwatches:
+      await self.bot.say('Stop watch already paused.')
+    else:
+      await self.bot.say('No stop watches started, cannot pause.')
 
   @commands.command()
   async def lmgtfy(self, *, search_terms : str):

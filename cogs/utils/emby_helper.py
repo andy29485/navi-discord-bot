@@ -25,7 +25,7 @@ async def makeEmbed(item, message=''):
   em.set_thumbnail(url=img_url)
   if hasattr(item, 'genres') and item.genres:
     em.add_field(name='Tags', value=', '.join(item.genres))
-  if 'RunTimeTicks' in item.object:
+  if 'RunTimeTicks' in item.object_dict:
     d = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
     if d > 1:
       d = '{:02}:{:02}:{:02}'.format(d//3600, d//60, d%60)

@@ -6,9 +6,6 @@ from discord.ext import commands
 from ctypes.util import find_library
 import cogs.utils.emby_helper as emby_helper
 from cogs.utils.format import *
-from embypy import Emby as EmbyPy
-from embypy.objects import EmbyObject
-from cogs.utils.config import Config
 
 if not discord.opus.is_loaded():
   try:
@@ -79,22 +76,7 @@ class Music:
   def __init__(self, bot):
     self.bot = bot
     self.voice_states = {}
-    self.conf = Config('configs/emby.json')
-
-    if 'address' not in self.conf or not self.conf['address']:
-      self.conf['address'] = input('Enter emby url: ')
-      self.conf.save()
-    if 'watching' not in self.conf or 'last' not in self.conf['watching']:
-      self.conf['watching'] = {'last':None}
-      self.conf.save()
-    if 'auth' not in self.conf or not self.conf['auth']:
-      self.conf['auth'] = {}
-      self.conf['auth']['api_key']   = input('Enter emby api key: ')
-      self.conf['auth']['userid']    = input('Enter emby user id: ')
-      self.conf['auth']['device_id'] = input('Enter emby device id: ')
-      self.conf.save()
-
-    self.conn = EmbyPy(self.conf['address'], **self.conf['auth'], ws=False)
+    self.conn = emby_helper.conn
 
   def get_voice_state(self, server):
     state = self.voice_states.get(server.id)
@@ -281,9 +263,15 @@ class Music:
       await self.bot.say('Not playing anything.')
     else:
       skip_count = len(state.skip_votes)
-      await self.bot.say('Now playing {} [skips: {}/3]'.format(state.current,
-                                                               skip_count)
-      )
+      if state.current.item:
+        em = await emby_helper.makeEmbed(state.current.item, 'Now playing: ')
+        em.add_field(name="**Skip Count**", value=str(skip_count))
+        await self.bot.say(embed=em)
+      else:
+        await self.bot.say('Now playing {} [skips: {}/3]'.format(state.current,
+                                                                 skip_count)
+        )
+
 
 def setup(bot):
   bot.add_cog(Music(bot))

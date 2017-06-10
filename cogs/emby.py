@@ -1,35 +1,19 @@
 #!/usr/bin/env python3
 
 from discord.ext import commands
-from cogs.utils.config import Config
 import cogs.utils.emby_helper as emby_helper
 import cogs.utils.format as formatter
 import discord
 import asyncio
 import logging
-from embypy import Emby as EmbyPy
 from embypy.objects import EmbyObject
 import re
 
 class Emby:
   def __init__(self, bot):
     self.bot  = bot
-    self.conf = Config('configs/emby.json')
-
-    if 'address' not in self.conf or not self.conf['address']:
-      self.conf['address'] = input('Enter emby url: ')
-      self.conf.save()
-    if 'watching' not in self.conf or 'last' not in self.conf['watching']:
-      self.conf['watching'] = {'last':None}
-      self.conf.save()
-    if 'auth' not in self.conf or not self.conf['auth']:
-      self.conf['auth'] = {}
-      self.conf['auth']['api_key']   = input('Enter emby api key: ')
-      self.conf['auth']['userid']    = input('Enter emby user id: ')
-      self.conf['auth']['device_id'] = input('Enter emby device id: ')
-      self.conf.save()
-
-    self.conn = EmbyPy(self.conf['address'], **self.conf['auth'], ws=False)
+    self.conf = emby_helper.conf
+    self.conn = emby_helper.conn
     #self.conn.connector.set_on_message(self.on_socket_message)
     self.loop = self.bot.loop
     self.loop.create_task(self.poll())

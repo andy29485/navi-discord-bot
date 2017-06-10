@@ -5,7 +5,7 @@ A simple python bot for my discord channel
 ```sh
 sudo apt-get install libffi-dev libxslt-dev libxml2-dev
 sudo python3 -m pip install -U discord.py[voice] puush.py GitPython html2text \
-  lxml groupyapi Pybooru
+  lxml groupyapi Pybooru asyncjisho
 ```
 Add token to a file called `.auth`
 

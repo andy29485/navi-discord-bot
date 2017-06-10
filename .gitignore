@@ -6,6 +6,7 @@ configs/
 configs.bac/
 groupy/
 embypy
+logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -115,7 +115,10 @@ class General:
 
   @commands.group(aliases=["sw"], pass_context=True)
   async def stopwatch(self, ctx):
-    """manages user stopwatch"""
+    """
+    manages user stopwatch
+    starts/stops/unpauses (depending on context)
+    """
     if ctx.invoked_subcommand is None:
       aid = ctx.message.author.id
       if aid in self.stopwatches and self.stopwatches[aid][0]:
@@ -127,6 +130,9 @@ class General:
                      aliases=['unpause','u','resume','r'],
                      pass_context=True)
   async def _sw_start_wrap(self, ctx):
+    """
+    unpauses or creates new stopwatch
+    """
     await self._sw_start(ctx)
 
   async def _sw_start(self, ctx):
@@ -145,6 +151,11 @@ class General:
 
   @stopwatch.command(name='stop', aliases=['end','e'], pass_context=True)
   async def _sw_stop_wrap(self, ctx):
+    """
+    prints time and deletes timer
+
+    works even if paused
+    """
     await self._sw_stop(ctx)
 
   async def _sw_stop(self, ctx):
@@ -167,6 +178,11 @@ class General:
 
   @stopwatch.command(name='lap', aliases=['l','look','peak'], pass_context=True)
   async def _sw_lap(self, ctx):
+    """
+    prints time
+
+    does not pause, does not resume, does not delete
+    """
     aid = ctx.message.author.id
     now = ctx.message.timestamp.timestamp()
     if aid in self.stopwatches:
@@ -182,6 +198,11 @@ class General:
 
   @stopwatch.command(name='pause', aliases=['p','hold','h'], pass_context=True)
   async def _sw_pause(self, ctx):
+    """
+    pauses the stopwatch
+
+    Also prints current time, does not delete
+    """
     aid = ctx.message.author.id
     now = ctx.message.timestamp.timestamp()
     if aid in self.stopwatches and self.stopwatches[aid][0]:

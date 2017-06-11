@@ -39,6 +39,10 @@ class AZ:
   @commands.command(pass_context=True)
   async def me(self, ctx, *, message : str):
     await self.bot.say('*{} {}*'.format(ctx.message.author.name, message))
+    try:
+      await self.bot.delete_message(ctx.message)
+    except:
+      pass
 
   @commands.command(pass_context=True,name='set_colour',aliases=['sc'])
   @perms.is_in_servers('168702989324779520')

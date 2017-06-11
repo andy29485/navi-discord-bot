@@ -168,15 +168,42 @@ class General:
       else:
         tme = old[1]
       tme = str(timedelta(seconds=tme))
-      await self.bot.send_message(ctx.message.channel,
-                                  'Stopwatch stopped: **{}**'.format(tme)
-      )
+      msg = '```Stopwatch stopped: {}\n'.format(tme)
+      for lap in zip(range(1,len(old)), old[2:]):
+        msg += '\nLap {0:03} - {1}'.format(*lap)
+      msg += '```'
+      await self.bot.send_message(ctx.message.channel, msg)
     else:
       await self.bot.send_message(ctx.message.channel,
                                   'No stop watches started, cannot stop.'
       )
 
-  @stopwatch.command(name='lap', aliases=['l','look','peak'], pass_context=True)
+  @stopwatch.command(name='status', aliases=['look','peak'], pass_context=True)
+  async def _sw_status(self, ctx):
+    aid = ctx.message.author.id
+    now = ctx.message.timestamp.timestamp()
+    if aid in self.stopwatches:
+      old = self.stopwatches[aid]
+      if old[0]:
+        tme = now - old[0] + old[1]
+      else:
+        tme = old[1]
+      tme = str(timedelta(seconds=tme))
+      msg = '```Stopwatch time: {}'.format(tme)
+      if old[0]:
+        msg += '\n'
+      else:
+        msg += ' [paused]\n'
+      for lap in zip(range(1,len(old)), old[2:]):
+        msg += '\nLap {0:03} - {1}'.format(*lap)
+      msg += '```'
+      await self.bot.send_message(ctx.message.channel, msg)
+    else:
+      await self.bot.send_message(ctx.message.channel,
+                                  'No stop watches started, cannot look.'
+      )
+
+  @stopwatch.command(name='lap', aliases=['l'], pass_context=True)
   async def _sw_lap(self, ctx):
     """
     prints time
@@ -192,7 +219,9 @@ class General:
       else:
         tme = old[1]
       tme   = str(timedelta(seconds=tme))
-      await self.bot.say("Lap time: **{}**".format(tme))
+      await self.bot.say("Lap #{:03} time: **{}**".format(len(old)-1, tme))
+      if self.stopwatches[aid][-1] != tme:
+        self.stopwatches[aid].append(tme)
     else:
       await self.bot.say('No stop watches started, cannot lap.')
 

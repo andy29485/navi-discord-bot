@@ -59,7 +59,7 @@ class VoiceState:
     self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
   async def audio_player_task(self):
-    while self.cog == self.bot.get_cog('Music')::
+    while self.cog == self.bot.get_cog('Music'):
       self.play_next_song.clear()
       self.current = await self.songs.get()
       if self.current.item:

@@ -70,7 +70,14 @@ class VoiceState:
           'Now playing: ' + str(self.current)
         )
       self.current.player.start()
-      await self.play_next_song.wait()
+      await asyncio.sleep(8)
+      if self.current.player.error:
+        await self.bot.send_message(self.current.channel,
+                      'There was an error playing your song, try requeueing it'
+        )
+        self.player.stop()
+      else:
+        await self.play_next_song.wait()
 
 
 class Music:
@@ -163,7 +170,8 @@ class Music:
           return
       url = item.stream_url.replace('.mp3', '?static=true')
       player = state.vchan.create_ffmpeg_player(url,
-                                                options='-b:a 64k -bufsize 64k'
+                                                options='-b:a 64k -bufsize 64k',
+                                                after=state.toggle_next
       )
       player.duration = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
       player.title    = item.name

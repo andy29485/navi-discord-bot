@@ -170,6 +170,7 @@ class Music:
           return
       url = item.stream_url.replace('.mp3', '?static=true')
       player = state.vchan.create_ffmpeg_player(url,
+                                                before_options=' -threads 4 ',
                                                 options='-b:a 64k -bufsize 64k',
                                                 after=state.toggle_next
       )

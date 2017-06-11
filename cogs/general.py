@@ -351,7 +351,7 @@ class General:
     while self == self.bot.get_cog('General'):
       reminders_removed = False
       # if there are valid reminders, process them
-      while self.conf['reminders'] and self.conf['reminders'][0].is_ready():
+      while self.conf['reminders'] and self.conf['reminders'][0].time_left < 1:
         r = self.conf['reminders'][0].popFrom(self.conf['reminders'])
         c = self.bot.get_channel(r.channel_id)
         await self.bot.send_message(c, r.get_message())
@@ -361,7 +361,11 @@ class General:
         self.conf.save()
 
       # wait a bit and check again
-      await asyncio.sleep(10)
+      if self.conf['reminders']:
+        delay = min(self.conf['reminders'].time_left, 15)
+      else:
+        delay = 15
+      await asyncio.sleep(delay-0.5)
 
 
 def split(choices):

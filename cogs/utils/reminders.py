@@ -37,8 +37,9 @@ class Reminder:
   def __gt__(self, other):
     return self.end_time > other.end_time
 
-  def is_ready(self):
-    return self.end_time <= time.time()
+  @property
+  def time_left(self):
+    return self.end_time - time.time()
 
   def get_message(self):
     return '{}: {}'.format(self.user_id, self.message)

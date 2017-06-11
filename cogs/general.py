@@ -362,7 +362,7 @@ class General:
 
       # wait a bit and check again
       if self.conf['reminders']:
-        delay = min(self.conf['reminders'].time_left, 15)
+        delay = min(self.conf['reminders'][0].time_left, 15)
       else:
         delay = 15
       await asyncio.sleep(delay-0.5)

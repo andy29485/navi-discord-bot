@@ -187,7 +187,7 @@ class Music:
       )
       player.duration = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
       player.title    = item.name
-      player.uploader = ', '.join(item.artists)
+      player.uploader = ', '.join(a.name for a in item.artists)
     except Exception as e:
       fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
       await self.bot.send_message(ctx.message.channel,

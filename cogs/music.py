@@ -2,6 +2,7 @@
 
 import asyncio
 import discord
+import random
 from discord.ext import commands
 from ctypes.util import find_library
 import cogs.utils.emby_helper as emby_helper
@@ -163,12 +164,22 @@ class Music:
         item = await self.bot.loop.run_in_executor(None, self.conn.info, song)
       except:
         try:
-          item = await self.bot.loop.run_in_executor(None,self.conn.search,song)
-          item = [i for i in item if i.media_type == 'Audio'][0]
+          items = await self.bot.loop.run_in_executor(None,
+                                                     self.conn.search,
+                                                     song,
+                                                     {'Audio':0,
+                                                      'MusicAlbum':1,
+                                                      'MusicArtist':2
+                                                     },
+                                                     True
+          )
+          item = items[0]
+          if hasattr(item, 'songs'):
+            item = random.choice(item.songs)
         except:
           await self.bot.say('could not find song')
           return
-      url = item.stream_url.replace('.mp3', '?static=true')
+      url = item.stream_url
       player = state.vchan.create_ffmpeg_player(url,
                                                 before_options=' -threads 4 ',
                                                 options='-b:a 64k -bufsize 64k',

@@ -35,7 +35,7 @@ async def makeEmbed(item, message=''):
   if 'https' in img_url:
     img_url        = await loop.run_in_executor(None, puush.get_url, img_url)
   em.title         = message+item.name
-  if hasattr(item, 'overview'):
+  if hasattr(item, 'overview') and item.overview:
     if len(item.overview) > 250:
       des = item.overview[:247] + '...'
     else:

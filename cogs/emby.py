@@ -24,9 +24,9 @@ class Emby:
       for l in latest:
         if self.conf['watching']['last'] == l.id:
           break
-        item = t  = await self.loop.run_in_executor(None, l.update)
+        item = t = await self.loop.run_in_executor(None, l.update)
         while t.parent_id:
-          t = await self.loop.run_in_executor(None,self.conn.info,t.parent_id)
+          t = await self.loop.run_in_executor(None, t.parent)
           try:
             chans = self.conf['watching'].get(t.id, [])
             for chan_id in chans:
@@ -112,10 +112,6 @@ class Emby:
     if not results:
       await self.bot.say('No results found')
       return
-
-    types_map = {'BoxSet':0, 'Series':1, 'Movie':2, 'Audio':3, 'Person':4}
-    m_size    = len(types_map)
-    results   = sorted(results, key = lambda x : types_map.get(x.type, m_size))
 
     for result in results[:num]:
       await self.loop.run_in_executor(None, result.update)

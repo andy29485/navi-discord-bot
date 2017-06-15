@@ -78,11 +78,12 @@ class NSFW:
       tags = ['rating:e']
 
     tags  = ' '.join(tags)
-    posts = await self.loop.run_in_executor(None, self.danbooru.post_list,
-                                                       limit  = num,
-                                                       tags   = tags,
-                                                       random = True
+    get   = lambda: self.danbooru.post_list(
+                             limit  = num,
+                             tags   = tags,
+                             random = True
     )
+    posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
       await self.bot.say('could not find anything')
@@ -142,10 +143,11 @@ class NSFW:
       tags = ['rating:e']
 
     tags  = ' '.join(tags)
-    posts = await self.loop.run_in_executor(None, self.yandere.post_list,
-                                                         limit = 100,
-                                                         tags  = tags
+    get   = lambda: self.yandere.post_list(
+                           limit = 100,
+                           tags  = tags
     )
+    posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
       await self.bot.say('could not find anything')
@@ -197,11 +199,12 @@ class NSFW:
       num = 1
 
     tags  = ' '.join(tags)
-    posts = await self.loop.run_in_executor(None, self.safebooru.post_list,
-                                                        limit  = num,
-                                                        tags   = tags,
-                                                        random = True
+    get   = lambda: self.safebooru.post_list(
+                           limit  = num,
+                           tags   = tags,
+                           random = True
     )
+    posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
       await self.bot.say('could not find anything')

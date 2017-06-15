@@ -12,6 +12,7 @@ import cogs.utils.format as formatter
 class NSFW:
   def __init__(self, bot):
     self.bot      = bot
+    self.loop     = bot.loop
     self.conf     = Config('configs/nsfw.json')
 
     if 'update' not in self.conf:
@@ -76,8 +77,12 @@ class NSFW:
     if not tags:
       tags = ['rating:e']
 
-    tags = ' '.join(tags)
-    posts = self.danbooru.post_list(limit=num,tags=tags,random=True)
+    tags  = ' '.join(tags)
+    posts = await self.loop.run_in_executor(None, self.danbooru.post_list,
+                                                       limit  = num,
+                                                       tags   = tags,
+                                                       random = True
+    )
 
     if not posts:
       await self.bot.say('could not find anything')
@@ -136,8 +141,11 @@ class NSFW:
     if not tags:
       tags = ['rating:e']
 
-    tags = ' '.join(tags)
-    posts = self.yandere.post_list(limit=100,tags=tags)
+    tags  = ' '.join(tags)
+    posts = await self.loop.run_in_executor(None, self.yandere.post_list,
+                                                         limit = 100,
+                                                         tags  = tags
+    )
 
     if not posts:
       await self.bot.say('could not find anything')
@@ -188,8 +196,12 @@ class NSFW:
     else:
       num = 1
 
-    tags = ' '.join(tags)
-    posts = self.safebooru.post_list(limit=num,tags=tags,random=True)
+    tags  = ' '.join(tags)
+    posts = await self.loop.run_in_executor(None, self.safebooru.post_list,
+                                                        limit  = num,
+                                                        tags   = tags,
+                                                        random = True
+    )
 
     if not posts:
       await self.bot.say('could not find anything')

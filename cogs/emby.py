@@ -26,7 +26,7 @@ class Emby:
           break
         item = t = await self.loop.run_in_executor(None, l.update)
         while t.parent_id:
-          t = await self.loop.run_in_executor(None, t.parent)
+          t = t.parent
           try:
             chans = self.conf['watching'].get(t.id, [])
             for chan_id in chans:

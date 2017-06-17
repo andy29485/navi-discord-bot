@@ -107,9 +107,9 @@ class Regex:
 
     #check if they have correct permissions
     if ctx.message.author.id != self.replacements[p1][1] \
-       #will uncomment next line when reps are a per server thing
-       #and not perms.check_permissions(ctx.message, manage_messages=True):
        and not perms.is_owner_check(ctx.message):
+        #will uncomment next line when reps are a per server thing
+        #and not perms.check_permissions(ctx.message, manage_messages=True):
         raise commands.errors.CheckFailure('Cannot edit')
 
     self.replacements[p1] = [p2, ctx.message.author.id]

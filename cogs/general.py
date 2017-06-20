@@ -25,6 +25,8 @@ class General:
       self.conf['reminders'] = []
     if 'responses' not in self.conf:
       self.conf['responses'] = {}
+    if 'todo' not in self.conf:
+      self.conf['todo'] = {}
     if 'situations' not in self.conf:
       self.conf['situations'] = []
     if 'polls' not in self.conf:
@@ -112,6 +114,81 @@ class General:
       await self.bot.say("`" + random.choice(self.conf['8-ball']) + "`")
     else:
       await self.bot.say("That doesn't look like a question.")
+
+  @commands.group(aliases=['t', 'td'], pass_context=True)
+  async def todo(self, ctx):
+    '''
+    manages user TODO list
+    Note: if no sub-command is specified, TODOs will be listed
+    '''
+    if ctx.invoked_subcommand is None:
+      await self._td_list(ctx)
+
+  @todo.command(name='list', aliases=['l', 'ls'], pass_context=True)
+  async def _td_list_wp(self, ctx):
+    '''
+    prints your complete todo list
+    '''
+    await self._td_list(ctx)
+
+  @todo.command(name='add', aliases=['a', 'insert', 'i'], pass_context=True)
+  async def _td_add(self, ctx, *, task : str):
+    '''
+    adds a new task to your todo list
+    '''
+    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    todos.append([False, task])
+    self.conf['todo'][ctx.message.author.id] = todos
+    self.conf.save()
+    await self.bot.say(formatter.ok())
+
+  @todo.command(name='done', aliases=['d', 'complete', 'c'], pass_context=True)
+  async def _td_done(self, ctx, *, index : int):
+    '''
+    sets/unsets a task as complete
+    Note: indicies start at 1
+    '''
+    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    if len(todos) < index or index <= 0:
+      await self.bot.say(formatter.error('Invalid index'))
+    else:
+      index -= 1
+      todos[index][0] = not todos[index][0]
+      self.conf['todo'][ctx.message.author.id] = todos
+      self.conf.save()
+      await self.bot.say(formatter.ok())
+
+  @todo.command(name='remove', aliases=['rem', 'rm', 'r'], pass_context=True)
+  async def _td_remove(self, ctx, *, index : int):
+    '''
+    remove a task from your todo list
+    Note: indicies start at 1
+    '''
+    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    if len(todos) < index or index <= 0:
+      await self.bot.say(formatter.error('Invalid index'))
+    else:
+      task = todos.pop(index - 1)
+      self.conf['todo'][ctx.message.author.id] = todos
+      self.conf.save()
+      await self.bot.say(formatter.ok('Removed task #{}'.format(index)))
+
+  async def _td_list(self, ctx):
+    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    if not todos:
+      await self.bot.send_message(ctx.message.channel, 'No TODOs found.')
+    else:
+      #TODO - ensure that the outgoing message is not too long
+      msg     = 'TODO:\n'
+      length  = len(str(len(todos)))
+      done    = '{{:0{}}} - ~~{{}}~~\n'.format(length)
+      working = '{{:0{}}} - {{}}\n'.format(length)
+      for i, todo in enumerate(todos, 1):
+        if todo[0]:
+          msg += done.format(i, todo[1])
+        else:
+          msg += working.format(i, todo[1])
+      await self.bot.send_message(ctx.message.channel, msg)
 
   @commands.group(aliases=["sw"], pass_context=True)
   async def stopwatch(self, ctx):

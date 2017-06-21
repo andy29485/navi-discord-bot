@@ -179,7 +179,7 @@ class Music:
         except:
           await self.bot.say('could not find song')
           return
-      url = item.stream_url
+      url    = item.stream_url
       player = state.vchan.create_ffmpeg_player(url,
                                                 before_options=' -threads 4 ',
                                                 options='-b:a 64k -bufsize 64k',
@@ -187,12 +187,13 @@ class Music:
       )
       player.duration = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
       player.title    = item.name
-      player.uploader = ', '.join(a.name for a in item.artists)
+      player.uploader = ', '.join(item.artist_names)
     except Exception as e:
       fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
       await self.bot.send_message(ctx.message.channel,
                                   fmt.format(type(e).__name__, e)
       )
+      raise
     else:
       player.volume = 0.6
       entry = VoiceEntry(ctx.message, player, item)

@@ -190,8 +190,8 @@ class Music:
         if mult:
           self._play(state, random.choice(songs))
         else:
-          for i in songs:
-          self._play(state, i)
+          for i in songs[:10]:
+            self._play(state, i)
     except Exception as e:
       fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
       await self.bot.send_message(ctx.message.channel,

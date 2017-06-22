@@ -97,7 +97,7 @@ class NSFW:
 
     for post in posts:
       em    = Embed()
-      em.title = search_tags
+      em.title = search_tags or 'rating:e'
       em.url   = 'https://danbooru.donmai.us/posts/{}'.format(post['id'])
       u        = 'https://danbooru.donmai.us'
       if 'large_file_url' in post:
@@ -165,9 +165,9 @@ class NSFW:
       post = random.choice(posts)
       posts.remove(post)
       em    = Embed()
-      em.title = search_tags
+      em.title = search_tags or 'rating:e'
       em.url   = 'https://lolibooru.moe/post/show/{}'.format(post['id'])
-      u        = post['file_url']
+      u        = post['file_url'].replace(' ', '%20')
       em.set_image(url=u)
       if post['tags']:
         em.set_footer(text=post['tags'])
@@ -175,7 +175,7 @@ class NSFW:
       await self.bot.say(embed=em)
 
   @nsfw.command(name='yandere', aliases=['y'])
-  async def _yandre(self, *, search_tags : str):
+  async def _yandre(self, *, search_tags : str = '' or 'rating:e'):
     """
       searches yande.re for an image
 
@@ -224,7 +224,7 @@ class NSFW:
       post = random.choice(posts)
       posts.remove(post)
       em    = Embed()
-      em.title = search_tags
+      em.title = search_tags or 'rating:e'
       em.url   = 'https://yande.re/post/show/{}'.format(post['id'])
       u        = post['file_url']
       em.set_image(url=u)

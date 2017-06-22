@@ -30,11 +30,15 @@ conn = EmbyPy(conf['address'], **conf['auth'], ws=False)
 
 async def makeEmbed(item, message=''):
   loop = asyncio.get_event_loop()
+  if hasattr(item, 'index_number'):
+    name = '{:02} - {}'.format(item.index_number, item.name)
+  else:
+    name = item.name
   em = Embed()
   img_url          = item.primary_image_url
   if 'https' in img_url:
     img_url        = await loop.run_in_executor(None, puush.get_url, img_url)
-  em.title         = message+item.name
+  em.title         = message+name
   if hasattr(item, 'overview') and item.overview:
     if len(item.overview) > 250:
       des = item.overview[:247] + '...'

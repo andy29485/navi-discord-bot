@@ -90,7 +90,7 @@ class VoiceState:
       await asyncio.sleep(10)
       if hasattr(self.player, 'process') and \
          self.player.process.poll():
-        self.current.player = await self.emby_player(item)
+        self.current.player = awaitself.emby_player(item)
         self.player.start()
         await self.play_next_song.wait()
       else:
@@ -163,11 +163,24 @@ class Music:
     This command searchs emby for a song
     """
     split = song.split(' ')
-    if split[0] == '-a' and len(split) > 1:
-      song = ' '.join(split[1:])
-      mult = True
-    else:
-      mult = False
+    mult = False
+    shuf = False
+    num  = 0
+
+    while len(split) > 1:
+      if split[0] == '-a' or split[0] == '-m':
+        split = split[1:]
+        mult  = True
+      elif split[0] == '-s':
+        split = split[1:]
+        shuf  = True
+      elif re.searchh('^\d+$', split[0]):
+        split = split[1:]
+        multi = True
+        num   = int(split(0))
+      else:
+        break
+    song = ' '.join(split)
 
     state = self.get_voice_state(ctx.message.server)
     opts = {
@@ -201,10 +214,14 @@ class Music:
           return
       if hasattr(item, 'songs'):
         songs = item.songs
+        if shuf:
+          random.shuffle(songs)
         if not songs:
           await self.bot.say('could not find song')
           return
         if mult:
+          if num > 0:
+            songs = songs[:num]
           em = await emby_helper.makeEmbed(item, 'Queued: ')
           songs_str = ''
           for i in songs:

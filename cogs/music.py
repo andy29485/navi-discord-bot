@@ -196,7 +196,7 @@ class Music:
 
     try:
       try:
-        item = await self.bot.loop.run_in_executor(None, self.conn.info, song)
+        item = await self.bot.loop.run_in_executor(None,self.conn.info,split[0])
       except:
         try:
           items = await self.bot.loop.run_in_executor(None,

@@ -88,10 +88,10 @@ class VoiceState:
       if not self.player:
         self.current.player = await self.emby_player(self.current.item)
       self.player.start()
-      await asyncio.sleep(10)
+      await asyncio.sleep(6)
       if hasattr(self.player, 'process') and \
          self.player.process.poll():
-        self.current.player = awaitself.emby_player(item)
+        self.current.player = await self.emby_player(item)
         self.player.start()
         await self.play_next_song.wait()
       else:
@@ -175,10 +175,10 @@ class Music:
       elif split[0] == '-s':
         split = split[1:]
         shuf  = True
-      elif re.search('^\d+$', split[0]):
+      elif re.search('^\\d+$', split[0]):
+        mult  = True
+        num   = int(split[0])
         split = split[1:]
-        multi = True
-        num   = int(split(0))
       else:
         break
     song = ' '.join(split)

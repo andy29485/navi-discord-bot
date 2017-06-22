@@ -16,7 +16,10 @@ class NSFW:
     self.conf     = Config('configs/nsfw.json')
 
     if 'update' not in self.conf:
-      self.conf['update'] = {'safebooru':{'url':'https://safebooru.donmai.us'}}
+      self.conf['update'] = {
+        'safebooru':{'url':'https://safebooru.donmai.us'},
+        'lolibooru':{'url':'https://lolibooru.moe'}
+      }
       self.conf.save()
     pybooru.resources.SITE_LIST.update(self.conf['update'])
 
@@ -26,9 +29,12 @@ class NSFW:
       self.conf['danbooru-conf'] = {}
     if 'safebooru-conf' not in self.conf:
       self.conf['safebooru-conf'] = {}
+    if 'lolibooru-conf' not in self.conf:
+      self.conf['lolibooru-conf'] = {}
 
     self.yandere  =  pybooru.Moebooru('yandere',  **self.conf['yandere-conf'])
     self.danbooru =  pybooru.Danbooru('danbooru', **self.conf['danbooru-conf'])
+    self.lolibooru = pybooru.Danbooru('lolibooru',**self.conf['lolibooru-conf'])
     self.safebooru = pybooru.Danbooru('safebooru',**self.conf['safebooru-conf'])
 
   @commands.group(pass_context=True)
@@ -106,6 +112,65 @@ class NSFW:
       em.set_image(url=u)
       if post['tag_string']:
         em.set_footer(text=post['tag_string'])
+
+      await self.bot.say(embed=em)
+
+  @nsfw.command(name='lolibooru', aliases=['l'])
+  async def _lolibooru(self, *, search_tags : str = ''):
+    """
+      searches lolibooru for an image
+
+      usage: .nsfw lolibooru [num] tags1 tag2, tag_3, etc...
+      (optional) num: number of posts to show [1,5]
+      if not tags are given, rating:e is assumed
+      will potentially return nsfw images
+    """
+    tags  = re.split(',?\\s+', search_tags)
+    for i in range(len(tags)):
+      if re.search('^(//|#)', tags[i]):
+        tags = tags[:i]
+        break
+
+    for i in range(len(tags)):
+      if re.search('^(/\\*)', tags[i]):
+        for j in range(i, len(tags)):
+          if re.search('^(\\*/)', tags[j]):
+            break
+        tags = tags[:i] + tags[j+1:]
+        break
+
+    if len(tags) > 1 and re.match('\\d+$', tags[0]):
+      num = min(5, max(1, int(tags[0])))
+      tags = tags[1:]
+    else:
+      num = 1
+
+    if not tags:
+      tags = ['rating:e']
+
+    tags  = ' '.join(tags)
+    get   = lambda: self.lolibooru.post_list(
+                           limit = 100,
+                           tags  = tags
+    )
+    posts = await self.loop.run_in_executor(None, get)
+
+    if not posts:
+      await self.bot.say('could not find anything')
+      return
+
+    for i in range(num):
+      if not posts:
+        break
+      post = random.choice(posts)
+      posts.remove(post)
+      em    = Embed()
+      em.title = search_tags
+      em.url   = 'https://lolibooru.moe/post/show/{}'.format(post['id'])
+      u        = post['file_url']
+      em.set_image(url=u)
+      if post['tags']:
+        em.set_footer(text=post['tags'])
 
       await self.bot.say(embed=em)
 

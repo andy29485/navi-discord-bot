@@ -148,7 +148,7 @@ class Music:
     """
     split = song.split(' ')
     if split[0] == '-a' and len(split) > 1:
-      song = ' '.join(split(' ')[1:])
+      song = ' '.join(split[1:])
       mult = True
     else:
       mult = False
@@ -188,12 +188,12 @@ class Music:
           await self.bot.say('could not find song')
           return
         if mult:
-          await self._play(state, random.choice(songs))
-        else:
           for i in songs[:10]:
-            await self._play(state, i)
+            await self._play(ctx, state, i)
+        else:
+          await self._play(ctx, state, random.choice(songs))
       else:
-        await self._play(state, item)
+        await self._play(ctx, state, item)
     except Exception as e:
       fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
       await self.bot.send_message(ctx.message.channel,
@@ -201,7 +201,7 @@ class Music:
       )
       raise
 
-  async def _play(self, state, item):
+  async def _play(self, ctx, state, item):
     try:
       url    = item.stream_url
       player = state.vchan.create_ffmpeg_player(url,

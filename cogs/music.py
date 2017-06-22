@@ -172,9 +172,10 @@ class Music:
           items = await self.bot.loop.run_in_executor(None,
                                                      self.conn.search,
                                                      song,
-                                                     {'Audio'       :0,
-                                                      'MusicArtist' :1,
-                                                      'MusicAlbum'  :2
+                                                     {'Playlist'    :0,
+                                                      'Audio'       :1,
+                                                      'MusicArtist' :2,
+                                                      'MusicAlbum'  :3
                                                      },
                                                      True
           )

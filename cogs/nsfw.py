@@ -34,7 +34,7 @@ class NSFW:
 
     self.yandere  =  pybooru.Moebooru('yandere',  **self.conf['yandere-conf'])
     self.danbooru =  pybooru.Danbooru('danbooru', **self.conf['danbooru-conf'])
-    self.lolibooru = pybooru.Danbooru('lolibooru',**self.conf['lolibooru-conf'])
+    self.lolibooru = pybooru.Moebooru('lolibooru',**self.conf['lolibooru-conf'])
     self.safebooru = pybooru.Danbooru('safebooru',**self.conf['safebooru-conf'])
 
   @commands.group(pass_context=True)

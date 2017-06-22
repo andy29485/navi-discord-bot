@@ -144,10 +144,15 @@ class Music:
     If there is a song currently in the queue, then it is
     queued until the next song is done playing.
 
-    This command automatically searches as well from YouTube.
-    The list of supported sites can be found here:
-    https://rg3.github.io/youtube-dl/supportedsites.html
+    This command searchs emby for a song
     """
+    split = song.split(' ')
+    if split[0] == '-a' and len(split) > 1:
+      song = ' '.join(split(' ')[1:])
+      mult = True
+    else:
+      mult = False
+
     state = self.get_voice_state(ctx.message.server)
     opts = {
         'default_search': 'auto',
@@ -174,11 +179,28 @@ class Music:
                                                      True
           )
           item = items[0]
-          if hasattr(item, 'songs'):
-            item = random.choice(item.songs)
         except:
           await self.bot.say('could not find song')
           return
+      if hasattr(item, 'songs'):
+        songs = item.songs
+        if not songs:
+          await self.bot.say('could not find song')
+          return
+        if mult:
+          self._play(state, random.choice(songs))
+        else:
+          for i in songs:
+          self._play(state, i)
+    except Exception as e:
+      fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
+      await self.bot.send_message(ctx.message.channel,
+                                  fmt.format(type(e).__name__, e)
+      )
+      raise
+
+  async def _play(self, state, item):
+    try:
       url    = item.stream_url
       player = state.vchan.create_ffmpeg_player(url,
                                                 before_options=' -threads 4 ',

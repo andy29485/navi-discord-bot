@@ -154,6 +154,7 @@ class Music:
       mult = False
 
     state = self.get_voice_state(ctx.message.server)
+    print(1)
     opts = {
         'default_search': 'auto',
         'quiet': True,
@@ -192,6 +193,8 @@ class Music:
         else:
           for i in songs[:10]:
             self._play(state, i)
+      else:
+        self._play(state, item)
     except Exception as e:
       fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
       await self.bot.send_message(ctx.message.channel,

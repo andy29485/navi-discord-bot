@@ -15,7 +15,7 @@ if not discord.opus.is_loaded():
     discord.opus.load_opus(find_library('opus'))
 
 class VoiceEntry:
-  def __init__(self, message, player, item):
+  def __init__(self, message, player=None, item=None):
     self.requester = message.author
     self.channel   = message.channel
     self.player    = player
@@ -59,6 +59,20 @@ class VoiceState:
   def toggle_next(self):
     self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
+  async def emby_player(self, item):
+    url    = item.stream_url
+    player = self.vchan.create_ffmpeg_player(url,
+                                              before_options=' -threads 4 ',
+                                              options='-b:a 64k -bufsize 64k',
+                                              after=self.toggle_next
+    )
+    player.duration = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
+    player.title    = item.name
+    player.uploader = ', '.join(item.artist_names)
+    player.volume   = 0.6
+
+    return player
+
   async def audio_player_task(self):
     while self.cog == self.bot.get_cog('Music'):
       self.play_next_song.clear()
@@ -70,13 +84,15 @@ class VoiceState:
         await self.bot.send_message(self.current.channel,
           'Now playing: ' + str(self.current)
         )
-      self.current.player.start()
-      await asyncio.sleep(8)
-      if self.current.player.error:
-        await self.bot.send_message(self.current.channel,
-                      'There was an error playing your song, try requeueing it'
-        )
-        self.player.stop()
+      if not self.player:
+        self.current.player = await self.emby_player(self.current.item)
+      self.player.start()
+      await asyncio.sleep(10)
+      if hasattr(self.player, 'process') and \
+         self.player.process.poll():
+        self.current.player = await self.emby_player(item)
+        self.player.start()
+        await self.play_next_song.wait()
       else:
         await self.play_next_song.wait()
 
@@ -189,12 +205,20 @@ class Music:
           await self.bot.say('could not find song')
           return
         if mult:
-          for i in songs[:10]:
-            await self._play(ctx, state, i)
+          em = await emby_helper.makeEmbed(item, 'Queued: ')
+          songs_str = ''
+          for i in songs:
+            if hasattr(i, 'index_number'):
+              songs_str += '{:02} - {}\n'.format(i.index_number, i.name)
+            else:
+              songs_str += '{}\n'.format(i.name)
+            await self._play_emby(ctx, state, i, display=False)
+          em.add_field(name='Items', value=songs_str)
+          await self.bot.say(embed=em)
         else:
-          await self._play(ctx, state, random.choice(songs))
+          await self._play_emby(ctx, state, random.choice(songs))
       else:
-        await self._play(ctx, state, item)
+        await self._play_emby(ctx, state, item)
     except Exception as e:
       fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
       await self.bot.send_message(ctx.message.channel,
@@ -202,29 +226,12 @@ class Music:
       )
       raise
 
-  async def _play(self, ctx, state, item):
-    try:
-      url    = item.stream_url
-      player = state.vchan.create_ffmpeg_player(url,
-                                                before_options=' -threads 4 ',
-                                                options='-b:a 64k -bufsize 64k',
-                                                after=state.toggle_next
-      )
-      player.duration = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
-      player.title    = item.name
-      player.uploader = ', '.join(item.artist_names)
-    except Exception as e:
-      fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
-      await self.bot.send_message(ctx.message.channel,
-                                  fmt.format(type(e).__name__, e)
-      )
-      raise
-    else:
-      player.volume = 0.6
-      entry = VoiceEntry(ctx.message, player, item)
+  async def _play_emby(self, ctx, state, item, display=True):
+    entry = VoiceEntry(ctx.message, item=item)
+    if display:
       em = await emby_helper.makeEmbed(item, 'Queued: ')
       await self.bot.say(embed=em)
-      await state.songs.put(entry)
+    await state.songs.put(entry)
 
   @commands.command(pass_context=True, no_pm=True)
   async def volume(self, ctx, value : int):

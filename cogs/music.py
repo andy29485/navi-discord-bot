@@ -175,7 +175,7 @@ class Music:
       elif split[0] == '-s':
         split = split[1:]
         shuf  = True
-      elif re.searchh('^\d+$', split[0]):
+      elif re.search('^\d+$', split[0]):
         split = split[1:]
         multi = True
         num   = int(split(0))

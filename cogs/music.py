@@ -91,14 +91,18 @@ class VoiceState:
       if not self.player:
         self.current.player = await self.emby_player(self.current.item)
       self.player.start()
-      await asyncio.sleep(11)
-      if hasattr(self.player, 'process') and \
-         self.player.process.poll():
-        self.current.player = await self.emby_player(item)
-        self.player.start()
-        await self.play_next_song.wait()
-      else:
-        await self.play_next_song.wait()
+      await asyncio.sleep(3)
+      if hasattr(self.player, 'process'):
+        for i in range(10):
+          if self.player.process.poll():
+            self.current.player = await self.emby_player(item)
+            self.player.start()
+            await asyncio.sleep(3)
+          elif self.player.process.poll() is None:
+            await asyncio.sleep(1)
+          else:
+            break
+      await self.play_next_song.wait()
 
 
 class Music:

@@ -67,10 +67,13 @@ class VoiceState:
                                               options='-b:a 64k -bufsize 64k',
                                               after=self.toggle_next
     )
-    player.duration = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
-    player.title    = item.name
-    player.uploader = ', '.join(item.artist_names)
-    player.volume   = 0.6
+    player.duration   = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
+    player.title      = item.name
+    try:
+      player.uploader = ', '.join(item.artist_names)
+    except:
+      player.uploader = '-'
+    player.volume     = 0.6
 
     return player
 
@@ -175,15 +178,15 @@ class Music:
       elif split[0] == '-s':
         split = split[1:]
         shuf  = True
-      elif re.search('^\\d+$', split[0]):
+      elif re.search('^\\d{1,2}$', split[0]):
         mult  = True
         num   = int(split[0])
         split = split[1:]
       else:
         break
     song = ' '.join(split)
-
     state = self.get_voice_state(ctx.message.server)
+
     opts = {
         'default_search': 'auto',
         'quiet': True,
@@ -192,6 +195,7 @@ class Music:
     if state.vchan is None:
       success = await ctx.invoke(self.summon)
       if not success:
+        await self.bot.say("error joining channel")
         return
 
     try:

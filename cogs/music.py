@@ -88,7 +88,7 @@ class VoiceState:
       if not self.player:
         self.current.player = await self.emby_player(self.current.item)
       self.player.start()
-      await asyncio.sleep(6)
+      await asyncio.sleep(11)
       if hasattr(self.player, 'process') and \
          self.player.process.poll():
         self.current.player = await self.emby_player(item)

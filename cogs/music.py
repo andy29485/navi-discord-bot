@@ -42,19 +42,18 @@ class VoiceState:
     self.audio_player = self.bot.loop.create_task(self.audio_player_task())
 
   def is_playing(self):
-    if self.vchan is None or self.current is None:
+    if self.vchan is None or self.current is None or self.player is None:
       return False
 
-    player = self.current.player
-    return not player.is_done()
+    return not self.player.is_done()
 
   @property
   def player(self):
     return self.current.player
 
   def skip(self):
-    self.skip_votes.clear()
     if self.is_playing():
+
       self.player.stop()
 
   def toggle_next(self):
@@ -80,7 +79,10 @@ class VoiceState:
   async def audio_player_task(self):
     while self.cog == self.bot.get_cog('Music'):
       self.play_next_song.clear()
+      self.skip_votes.clear()
+
       self.current = await self.songs.get()
+
       if self.current.item:
         em = await emby_helper.makeEmbed(self.current.item, 'Now playing: ')
         await self.bot.send_message(self.current.channel, embed=em)
@@ -88,22 +90,27 @@ class VoiceState:
         await self.bot.send_message(self.current.channel,
           'Now playing: ' + str(self.current)
         )
+
       if not self.player:
         self.current.player = await self.emby_player(self.current.item)
+
       self.player.start()
-      await asyncio.sleep(3)
+
       if hasattr(self.player, 'process'):
+        await asyncio.sleep(3)
+
         for i in range(10):
-          self.current.player = await self.emby_player(self.current.item)
-          if self.player.process.poll():
+          if self.play_next_song.is_set():
+            break
+          elif self.player.process.poll():
+            self.current.player = await self.emby_player(self.current.item)
             self.player.start()
-            await asyncio.sleep(3)
           elif self.player.process.poll() is None:
             await asyncio.sleep(1)
           else:
             break
-      await self.play_next_song.wait()
 
+      await self.play_next_song.wait()
 
 class Music:
   def __init__(self, bot):

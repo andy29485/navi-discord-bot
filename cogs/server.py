@@ -9,6 +9,7 @@ from discord.ext.commands.errors import CheckFailure
 import discord
 from cogs.utils.format import *
 from discord.ext import commands
+from cogs.utils.config import Config
 
 class EmWrap:
   def __init__(self, d):
@@ -20,6 +21,7 @@ class Server:
   def __init__(self, bot):
     self.bot      = bot
     self.timeouts = {}
+    self.conf     = Config('configs/server.json')
     self.cut      = {}
 
   @perms.has_perms(manage_messages=True)
@@ -42,6 +44,35 @@ class Server:
                            )
                          )
     )
+
+  @commands.group(name='role', pass_context=True)
+  async def _role(self, ctx):
+    """
+    Manage publicly available roles
+    """
+    if ctx.invoked_subcommand is None:
+      await self.bot.say(formatter.error("Please specify valid subcommand"))
+
+  @role.command(name='add', pass_context=True)
+  @perms.has_perms(manage_roles=True)
+  async def _add(self, ctx, role : discordpy.Role)
+    """adds role to list of public roles"""
+    auth = ctx.message.author
+    serv = ctx.message.server
+
+  @role.command(name='delete', pass_context=True)
+  @perms.has_perms(manage_roles=True)
+  async def _delete(self, ctx, role : discordpy.Role)
+    """removes role from that list"""
+
+  @role.command(name='request', pass_context=True)
+  async def _request(self, ctx, role : discordpy.Role)
+    """adds role to requester(if in list)"""
+
+  @role.command(name='unrequest', aliases=['requestrm'], pass_context=True)
+  async def _unrequest(self, ctx, role : discordpy.Role)
+    """removes role from requester(if in list)"""
+
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='cut', pass_context=True)

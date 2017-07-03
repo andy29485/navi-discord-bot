@@ -118,9 +118,17 @@ class Server:
       else:
         await self.bot.say(embed=EmWrap(mes))
 
+    old = False
     while len(logs) > 0:
       if len(logs) > 1:
-        await self.bot.delete_messages(logs[:100])
+        if not old:
+          try:
+            await self.bot.delete_messages(logs[:100])
+          except:
+            old = True
+        if old:
+          for entry in logs[:100]:
+            await self.bot.delete_message(entry)
         logs = logs[100:]
       else:
         await self.bot.delete_message(logs[0])

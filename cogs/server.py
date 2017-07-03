@@ -59,7 +59,7 @@ class Server:
     """adds role to list of public roles"""
     serv = ctx.message.server
 
-    if role.is_everyone():
+    if role.is_everyone:
       await self.bot.say(error('umm... no'))
       return
 

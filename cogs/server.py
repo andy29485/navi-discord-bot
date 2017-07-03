@@ -53,9 +53,9 @@ class Server:
     if ctx.invoked_subcommand is None:
       await self.bot.say(formatter.error("Please specify valid subcommand"))
 
-  @role.command(name='add', pass_context=True)
+  @_role.command(name='add', pass_context=True)
   @perms.has_perms(manage_roles=True)
-  async def _add(self, ctx, role : discord.Role)
+  async def _add(self, ctx, role : discord.Role):
     """adds role to list of public roles"""
     serv = ctx.message.server
 
@@ -76,9 +76,9 @@ class Server:
     self.conf.save()
     await self.bot.say(ok('role added to public role list'))
 
-  @role.command(name='delete', pass_context=True)
+  @_role.command(name='delete', pass_context=True)
   @perms.has_perms(manage_roles=True)
-  async def _delete(self, ctx, role : discord.Role)
+  async def _delete(self, ctx, role : discord.Role):
     """removes role from list of public roles"""
     serv = ctx.message.server
 
@@ -89,8 +89,8 @@ class Server:
     else:
       await self.bot.say(error('role is not in the list'))
 
-  @role.command(name='request', pass_context=True)
-  async def _request(self, ctx, role : discord.Role)
+  @_role.command(name='request', pass_context=True)
+  async def _request(self, ctx, role : discord.Role):
     """adds role to requester(if in list)"""
     auth = ctx.message.author
     serv = ctx.message.server
@@ -102,8 +102,8 @@ class Server:
     else:
       await self.bot.say(error('I\'m afraid that I can\'t give you that role'))
 
-  @role.command(name='unrequest', aliases=['requestrm'], pass_context=True)
-  async def _unrequest(self, ctx, role : discord.Role)
+  @_role.command(name='unrequest', aliases=['requestrm'], pass_context=True)
+  async def _unrequest(self, ctx, role : discord.Role):
     """removes role from requester(if in list)"""
     auth = ctx.message.author
     serv = ctx.message.server

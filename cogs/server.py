@@ -55,23 +55,67 @@ class Server:
 
   @role.command(name='add', pass_context=True)
   @perms.has_perms(manage_roles=True)
-  async def _add(self, ctx, role : discordpy.Role)
+  async def _add(self, ctx, role : discord.Role)
     """adds role to list of public roles"""
-    auth = ctx.message.author
     serv = ctx.message.server
+
+    if role.is_everyone():
+      await self.bot.say(error('umm... no'))
+      return
+
+    if serv.id not in self.conf:
+      self.conf[serv.id] = {'pub_roles': []}
+    if 'pub_roles' not in self.conf[serv.id]:
+      self.conf[serv.id]['pub_roles'] = []
+
+    if role.id in self.conf[serv.id]['pub_roles']:
+      await self.bot.say('role already in list')
+      return
+
+    self.conf[serv.id]['pub_roles'].append(role.id)
+    self.conf.save()
+    await self.bot.say(ok('role added to public role list'))
 
   @role.command(name='delete', pass_context=True)
   @perms.has_perms(manage_roles=True)
-  async def _delete(self, ctx, role : discordpy.Role)
-    """removes role from that list"""
+  async def _delete(self, ctx, role : discord.Role)
+    """removes role from list of public roles"""
+    serv = ctx.message.server
+
+    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
+    if role.id in available_roles:
+      self.conf[serv.id][pub_roles].remove(role.id)
+      await self.bot.say(ok('role removed from public list'))
+    else:
+      await self.bot.say(error('role is not in the list'))
 
   @role.command(name='request', pass_context=True)
-  async def _request(self, ctx, role : discordpy.Role)
+  async def _request(self, ctx, role : discord.Role)
     """adds role to requester(if in list)"""
+    auth = ctx.message.author
+    serv = ctx.message.server
+
+    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
+    if role.id in available_roles:
+      await self.bot.add_roles(auth, role)
+      await self.bot.say(ok('you now have that role'))
+    else:
+      await self.bot.say(error('I\'m afraid that I can\'t give you that role'))
 
   @role.command(name='unrequest', aliases=['requestrm'], pass_context=True)
-  async def _unrequest(self, ctx, role : discordpy.Role)
+  async def _unrequest(self, ctx, role : discord.Role)
     """removes role from requester(if in list)"""
+    auth = ctx.message.author
+    serv = ctx.message.server
+
+    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
+    found           = discord.utils.find(lambda r: r.id == role.id, auth.roles)
+
+    if role.id in available_roles and found:
+      await self.bot.remove_roles(auth, role)
+      await self.bot.say(ok('you no longer have that role'))
+    else:
+      await self.bot.say(error('I\'m afraid that I can\'t remove that role'))
 
 
   @perms.has_perms(manage_messages=True)

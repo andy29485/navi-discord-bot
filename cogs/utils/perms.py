@@ -58,7 +58,7 @@ def check_permissions(msg, **perms):
                                                         value in perms.items()
   )
 
-def role_or_permissions(ctx, check, **permsa
+def role_or_permissions(ctx, check, **perms):
   #http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
   if check_permissions(ctx.message, **perms):
     return True

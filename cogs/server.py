@@ -51,7 +51,7 @@ class Server:
     Manage publicly available roles
     """
     if ctx.invoked_subcommand is None:
-      await self.bot.say(formatter.error("Please specify valid subcommand"))
+      await self.bot.say(error("Please specify valid subcommand"))
 
   @_role.command(name='add', pass_context=True)
   @perms.has_perms(manage_roles=True)
@@ -69,12 +69,20 @@ class Server:
 
   @_role.command(name='list', aliases=['ls'], pass_context=True)
   @perms.has_perms(manage_roles=True)
-  async def _list(self, ctx, role_name : str):
+  async def _list(self, ctx):
     """creates and adds a new role to list of public roles"""
-    serv  = ctx.message.server
-    names = []
-    m_len = 0
-    for role_id in self.conf[serv.id]['pub_roles']:
+    serv            = ctx.message.server
+    names           = []
+    m_len           = 0
+    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
+
+    if not available_roles:
+      await self.bot.say('no public roles in this server\n' + \
+                         ' see `.help role create` and `.help role add`'
+      )
+      return
+
+    for role_id in available_roles:
       role = discord.utils.find(lambda r: r.id == role_id, serv.roles)
       if role:
         names.append(role.name)
@@ -84,7 +92,7 @@ class Server:
     line = '{{:{}}} - {{}}\n'.format(m_len)
     for name,rid in zip(names, self.conf[serv.id]['pub_roles']):
       msg += line.format(name, rid)
-    await self.say(msg+'```')
+    await self.bot.say(msg+'```')
 
   async def _add_wrap(self, ctx, role : discord.Role):
     serv = ctx.message.server

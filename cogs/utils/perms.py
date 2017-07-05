@@ -54,10 +54,11 @@ def check_permissions(msg, **perms):
   chan     = msg.channel
   author   = msg.author
   resolved = chan.permissions_for(author)
-  return all(getattr(resolved, name, None) == value for name,
-                                                        value in perms.items())
+  return perms and all(getattr(resolved, name, None) == value for name,
+                                                        value in perms.items()
+  )
 
-def role_or_permissions(ctx, check, **perms):
+def role_or_permissions(ctx, check, **permsa
   #http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
   if check_permissions(ctx.message, **perms):
     return True

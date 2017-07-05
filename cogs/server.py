@@ -67,7 +67,7 @@ class Server:
     role = await self.bot.create_role(serv, name=role_name, mentionable=True)
     await self._add_wrap(ctx, role)
 
-  @_role.command(name='list', aliases=['ls'] pass_context=True)
+  @_role.command(name='list', aliases=['ls'], pass_context=True)
   @perms.has_perms(manage_roles=True)
   async def _list(self, ctx, role_name : str):
     """creates and adds a new role to list of public roles"""
@@ -82,7 +82,7 @@ class Server:
 
     msg  = 'Roles:\n```'
     line = '{{:{}}} - {{}}\n'.format(m_len)
-    for name,rid in zip(names, self.conf[serv.id]['pub_roles'])
+    for name,rid in zip(names, self.conf[serv.id]['pub_roles']):
       msg += line.format(name, rid)
     await self.say(msg+'```')
 

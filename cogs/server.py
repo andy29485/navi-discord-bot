@@ -57,6 +57,36 @@ class Server:
   @perms.has_perms(manage_roles=True)
   async def _add(self, ctx, role : discord.Role):
     """adds role to list of public roles"""
+    await self._add_wrap(ctx, role)
+
+  @_role.command(name='create', pass_context=True)
+  @perms.has_perms(manage_roles=True)
+  async def _create(self, ctx, role_name : str):
+    """creates and adds a new role to list of public roles"""
+    serv = ctx.message.server
+    role = await self.bot.create_role(serv, name=role_name, mentionable=True)
+    await self._add_wrap(ctx, role)
+
+  @_role.command(name='list', aliases=['ls'] pass_context=True)
+  @perms.has_perms(manage_roles=True)
+  async def _list(self, ctx, role_name : str):
+    """creates and adds a new role to list of public roles"""
+    serv  = ctx.message.server
+    names = []
+    m_len = 0
+    for role_id in self.conf[serv.id]['pub_roles']:
+      role = discord.utils.find(lambda r: r.id == role_id, serv.roles)
+      if role:
+        names.append(role.name)
+        m_len = max(m_len, len(role.name))
+
+    msg  = 'Roles:\n```'
+    line = '{{:{}}} - {{}}\n'.format(m_len)
+    for name,rid in zip(names, self.conf[serv.id]['pub_roles'])
+      msg += line.format(name, rid)
+    await self.say(msg+'```')
+
+  async def _add_wrap(self, ctx, role : discord.Role):
     serv = ctx.message.server
 
     if role.is_everyone:

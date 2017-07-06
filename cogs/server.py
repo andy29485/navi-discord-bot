@@ -122,7 +122,7 @@ class Server:
 
     available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
     if role.id in available_roles:
-      self.conf[serv.id][pub_roles].remove(role.id)
+      self.conf[serv.id]['pub_roles'].remove(role.id)
       await self.bot.say(ok('role removed from public list'))
     else:
       await self.bot.say(error('role is not in the list'))

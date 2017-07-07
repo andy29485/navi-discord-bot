@@ -10,7 +10,7 @@ from cogs.utils import format as formatter
 from cogs.utils.poll import Poll
 from cogs.utils.config import Config
 from cogs.utils.reminders import Reminder
-
+from datetime import datetime, timedelta
 
 class General:
   def __init__(self, bot):
@@ -25,6 +25,8 @@ class General:
       self.conf['reminders'] = []
     if 'responses' not in self.conf:
       self.conf['responses'] = {}
+    if 'todo' not in self.conf:
+      self.conf['todo'] = {}
     if 'situations' not in self.conf:
       self.conf['situations'] = []
     if 'polls' not in self.conf:
@@ -80,13 +82,18 @@ class General:
         for j in subs:
           rep = await loop.run_in_executor(None, re.sub, j, subs[j], rep)
         msg = re.sub("(?i){}".format(i[0]), rep, message.content)
-        if msg:
+        if rep:
           await self.bot.send_message(message.channel, msg)
         return
 
   @commands.command(name='roll', aliases=['r', 'clench'], pass_context=True)
   async def _roll(self, ctx, *dice):
-    'rolls dice given pattern [Nd]S'
+    """rolls dice given pattern [Nd]S[(+|-)C]
+
+    N: number of dice to roll
+    S: side on the dice
+    C: constant to add or subtract from each die roll
+    """
     loop = asyncio.get_event_loop()
 
     roll = '\n'.join(await loop.run_in_executor(None, self.rolls, dice))
@@ -100,6 +107,7 @@ class General:
   @commands.command(name="8ball", aliases=["8"])
   async def _8ball(self, *, question : str):
     """Ask 8 ball a question
+
     Question must end with a question mark.
     """
     if question.endswith("?") and question != "?":
@@ -107,19 +115,211 @@ class General:
     else:
       await self.bot.say("That doesn't look like a question.")
 
-  @commands.command(aliases=["sw"], pass_context=True)
-  async def stopwatch(self, ctx):
-    """Starts/stops stopwatch"""
-    author = ctx.message.author
-    if not author.id in self.stopwatches:
-      self.stopwatches[author.id] = int(time.perf_counter())
-      await self.bot.say(author.mention + " Stopwatch started!")
+  @commands.group(aliases=['t', 'td'], pass_context=True)
+  async def todo(self, ctx):
+    '''
+    manages user TODO list
+    Note: if no sub-command is specified, TODOs will be listed
+    '''
+    if ctx.invoked_subcommand is None:
+      await self._td_list(ctx)
+
+  @todo.command(name='list', aliases=['l', 'ls'], pass_context=True)
+  async def _td_list_wp(self, ctx):
+    '''
+    prints your complete todo list
+    '''
+    await self._td_list(ctx)
+
+  @todo.command(name='add', aliases=['a', 'insert', 'i'], pass_context=True)
+  async def _td_add(self, ctx, *, task : str):
+    '''
+    adds a new task to your todo list
+    '''
+    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    todos.append([False, task])
+    self.conf['todo'][ctx.message.author.id] = todos
+    self.conf.save()
+    await self.bot.say(formatter.ok())
+
+  @todo.command(name='done', aliases=['d', 'complete', 'c'], pass_context=True)
+  async def _td_done(self, ctx, *, index : int):
+    '''
+    sets/unsets a task as complete
+    Note: indicies start at 1
+    '''
+    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    if len(todos) < index or index <= 0:
+      await self.bot.say(formatter.error('Invalid index'))
     else:
-      tmp = abs(self.stopwatches[author.id] - int(time.perf_counter()))
-      tmp = str(datetime.timedelta(seconds=tmp))
-      await self.bot.say("{} Stopwatch stopped! Time: **{}**".format(
-                         author.mention, tmp))
-      self.stopwatches.pop(author.id, None)
+      index -= 1
+      todos[index][0] = not todos[index][0]
+      self.conf['todo'][ctx.message.author.id] = todos
+      self.conf.save()
+      await self.bot.say(formatter.ok())
+
+  @todo.command(name='remove', aliases=['rem', 'rm', 'r'], pass_context=True)
+  async def _td_remove(self, ctx, *, index : int):
+    '''
+    remove a task from your todo list
+    Note: indicies start at 1
+    '''
+    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    if len(todos) < index or index <= 0:
+      await self.bot.say(formatter.error('Invalid index'))
+    else:
+      task = todos.pop(index - 1)
+      self.conf['todo'][ctx.message.author.id] = todos
+      self.conf.save()
+      await self.bot.say(formatter.ok('Removed task #{}'.format(index)))
+
+  async def _td_list(self, ctx):
+    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    if not todos:
+      await self.bot.send_message(ctx.message.channel, 'No TODOs found.')
+    else:
+      #TODO - ensure that the outgoing message is not too long
+      msg     = 'TODO:\n'
+      length  = len(str(len(todos)))
+      done    = '{{:0{}}} - ~~{{}}~~\n'.format(length)
+      working = '{{:0{}}} - {{}}\n'.format(length)
+      for i, todo in enumerate(todos, 1):
+        if todo[0]:
+          msg += done.format(i, todo[1])
+        else:
+          msg += working.format(i, todo[1])
+      await self.bot.send_message(ctx.message.channel, msg)
+
+  @commands.group(aliases=["sw"], pass_context=True)
+  async def stopwatch(self, ctx):
+    """
+    manages user stopwatch
+    starts/stops/unpauses (depending on context)
+    """
+    if ctx.invoked_subcommand is None:
+      aid = ctx.message.author.id
+      if aid in self.stopwatches and self.stopwatches[aid][0]:
+        await self._sw_stop(ctx)
+      else:
+        await self._sw_start(ctx)
+
+  @stopwatch.command(name='start',
+                     aliases=['unpause','u','resume','r'],
+                     pass_context=True)
+  async def _sw_start_wrap(self, ctx):
+    """
+    unpauses or creates new stopwatch
+    """
+    await self._sw_start(ctx)
+
+  async def _sw_start(self, ctx):
+    aid = ctx.message.author.id
+    tme = ctx.message.timestamp.timestamp()
+    if aid in self.stopwatches and self.stopwatches[aid][0]:
+      await self.bot.send_message(ctx.message.channel,
+                                  'You\'ve already started a stopwatch.'
+      )
+    elif aid in self.stopwatches:
+      self.stopwatches[aid][0] = tme
+      await self.bot.send_message(ctx.message.channel, 'Stopwatch resumed.')
+    else:
+      self.stopwatches[aid] = [tme, 0]
+      await self.bot.send_message(ctx.message.channel, 'Stopwatch started.')
+
+  @stopwatch.command(name='stop', aliases=['end','e'], pass_context=True)
+  async def _sw_stop_wrap(self, ctx):
+    """
+    prints time and deletes timer
+
+    works even if paused
+    """
+    await self._sw_stop(ctx)
+
+  async def _sw_stop(self, ctx):
+    aid = ctx.message.author.id
+    now = ctx.message.timestamp.timestamp()
+    old = self.stopwatches.pop(aid, None)
+    if old:
+      if old[0]:
+        tme = now - old[0] + old[1]
+      else:
+        tme = old[1]
+      tme = str(timedelta(seconds=tme))
+      msg = '```Stopwatch stopped: {}\n'.format(tme)
+      for lap in zip(range(1,len(old)), old[2:]):
+        msg += '\nLap {0:03} - {1}'.format(*lap)
+      msg += '```'
+      await self.bot.send_message(ctx.message.channel, msg)
+    else:
+      await self.bot.send_message(ctx.message.channel,
+                                  'No stop watches started, cannot stop.'
+      )
+
+  @stopwatch.command(name='status', aliases=['look','peak'], pass_context=True)
+  async def _sw_status(self, ctx):
+    aid = ctx.message.author.id
+    now = ctx.message.timestamp.timestamp()
+    if aid in self.stopwatches:
+      old = self.stopwatches[aid]
+      if old[0]:
+        tme = now - old[0] + old[1]
+      else:
+        tme = old[1]
+      tme = str(timedelta(seconds=tme))
+      msg = '```Stopwatch time: {}'.format(tme)
+      if old[0]:
+        msg += '\n'
+      else:
+        msg += ' [paused]\n'
+      for lap in zip(range(1,len(old)), old[2:]):
+        msg += '\nLap {0:03} - {1}'.format(*lap)
+      msg += '```'
+      await self.bot.send_message(ctx.message.channel, msg)
+    else:
+      await self.bot.send_message(ctx.message.channel,
+                                  'No stop watches started, cannot look.'
+      )
+
+  @stopwatch.command(name='lap', aliases=['l'], pass_context=True)
+  async def _sw_lap(self, ctx):
+    """
+    prints time
+
+    does not pause, does not resume, does not delete
+    """
+    aid = ctx.message.author.id
+    now = ctx.message.timestamp.timestamp()
+    if aid in self.stopwatches:
+      old = self.stopwatches[aid]
+      if old[0]:
+        tme = now - old[0] + old[1]
+      else:
+        tme = old[1]
+      tme   = str(timedelta(seconds=tme))
+      await self.bot.say("Lap #{:03} time: **{}**".format(len(old)-1, tme))
+      if self.stopwatches[aid][-1] != tme:
+        self.stopwatches[aid].append(tme)
+    else:
+      await self.bot.say('No stop watches started, cannot lap.')
+
+  @stopwatch.command(name='pause', aliases=['p','hold','h'], pass_context=True)
+  async def _sw_pause(self, ctx):
+    """
+    pauses the stopwatch
+
+    Also prints current time, does not delete
+    """
+    aid = ctx.message.author.id
+    now = ctx.message.timestamp.timestamp()
+    if aid in self.stopwatches and self.stopwatches[aid][0]:
+      old = now - self.stopwatches[aid][0] + self.stopwatches[aid][1]
+      self.stopwatches[aid] = [0, old]
+      old = str(timedelta(seconds=old))
+      await self.bot.say("Stopwatch paused: **{}**".format(old))
+    elif aid in self.stopwatches:
+      await self.bot.say('Stop watch already paused.')
+    else:
+      await self.bot.say('No stop watches started, cannot pause.')
 
   @commands.command()
   async def lmgtfy(self, *, search_terms : str):
@@ -134,15 +334,18 @@ class General:
       dice = ['20']
 
     for roll in dice:
-      match = re.search('^((\\d+)?d)?(\\d+)$', roll, re.I)
+      match = re.search('^((\\d+)?d)?(\\d+)([+-]\\d+)?$', roll, re.I)
       message = ''
       if not match:
         message = 'Invalid roll'
       else:
         times = 1
         sides = int(match.group(3))
+        add   = 0
         if match.group(2):
           times = int(match.group(2))
+        if match.group(4):
+          add   = int(match.group(4))
 
         if times > 100:
           message = 'Cannot roll that many dice  '
@@ -154,7 +357,7 @@ class General:
           message = 'No  '
         else:
           for i in range(times):
-            message += '{}, '.format(random.randint(1, sides))
+            message += '{}, '.format(random.randint(1, sides)+add)
         message = message[:-2]
       out.append('{}: {}'.format(roll, message))
     return out
@@ -181,17 +384,38 @@ class General:
 
   @commands.command(name='remindme', pass_context=True, aliases=['remind'])
   async def _add_reminder(self, ctx, *, message : str):
-    """adds a reminder"""
+    """
+    adds a reminder
+
+    'at' must be used when specifing exact time
+    'in' is optional for offsets
+    'me' can be seperate or part of the command name (also optinal)
+    cannot mix offsets and exact times
+
+    Samples:
+    .remind me in 5 h message
+    .remind me in 5 hours 3 m message
+    .remind me 1 week message
+    .remind me 7 months message
+    .remindme in 7 months message
+    .remind me at 2017-10-23 message
+    .remind me at 2017-10-23T05:11:56 message
+    .remindme at 2017-10-23 05:11:56 message
+    .remindme at 10/23/2017 5:11 PM message
+    .remind at 7:11 message
+    .remind at 7:11:15 message
+"""
     author  = ctx.message.author.mention
     channel = ctx.message.channel.id
     r = Reminder(channel, author, message)
     r.insertInto(self.conf['reminders'])
     self.conf.save()
-    await self.bot.say(formatter.ok())
+    t = datetime.fromtimestamp(r.end_time).isoformat()
+    await self.bot.say(formatter.ok('Will remind you at {}'.format(t)))
 
   @commands.command(pass_context=True, aliases=['a', 'ask'])
   async def question(self, ctx):
-    """Answers a question"""
+    """Answers a question with yes/no"""
     message = ctx.message.author.mention + ':\n'
     message += formatter.inline(random.choice(['yes', 'no']))
     await self.bot.say(message)
@@ -230,20 +454,24 @@ class General:
     await poll.start()
 
   async def check_reminders(self):
-    reminders_removed = False
-    # if there are valid reminders, process them
-    while self.conf['reminders'] and self.conf['reminders'][0].is_ready():
-      r = self.conf['reminders'][0].popFrom(self.conf['reminders'])
-      c = self.bot.get_channel(r.channel_id)
-      await self.bot.send_message(c, r.get_message())
-      reminders_removed = True
+    while self == self.bot.get_cog('General'):
+      reminders_removed = False
+      # if there are valid reminders, process them
+      while self.conf['reminders'] and self.conf['reminders'][0].time_left < 1:
+        r = self.conf['reminders'][0].popFrom(self.conf['reminders'])
+        c = self.bot.get_channel(r.channel_id)
+        await self.bot.send_message(c, r.get_message())
+        reminders_removed = True
 
-    if reminders_removed:
-      self.conf.save()
+      if reminders_removed:
+        self.conf.save()
 
-    # wait a bit and check again
-    await asyncio.sleep(10)
-    self.loop.create_task(self.check_reminders())
+      # wait a bit and check again
+      if self.conf['reminders']:
+        delay = min(self.conf['reminders'][0].time_left, 15)
+      else:
+        delay = 15
+      await asyncio.sleep(delay-0.5)
 
 
 def split(choices):

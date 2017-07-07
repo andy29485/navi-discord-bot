@@ -1,67 +1,43 @@
 #!/usr/bin/env python3
 
 from discord.ext import commands
-from cogs.utils.config import Config
+import cogs.utils.emby_helper as emby_helper
 import cogs.utils.format as formatter
-from cogs.utils.emby_playlist import Player
-from discord import Embed
 import discord
 import asyncio
-import hashlib
 import logging
-from embypy import Emby as EmbyPy
 from embypy.objects import EmbyObject
 import re
-from cogs.utils import puush
-
-colours = [0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
-           0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0x1abc9c,
-           0x2ecc71, 0xa84300, 0xe74c3c, 0xad1457, 0x11806a]
 
 class Emby:
   def __init__(self, bot):
     self.bot  = bot
-    self.conf = Config('configs/emby.json')
-
-    if 'address' not in self.conf or not self.conf['address']:
-      self.conf['address'] = input('Enter emby url: ')
-      self.conf.save()
-    if 'watching' not in self.conf or 'last' not in self.conf['watching']:
-      self.conf['watching'] = {'last':None}
-      self.conf.save()
-    if 'auth' not in self.conf or not self.conf['auth']:
-      self.conf['auth'] = {}
-      self.conf['auth']['api_key']   = input('Enter emby api key: ')
-      self.conf['auth']['userid']    = input('Enter emby user id: ')
-      self.conf['auth']['device_id'] = input('Enter emby device id: ')
-      self.conf.save()
-
-    self.conn = EmbyPy(self.conf['address'], **self.conf['auth'], ws=False)
+    self.conf = emby_helper.conf
+    self.conn = emby_helper.conn
     #self.conn.connector.set_on_message(self.on_socket_message)
-    self.player = Player(bot, self.conn)
     self.loop = self.bot.loop
     self.loop.create_task(self.poll())
 
   async def poll(self):
-    latest = await self.loop.run_in_executor(None, self.conn.latest)
-    for l in latest:
-      if self.conf['watching']['last'] == l.id:
-        break
-      item = ttm  = await self.loop.run_in_executor(None, l.update)
-      while ttm.parent_id:
-        ttm = await self.loop.run_in_executor(None,self.conn.info,ttm.parent_id)
-        try:
-          chans = self.conf['watching'].get(ttm.id, [])
-          for chan_id in chans:
-            chan = self.bot.get_channel(chan_id)
-            em   = await makeEmbed(item, 'New item added: ')
-            await self.bot.send_message(chan, embed=em)
-        except:
+    while self == self.bot.get_cog('Emby'):
+      latest = await self.loop.run_in_executor(None, self.conn.latest)
+      for l in latest:
+        if self.conf['watching']['last'] == l.id:
           break
-    self.conf['watching']['last'] = latest[0].id
-    self.conf.save()
-    await asyncio.sleep(30)
-    self.loop.create_task(self.poll())
+        item = t = await self.loop.run_in_executor(None, l.update)
+        while t.parent_id:
+          t = t.parent
+          try:
+            chans = self.conf['watching'].get(t.id, [])
+            for chan_id in chans:
+              chan = self.bot.get_channel(chan_id)
+              em   = await emby_helper.makeEmbed(item, 'New item added: ')
+              await self.bot.send_message(chan, embed=em)
+          except:
+            break
+      self.conf['watching']['last'] = latest[0].id
+      self.conf.save()
+      await asyncio.sleep(30)
 
   @commands.group(pass_context=True)
   async def emby(self, ctx):
@@ -74,7 +50,7 @@ class Emby:
     """print emby server info, or an embed for each item id"""
     for item_id in item_ids.split():
       item = await self.loop.run_in_executor(None, self.conn.info, item_id)
-      em   = await makeEmbed(item)
+      em   = await emby_helper.makeEmbed(item)
       await self.bot.send_message(ctx.message.channel, embed=em)
     if not item_ids:
       info = await self.loop.run_in_executor(None, self.conn.info)
@@ -137,83 +113,16 @@ class Emby:
       await self.bot.say('No results found')
       return
 
-    types_map = {'BoxSet':0, 'Series':1, 'Movie':2, 'Audio':3, 'Person':4}
-    m_size    = len(types_map)
-    results   = sorted(results, key = lambda x : types_map.get(x.type, m_size))
-
     for result in results[:num]:
       await self.loop.run_in_executor(None, result.update)
-      em = await makeEmbed(result)
+      em = await emby_helper.makeEmbed(result)
       await self.bot.send_message(ctx.message.channel, embed=em)
-
-  @emby.command(pass_context=True)
-  async def join(self, ctx, *, channel : discord.Channel):
-    await self.player(ctx, channel)
-
-  @emby.command(pass_context=True)
-  async def summon(self, ctx):
-    await self.summon(ctx)
-
-  @emby.command(pass_context=True)
-  async def play(self, ctx, *, song : str):
-    await self.player.play(ctx, song)
-
-  @emby.command(pass_context=True)
-  async def volume(self, server, value : int):
-    await self.player.volume(server, value)
-
-  @emby.command(pass_context=True)
-  async def pause(self, ctx):
-    await self.pause.play(ctx)
-
-  @emby.command(pass_context=True)
-  async def resume(self, ctx):
-    await self.resume.play(ctx)
-
-  @emby.command(pass_context=True)
-  async def stop(self, ctx):
-    await self.player.stop(ctx)
-
-  @emby.command(pass_context=True)
-  async def skip(self, ctx):
-    await self.skip.stop(ctx)
-
-  @emby.command(pass_context=True)
-  async def playing(self, ctx):
-    await self.playing.stop(ctx)
 
   async def on_socket_message(self, message):
     if message['MessageType'] == 'LibraryChanged':
       for eid in message['ItemsAdded']:
         logging.info(eid+' has been added to emby')
         print(eid+' has been added to emby')
-
-  def __unload(self):
-    self.player.unload()
-
-async def makeEmbed(item, message=''):
-  loop = asyncio.get_event_loop()
-  em = Embed()
-  img_url          = item.primary_image_url
-  if 'https' in img_url:
-    img_url        = await loop.run_in_executor(None,puush.get_url,img_url)
-  em.title         = message+item.name
-  try:
-    em.description = item.overview
-  except:
-    em.description = item.media_type
-  em.url           = item.url
-  em.colour        = getColour(item.id)
-  em.set_thumbnail(url=img_url)
-  if item.genres:
-    em.add_field(name='Tags', value=', '.join(item.genres))
-  return em
-
-def getColour(string : str):
-  str_hash = hashlib.md5()
-  str_hash.update(string.strip().encode())
-  str_hash = int(str_hash.hexdigest(), 16)
-  return colours[str_hash % len(colours)]
 
 def setup(bot):
   bot.add_cog(Emby(bot))

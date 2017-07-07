@@ -22,6 +22,9 @@ def in_group(group):
 def has_perms(**perms):
   return commands.check(lambda ctx: check_permissions(ctx.message, **perms))
 
+def has_role_check(check, **perms):
+  return commands.check(lambda ctx: role_or_permissions(ctx, check, **perms))
+
 # The permission system of the bot is based on a "just works" basis
 # You have permissions and the bot has permissions. If you meet the permissions
 # required to execute the command (and the bot does as well) then it goes
@@ -51,12 +54,13 @@ def check_permissions(msg, **perms):
   chan     = msg.channel
   author   = msg.author
   resolved = chan.permissions_for(author)
-  return all(getattr(resolved, name, None) == value for name,
-                                                        value in perms.items())
+  return perms and all(getattr(resolved, name, None) == value for name,
+                                                        value in perms.items()
+  )
 
 def role_or_permissions(ctx, check, **perms):
   #http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
-  if check_permissions(ctx, **perms):
+  if check_permissions(ctx.message, **perms):
     return True
 
   chan   = ctx.message.channel

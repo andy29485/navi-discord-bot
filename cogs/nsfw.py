@@ -12,10 +12,14 @@ import cogs.utils.format as formatter
 class NSFW:
   def __init__(self, bot):
     self.bot      = bot
+    self.loop     = bot.loop
     self.conf     = Config('configs/nsfw.json')
 
     if 'update' not in self.conf:
-      self.conf['update'] = {'safebooru':{'url':'https://safebooru.donmai.us'}}
+      self.conf['update'] = {
+        'safebooru':{'url':'https://safebooru.donmai.us'},
+        'lolibooru':{'url':'https://lolibooru.moe'}
+      }
       self.conf.save()
     pybooru.resources.SITE_LIST.update(self.conf['update'])
 
@@ -25,9 +29,12 @@ class NSFW:
       self.conf['danbooru-conf'] = {}
     if 'safebooru-conf' not in self.conf:
       self.conf['safebooru-conf'] = {}
+    if 'lolibooru-conf' not in self.conf:
+      self.conf['lolibooru-conf'] = {}
 
     self.yandere  =  pybooru.Moebooru('yandere',  **self.conf['yandere-conf'])
     self.danbooru =  pybooru.Danbooru('danbooru', **self.conf['danbooru-conf'])
+    self.lolibooru = pybooru.Moebooru('lolibooru',**self.conf['lolibooru-conf'])
     self.safebooru = pybooru.Danbooru('safebooru',**self.conf['safebooru-conf'])
 
   @commands.group(pass_context=True)
@@ -44,78 +51,14 @@ class NSFW:
       return
 
   @nsfw.command(name='danbooru', aliases=['d'])
-  async def _danbooru(self, *, search_tags : str):
+  async def _danbooru(self, *, search_tags : str = ''):
     """
       searches danbooru for an image
 
-      usage: .nsfw danbooru tags1 tag2, tag_3, etc...
-      must specify at least 1 tag
+      usage: .nsfw danbooru [num] tags1 tag2, tag_3, etc...
+      (optional) num: number of posts to show [1,5]
+      if not tags are given, rating:e is assumed
       will potentially return nsfw images
-    """
-    tags  = re.split(',?\\s+', search_tags)
-    posts = self.danbooru.post_list(limit=1,tags=tags,random=True)
-    em    = Embed()
-
-    if not posts:
-      await self.bot.say('could not find anything')
-      return
-
-    post = posts[0]
-
-    em.title = search_tags
-    em.url   = 'https://danbooru.donmai.us/posts/{}'.format(post['id'])
-    u        = 'https://danbooru.donmai.us'
-    if 'large_file_url' in post:
-      u += post['large_file_url']
-    elif 'file_url' in post:
-      u += post['file_url']
-    else:
-      await self.bot.say('''
-              Sorry, there seems to be a premium tag in the query,
-              send me $20 if you you want to search it.
-      ''')
-    em.set_image(url=u)
-    if post['tag_string']:
-      em.set_footer(text=post['tag_string'])
-
-    await self.bot.say(embed=em)
-
-  @nsfw.command(name='yandere', aliases=['y'])
-  async def _yandre(self, *, search_tags : str):
-    """
-      searches yande.re for an image
-
-      usage: .nsfw yandere tags1 tag2, tag_3, etc...
-      must specify at least 1 tag
-      will potentially return nsfw images
-    """
-    tags  = re.split(',?\\s+', search_tags)
-    posts = self.yandere.post_list(limit=100,tags=tags)
-    em    = Embed()
-
-    post = random.choice(posts)
-
-    if not post:
-      await self.bot.say('could not find anything')
-      return
-
-    em.title = search_tags
-    em.url   = 'https://yande.re/post/show/{}'.format(post['id'])
-    u        = post['file_url']
-    em.set_image(url=u)
-    if post['tags']:
-      em.set_footer(text=post['tags'])
-
-    await self.bot.say(embed=em)
-
-  @commands.command(name='safebooru', aliases=['s', 'safe'])
-  async def _safebooru(self, *, search_tags : str):
-    """
-      searches safebooru for an image
-
-      usage: .nsfw safebooru tags1 tag2, tag_3, etc...
-      must specify at least 1 tag
-      will should not return nsfw images
     """
     tags  = re.split(',?\\s+', search_tags)
     for i in range(len(tags)):
@@ -130,32 +73,227 @@ class NSFW:
             break
         tags = tags[:i] + tags[j+1:]
         break
-    posts = self.safebooru.post_list(limit=1,tags=tags,random=True)
-    em    = Embed()
+
+    if len(tags) > 1 and re.match('\\d+$', tags[0]):
+      num = min(5, max(1, int(tags[0])))
+      tags = tags[1:]
+    else:
+      num = 1
+
+    if not tags:
+      tags = ['rating:e']
+
+    tags  = ' '.join(tags)
+    get   = lambda: self.danbooru.post_list(
+                             limit  = num,
+                             tags   = tags,
+                             random = True
+    )
+    posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
       await self.bot.say('could not find anything')
       return
 
-    post = posts[0]
+    for post in posts:
+      em    = Embed()
+      em.title = search_tags or 'rating:e'
+      em.url   = 'https://danbooru.donmai.us/posts/{}'.format(post['id'])
+      u        = 'https://danbooru.donmai.us'
+      if 'large_file_url' in post:
+        u += post['large_file_url']
+      elif 'file_url' in post:
+        u += post['file_url']
+      else:
+        await self.bot.say('''
+                Sorry, there seems to be a premium tag in the image,
+                send me $20 if you you want to search it.
+        ''')
+      em.set_image(url=u)
+      if post['tag_string']:
+        em.set_footer(text=post['tag_string'])
 
-    em.title = search_tags
-    em.url   = 'https://safebooru.donmai.us/posts/{}'.format(post['id'])
-    u        = 'https://safebooru.donmai.us'
-    if 'large_file_url' in post:
-      u += post['large_file_url']
-    elif 'file_url' in post:
-      u += post['file_url']
+      await self.bot.say(embed=em)
+
+  @nsfw.command(name='lolibooru', aliases=['l'])
+  async def _lolibooru(self, *, search_tags : str = ''):
+    """
+      searches lolibooru for an image
+
+      usage: .nsfw lolibooru [num] tags1 tag2, tag_3, etc...
+      (optional) num: number of posts to show [1,5]
+      if not tags are given, rating:e is assumed
+      will potentially return nsfw images
+    """
+    tags  = re.split(',?\\s+', search_tags)
+    for i in range(len(tags)):
+      if re.search('^(//|#)', tags[i]):
+        tags = tags[:i]
+        break
+
+    for i in range(len(tags)):
+      if re.search('^(/\\*)', tags[i]):
+        for j in range(i, len(tags)):
+          if re.search('^(\\*/)', tags[j]):
+            break
+        tags = tags[:i] + tags[j+1:]
+        break
+
+    if len(tags) > 1 and re.match('\\d+$', tags[0]):
+      num = min(5, max(1, int(tags[0])))
+      tags = tags[1:]
     else:
-      await self.bot.say('''
-              Sorry, there seems to be a premium tag in the query,
-              send me $20 if you you want to search it.
-      ''')
-    em.set_image(url=u)
-    if post['tag_string']:
-      em.set_footer(text=post['tag_string'])
+      num = 1
 
-    await self.bot.say(embed=em)
+    if not tags:
+      tags = ['rating:e']
+
+    tags  = ' '.join(tags)
+    get   = lambda: self.lolibooru.post_list(
+                           limit = 100,
+                           tags  = tags
+    )
+    posts = await self.loop.run_in_executor(None, get)
+
+    if not posts:
+      await self.bot.say('could not find anything')
+      return
+
+    for i in range(num):
+      if not posts:
+        break
+      post = random.choice(posts)
+      posts.remove(post)
+      em    = Embed()
+      em.title = search_tags or 'rating:e'
+      em.url   = 'https://lolibooru.moe/post/show/{}'.format(post['id'])
+      u        = post['file_url'].replace(' ', '%20')
+      em.set_image(url=u)
+      if post['tags']:
+        em.set_footer(text=post['tags'])
+
+      await self.bot.say(embed=em)
+
+  @nsfw.command(name='yandere', aliases=['y'])
+  async def _yandre(self, *, search_tags : str = '' or 'rating:e'):
+    """
+      searches yande.re for an image
+
+      usage: .nsfw yandere [num] tags1 tag2, tag_3, etc...
+      (optional) num: number of posts to show [1,5]
+      if not tags are given, rating:e is assumed
+      will potentially return nsfw images
+    """
+    tags  = re.split(',?\\s+', search_tags)
+    for i in range(len(tags)):
+      if re.search('^(//|#)', tags[i]):
+        tags = tags[:i]
+        break
+
+    for i in range(len(tags)):
+      if re.search('^(/\\*)', tags[i]):
+        for j in range(i, len(tags)):
+          if re.search('^(\\*/)', tags[j]):
+            break
+        tags = tags[:i] + tags[j+1:]
+        break
+
+    if len(tags) > 1 and re.match('\\d+$', tags[0]):
+      num = min(5, max(1, int(tags[0])))
+      tags = tags[1:]
+    else:
+      num = 1
+
+    if not tags:
+      tags = ['rating:e']
+
+    tags  = ' '.join(tags)
+    get   = lambda: self.yandere.post_list(
+                           limit = 100,
+                           tags  = tags
+    )
+    posts = await self.loop.run_in_executor(None, get)
+
+    if not posts:
+      await self.bot.say('could not find anything')
+      return
+
+    for i in range(num):
+      if not posts:
+        break
+      post = random.choice(posts)
+      posts.remove(post)
+      em    = Embed()
+      em.title = search_tags or 'rating:e'
+      em.url   = 'https://yande.re/post/show/{}'.format(post['id'])
+      u        = post['file_url']
+      em.set_image(url=u)
+      if post['tags']:
+        em.set_footer(text=post['tags'])
+
+      await self.bot.say(embed=em)
+
+  @commands.command(name='safebooru', aliases=['s', 'safe'])
+  async def _safebooru(self, *, search_tags : str):
+    """
+      searches safebooru for an image
+
+      usage: .safebooru [num] tags1 tag2, tag_3, etc...
+      (optional) num: number of posts to show [1,5]
+      at least 1 tag must be specified
+      will potentially return nsfw images
+    """
+    tags  = re.split(',?\\s+', search_tags)
+    for i in range(len(tags)):
+      if re.search('^(//|#)', tags[i]):
+        tags = tags[:i]
+        break
+
+    for i in range(len(tags)):
+      if re.search('^(/\\*)', tags[i]):
+        for j in range(i, len(tags)):
+          if re.search('^(\\*/)', tags[j]):
+            break
+        tags = tags[:i] + tags[j+1:]
+        break
+
+    if len(tags) > 1 and re.match('\\d+$', tags[0]):
+      num = min(5, max(1, int(tags[0])))
+      tags = tags[1:]
+    else:
+      num = 1
+
+    tags  = ' '.join(tags)
+    get   = lambda: self.safebooru.post_list(
+                           limit  = num,
+                           tags   = tags,
+                           random = True
+    )
+    posts = await self.loop.run_in_executor(None, get)
+
+    if not posts:
+      await self.bot.say('could not find anything')
+      return
+
+    for post in posts:
+      em    = Embed()
+      em.title = search_tags
+      em.url   = 'https://safebooru.donmai.us/posts/{}'.format(post['id'])
+      u        = 'https://safebooru.donmai.us'
+      if 'large_file_url' in post:
+        u += post['large_file_url']
+      elif 'file_url' in post:
+        u += post['file_url']
+      else:
+        await self.bot.say('''
+                Sorry, there seems to be a premium tag in the image,
+                send me $20 if you you want to search it.
+        ''')
+      em.set_image(url=u)
+      if post['tag_string']:
+        em.set_footer(text=post['tag_string'])
+
+      await self.bot.say(embed=em)
 
 def setup(bot):
   bot.add_cog(NSFW(bot))

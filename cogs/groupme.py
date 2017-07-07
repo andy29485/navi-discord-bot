@@ -182,46 +182,42 @@ class GroupMe:
 
   async def poll(self):
     #print('polling')
-    for bot in self.l_bots:
-      #print('  group: {}'.format(str(self.g_groups[bot.group_id])))
+    while self == self.bot.get_cog('GroupMe'):
       messages = []
-      channels = self.d_chans[bot.group_id]
+      for bot in self.l_bots:
+        #print('  group: {}'.format(str(self.g_groups[bot.group_id])))
+        messages = []
+        channels = self.d_chans[bot.group_id]
 
-      try:
-        #print('    p refresh')
-        self.g_groups[bot.group_id].refresh()
-        all_messages = self.g_groups[bot.group_id].messages()
+        try:
+          #print('    p refresh')
+          self.g_groups[bot.group_id].refresh()
+          all_messages = self.g_groups[bot.group_id].messages()
 
-        #print('    p splice')
-        for message in all_messages:
-          #print('      check 1')
-          if message.id == self.conf['g_old'][bot.group_id]:
-            break
-          #print('      check 2')
-          if not message.text or not message.text.startswith(u'<\u200b'):
-            messages.append(message)
+          #print('    p splice')
+          for message in all_messages:
+            #print('      check 1')
+            if message.id == self.conf['g_old'][bot.group_id]:
+              break
+            #print('      check 2')
+            if not message.text or not message.text.startswith(u'<\u200b'):
+              messages.append(message)
 
-        #print('    p save progress')
-        if len(all_messages) > 0:
-          self.conf['g_old'][bot.group_id] = all_messages.newest.id
-          self.conf.save()
+          #print('    p save progress')
+          if len(all_messages) > 0:
+            self.conf['g_old'][bot.group_id] = all_messages.newest.id
+            self.conf.save()
 
-        #print('    p send')
-        for message in reversed(messages):
-          await self.link_from_groupme(message, channels)
-      except:
-        #print('    polling failed')
-        pass
+          #print('    p send')
+          for message in reversed(messages):
+            await self.link_from_groupme(message, channels)
+        except:
+          #print('    polling failed')
+          pass
 
-    #print('    p wait')
-    await asyncio.sleep(5 if messages else 25)
-    #print('    p queue')
-    if self.bot.user.id in groupme_objects and \
-       groupme_objects[self.bot.user.id] == self:
-         self.loop.create_task(self.poll())
-    else:
-      #print('cannot poll, must end')
-      pass
+      #print('    p wait')
+      await asyncio.sleep(5 if messages else 25)
+      #print('    p queue')
 
   def get_group_bot(self, g_id):
     group = None

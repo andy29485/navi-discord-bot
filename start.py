@@ -25,6 +25,7 @@ starting_cogs = [
   'cogs.groupme',
   'cogs.dnd',
   'cogs.emby',
+  'cogs.music',
   'cogs.nsfw'
 ]
 
@@ -48,7 +49,9 @@ debug_log.setLevel(logging.DEBUG)
 errror_log = logging.FileHandler(os.path.join(current_path, 'logs/error.log'))
 errror_log.setLevel(logging.ERROR)
 
-fh = TimedRotatingFileHandler('navi',  when='midnight')
+fh = TimedRotatingFileHandler(os.path.join(current_path, 'logs/navi'),
+                              when='midnight'
+)
 fh.suffix = '%Y-%m-%d.log'
 
 logger.addHandler(debug_log)
@@ -75,7 +78,7 @@ async def on_ready():
   print('------')
   if not hasattr(bot, 'uptime'):
     bot.uptime = datetime.datetime.utcnow()
-  bot.change_presence(game=discord.Game(name='{}help'.format(prefix[0])))
+  await bot.change_presence(game=discord.Game(name='{}help'.format(prefix[0])))
 
 @bot.async_event
 async def on_command_error(error, ctx):

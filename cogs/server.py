@@ -213,6 +213,8 @@ class Server:
     async for m in self.bot.logs_from(chan, num_to_cut):
       logs.insert(0, m)
 
+    logs.insert(0, 'nsfw' in chan.name.lower())
+
     self.cut[aid] = logs
 
   @perms.has_perms(manage_messages=True)
@@ -226,11 +228,18 @@ class Server:
     see .cut
     '''
     aid  = ctx.message.author.id
+    chan = ctx.message.channel
     logs = self.cut.pop(aid, [])
 
     if not logs:
       await self.bot.say('You have not cut anything')
       return
+
+    if logs[0] and 'nsfw' not in channel.name.lower():
+      await self.bot.say('That which hath been cut in nsfw, ' + \
+                         'mustn\'t be pasted in such a place')
+      return
+    logs = logs[1:]
 
     await self.bot.delete_message(ctx.message)
 

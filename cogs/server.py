@@ -10,6 +10,7 @@ import discord
 from cogs.utils.format import *
 from discord.ext import commands
 from cogs.utils.config import Config
+from discord.ext.commands.converter import MemberConverter
 
 class EmWrap:
   def __init__(self, d):
@@ -27,6 +28,16 @@ class Server:
   @perms.has_perms(manage_messages=True)
   @commands.command(name='prune', pass_context=True)
   async def _prune(self, ctx, num_to_delete : int, *message):
+    """
+    deletes specified number of messages from channel
+    if message is specified, message will be echoed by bot after prune
+
+    USAGE: .prune <num> [user] [message...]
+
+    NOTE: if first word after number is a user,
+          only user's messages will be pruned
+    """
+    chan = ctx.message.channel
     if num_to_delete > 100:
       await self.bot.say('Sorry, only up to 100')
       return
@@ -34,9 +45,20 @@ class Server:
       await self.bot.say('umm... no')
       return
 
+    try:
+      conv    = MemberConverter(ctx, message[0])
+      user    = conv.convert()
+      message = message[1:]
+    except:
+      user = None
+
     message = ' '.join(message)
 
-    deleted = await self.bot.purge_from(ctx.message.channel,limit=num_to_delete)
+    if user:
+      c       = lambda m: m.author.id == user.id
+      deleted = await self.bot.purge_from(chan ,limit=num_to_delete, check = c)
+    else:
+      deleted = await self.bot.purge_from(chan ,limit=num_to_delete)
     await self.bot.say(ok('Deleted {} message{} {}'.format(
                              len(deleted),
                              '' if len(deleted) == 1    else 's',
@@ -56,13 +78,17 @@ class Server:
   @_role.command(name='add', pass_context=True)
   @perms.has_perms(manage_roles=True)
   async def _add(self, ctx, role : discord.Role):
-    """adds role to list of public roles"""
+    """
+    adds role to list of public roles
+    """
     await self._add_wrap(ctx, role)
 
   @_role.command(name='create', pass_context=True)
   @perms.has_perms(manage_roles=True)
   async def _create(self, ctx, role_name : str):
-    """creates and adds a new role to list of public roles"""
+    """
+    creates and adds a new role to list of public roles
+    """
     serv = ctx.message.server
     role = await self.bot.create_role(serv, name=role_name, mentionable=True)
     await self._add_wrap(ctx, role)
@@ -70,7 +96,9 @@ class Server:
   @_role.command(name='list', aliases=['ls'], pass_context=True)
   @perms.has_perms(manage_roles=True)
   async def _list(self, ctx):
-    """creates and adds a new role to list of public roles"""
+    """
+    lists public roles avalible in the server
+    """
     serv            = ctx.message.server
     names           = []
     m_len           = 0
@@ -117,7 +145,9 @@ class Server:
   @_role.command(name='delete', pass_context=True)
   @perms.has_perms(manage_roles=True)
   async def _delete(self, ctx, role : discord.Role):
-    """removes role from list of public roles"""
+    """
+    removes role from list of public roles
+    """
     serv = ctx.message.server
 
     available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
@@ -129,7 +159,9 @@ class Server:
 
   @_role.command(name='request', pass_context=True)
   async def _request(self, ctx, role : discord.Role):
-    """adds role to requester(if in list)"""
+    """
+    adds role to requester(if in list)
+    """
     auth = ctx.message.author
     serv = ctx.message.server
 

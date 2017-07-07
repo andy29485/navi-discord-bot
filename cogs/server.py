@@ -208,7 +208,7 @@ class Server:
       if message.content or message.attachments:
         tmp = '<{0.author.name}> {0.content}\n'.format(message)
         for a in message.attachments:
-          tmp += '\n{filename}: {url}'.format(**a)
+          tmp += '{filename}: {url}\n'.format(**a)
       else:
         tmp = ''
       if len(buf) + len(tmp) > 1900:

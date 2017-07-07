@@ -216,7 +216,7 @@ class Server:
         buf = tmp
       else:
         buf += tmp
-      if message.embeds:
+      if message.embeds and not message.content:
         out.append(buf)
         buf = ''
         for embed in message.embeds:

@@ -235,7 +235,7 @@ class Server:
       await self.bot.say('You have not cut anything')
       return
 
-    if logs[0] and 'nsfw' not in channel.name.lower():
+    if logs[0] and 'nsfw' not in chan.name.lower():
       await self.bot.say('That which hath been cut in nsfw, ' + \
                          'mustn\'t be pasted in such a place')
       return

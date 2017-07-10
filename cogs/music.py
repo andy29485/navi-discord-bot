@@ -182,13 +182,17 @@ class Music:
     shuf = False
     num  = 0
 
-    while len(split) > 1:
-      if split[0] == '-a' or split[0] == '-m':
-        split = split[1:]
-        mult  = True
-      elif split[0] == '-s':
-        split = split[1:]
-        shuf  = True
+    while split:
+      if split[0][0] == '-':
+        for flag in split[0][1:]:
+          if flag in ('a', 'm'):
+            split = split[1:]
+            mult  = True
+          elif flag == 's':
+            split = split[1:]
+            shuf  = True
+          else:
+            break
       elif re.search('^\\d{1,2}$', split[0]):
         mult  = True
         num   = int(split[0])
@@ -211,7 +215,10 @@ class Music:
 
     try:
       try:
-        item = await self.bot.loop.run_in_executor(None,self.conn.info,split[0])
+        if not split:
+          item = self.conn
+        else:
+          item=await self.bot.loop.run_in_executor(None,self.conn.info,split[0])
       except:
         try:
           items = await self.bot.loop.run_in_executor(None,

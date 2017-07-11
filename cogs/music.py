@@ -248,32 +248,21 @@ class Music:
       if shuf:
         random.shuffle(items)
 
-      print(1)
       if mult:
-        print(2)
         if num > 0:
-          print(3)
           items = items[:num]
-        print(4)
         em = await emby_helper.makeEmbed(self.conn, 'Queued: ')
-        print(5)
         songs_str = ''
         for i in items:
           if hasattr(i, 'index_number'):
             songs_str += '{:02} - {}\n'.format(i.index_number, i.name)
-            print(6)
           else:
             songs_str += '{}\n'.format(i.name)
-            print(7)
           await self._play_emby(ctx, state, i, display=False)
-        print(8)
         em.add_field(name='Items', value=songs_str)
         await self.bot.say(embed=em)
-        print(9)
       else:
-        print(10)
         await self._play_emby(ctx, state, random.choice(items))
-        print(11)
 
     except Exception as e:
       fmt='An error occurred while processing this request: ```py\n{}: {}\n```'

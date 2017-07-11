@@ -232,35 +232,48 @@ class Music:
       albms=await self.bot.loop.run_in_executor(None,lambda:self.conn.albums)
       artts=await self.bot.loop.run_in_executor(None,lambda:self.conn.artists)
 
-      items = await self.bot.loop.run_in_executor(None, set(search_f), search,
+      items = await self.bot.loop.run_in_executor(None, search_f, set(search),
                                                   *plsts, *songs, *albms, *artts
       )
+
+      if hasattr(items[0], 'songs') and items[0].songs:
+        items = items[0].songs
+
+      items = [s for s in items if s.type == 'Audio']
 
       if not items:
         await self.bot.say('could not find song')
         return
 
-      if hasattr(items[0], 'songs') and items[0].songs:
-        items = items[0].songs
-
       if shuf:
         random.shuffle(items)
 
+      print(1)
       if mult:
+        print(2)
         if num > 0:
+          print(3)
           items = items[:num]
+        print(4)
         em = await emby_helper.makeEmbed(self.conn, 'Queued: ')
+        print(5)
         songs_str = ''
         for i in items:
           if hasattr(i, 'index_number'):
             songs_str += '{:02} - {}\n'.format(i.index_number, i.name)
+            print(6)
           else:
             songs_str += '{}\n'.format(i.name)
+            print(7)
           await self._play_emby(ctx, state, i, display=False)
+        print(8)
         em.add_field(name='Items', value=songs_str)
         await self.bot.say(embed=em)
+        print(9)
       else:
+        print(10)
         await self._play_emby(ctx, state, random.choice(items))
+        print(11)
 
     except Exception as e:
       fmt='An error occurred while processing this request: ```py\n{}: {}\n```'

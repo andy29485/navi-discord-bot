@@ -169,43 +169,56 @@ class Music:
     return True
 
   @commands.command(pass_context=True, no_pm=True)
-  async def play(self, ctx, *, song : str):
-    """Plays a song.
+  async def play(self, ctx, *, search : str):
+    """Plays a searched song from emby.
+
+    usage: .play [-rsam] [<number>] <search terms...>
+
+    flags:
+      -r and -s will shuffle the songs
+      -a and -m will enable playing multiple songs
+        if no number is specified then all songs will be played
+        if  a number is specified then that many song will play
+          if at least that many songs were found
+
+      search terms:
+        - search terms are space seperated and case insensitive
+        - if a term is an itemid, that item will be included
+        - will search playlists, songs, albums, and album artists FOR:
+          - name/title
+          - filepath
+          - description
+          - artist/album artist names (for songs)
+        NOTE: if none are specified - all songs on emby will be considered
 
     If there is a song currently in the queue, then it is
     queued until the next song is done playing.
 
     This command searchs emby for a song
     """
-    split = song.split(' ')
-    mult = False
-    shuf = False
-    num  = 0
+    search = search.split(' ')
+    mult   = False
+    shuf   = False
+    num    = 0
 
-    while split:
-      if split[0][0] == '-':
-        for flag in split[0][1:]:
-          if flag in ('a', 'm'):
-            split = split[1:]
+    while search:
+      if search[0][0] == '-':
+        for flag in search[0][1:]:
+          if flag in 'am':
+            search = search[1:]
             mult  = True
-          elif flag == 's':
-            split = split[1:]
+          elif flag in 'rs':
+            search = search[1:]
             shuf  = True
           else:
             break
-      elif re.search('^\\d{1,2}$', split[0]):
+      elif re.search('^\\d{1,2}$', search[0]):
         mult  = True
-        num   = int(split[0])
-        split = split[1:]
+        num   = int(search[0])
+        search = search[1:]
       else:
         break
-    song = ' '.join(split)
     state = self.get_voice_state(ctx.message.server)
-
-    opts = {
-        'default_search': 'auto',
-        'quiet': True,
-    }
 
     if state.vchan is None:
       success = await ctx.invoke(self.summon)
@@ -214,51 +227,41 @@ class Music:
         return
 
     try:
-      try:
-        if not split:
-          item = self.conn
-        else:
-          item=await self.bot.loop.run_in_executor(None,self.conn.info,split[0])
-      except:
-        try:
-          items = await self.bot.loop.run_in_executor(None,
-                                                     self.conn.search,
-                                                     song,
-                                                     {'Playlist'    :0,
-                                                      'Audio'       :1,
-                                                      'MusicArtist' :2,
-                                                      'MusicAlbum'  :3
-                                                     },
-                                                     True
-          )
-          item = items[0]
-        except:
-          await self.bot.say('could not find song')
-          return
-      if hasattr(item, 'songs'):
-        songs = item.songs
-        if shuf:
-          random.shuffle(songs)
-        if not songs:
-          await self.bot.say('could not find song')
-          return
-        if mult:
-          if num > 0:
-            songs = songs[:num]
-          em = await emby_helper.makeEmbed(item, 'Queued: ')
-          songs_str = ''
-          for i in songs:
-            if hasattr(i, 'index_number'):
-              songs_str += '{:02} - {}\n'.format(i.index_number, i.name)
-            else:
-              songs_str += '{}\n'.format(i.name)
-            await self._play_emby(ctx, state, i, display=False)
-          em.add_field(name='Items', value=songs_str)
-          await self.bot.say(embed=em)
-        else:
-          await self._play_emby(ctx, state, random.choice(songs))
+      plsts=await self.bot.loop.run_in_executor(None,lambda:self.conn.playlists)
+      songs=await self.bot.loop.run_in_executor(None,lambda:self.conn.songs)
+      albms=await self.bot.loop.run_in_executor(None,lambda:self.conn.albums)
+      artts=await self.bot.loop.run_in_executor(None,lambda:self.conn.artists)
+
+      items = await self.bot.loop.run_in_executor(None, set(search_f), search,
+                                                  *plsts, *songs, *albms, *artts
+      )
+
+      if not items:
+        await self.bot.say('could not find song')
+        return
+
+      if hasattr(items[0], 'songs') and items[0].songs:
+        items = items[0].songs
+
+      if shuf:
+        random.shuffle(items)
+
+      if mult:
+        if num > 0:
+          items = items[:num]
+        em = await emby_helper.makeEmbed(self.conn, 'Queued: ')
+        songs_str = ''
+        for i in items:
+          if hasattr(i, 'index_number'):
+            songs_str += '{:02} - {}\n'.format(i.index_number, i.name)
+          else:
+            songs_str += '{}\n'.format(i.name)
+          await self._play_emby(ctx, state, i, display=False)
+        em.add_field(name='Items', value=songs_str)
+        await self.bot.say(embed=em)
       else:
-        await self._play_emby(ctx, state, item)
+        await self._play_emby(ctx, state, random.choice(items))
+
     except Exception as e:
       fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
       await self.bot.send_message(ctx.message.channel,
@@ -366,6 +369,34 @@ class Music:
                                                                  skip_count)
         )
 
+def search_f(terms, *items):
+  out = []
+  for item in items:
+    strings = [item.id, item.name]
+    for attr in ('artist_names', 'overview', 'path'):
+      if hasattr(item, attr):
+        attribute = getattr(item, attr, '')
+        if type(attribute) == list:
+          attribute = ', '.join(attribute)
+        strings.append(attribute)
+    if match(terms, *strings):
+      out.append(item)
+  return out
+
+def match(pattern, *strings):
+  for patt in pattern:
+    lowered = patt.lower()
+    if strings[0].lower() == patt: # ID matched
+      return True
+    for string in strings[1:]:
+      if lowered[0] == '-':
+        if lowered[1:] in string.lower():
+          return False
+      elif lowered in string.lower():
+        break
+    else:
+      return False
+  return True
 
 def setup(bot):
   bot.add_cog(Music(bot))

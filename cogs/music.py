@@ -202,7 +202,11 @@ class Music:
     num    = 0
 
     while search:
-      if search[0][0] == '-':
+      if re.search('^\\d{1,2}$', search[0]):
+        mult  = True
+        num   = int(search[0])
+        search = search[1:]
+      elif search[0][0] == '-':
         for flag in search[0][1:]:
           if flag in 'am':
             search = search[1:]
@@ -212,10 +216,9 @@ class Music:
             shuf  = True
           else:
             break
-      elif re.search('^\\d{1,2}$', search[0]):
-        mult  = True
-        num   = int(search[0])
-        search = search[1:]
+        else:
+          continue
+        break
       else:
         break
     state = self.get_voice_state(ctx.message.server)
@@ -231,6 +234,7 @@ class Music:
       songs=await self.bot.loop.run_in_executor(None,lambda:self.conn.songs)
       albms=await self.bot.loop.run_in_executor(None,lambda:self.conn.albums)
       artts=await self.bot.loop.run_in_executor(None,lambda:self.conn.artists)
+
 
       items = await self.bot.loop.run_in_executor(None, search_f, set(search),
                                                   *plsts, *songs, *albms, *artts

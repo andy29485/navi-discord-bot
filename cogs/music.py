@@ -394,14 +394,18 @@ def match(pattern, *strings):
     lowered = patt.lower()
     if strings[0].lower() == patt: # ID matched
       return True
+    nonNegative = False
     for string in strings[1:]:
       if lowered[0] == '-':
         if lowered[1:] in string.lower():
           return False
       elif lowered in string.lower():
         break
+      else:
+        nonNegative = True
     else:
-      return False
+      if nonNegative:
+        return False
   return True
 
 def setup(bot):

@@ -60,6 +60,7 @@ class Admin:
     loop.run_in_executor(None, g.execute, ['git', 'reset', 'HEAD~1', '--hard'])
     loop.run_in_executor(None, g.pull)
     await self.bot.say(formatter.ok('restarting'))
+    await self.bot.logout()
     loop.stop()
     #concurrent.futures.ProcessPoolExecutor().shutdown()
     sys.exit()
@@ -68,6 +69,8 @@ class Admin:
   @perms.is_owner()
   async def reboot(self):
     loop = asyncio.get_event_loop()
+    await self.bot.logout()
+    loop.stop()
     g = git.cmd.Git('.')
     g.execute(['sudo', 'reboot'])
     sys.exit()

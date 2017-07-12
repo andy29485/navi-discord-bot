@@ -52,7 +52,7 @@ async def makeEmbed(item, message=''):
   em.set_thumbnail(url=img_url)
   if hasattr(item, 'artist_names'):
     if len(item.artist_names) == 1:
-      em.add_field(name='Artist: ', item.artist_names[0]))
+      em.add_field(name='Artist: ', value=item.artist_names[0])
     else:
       em.add_field(name='Artists: ', value=', '.join(item.artist_names))
   if hasattr(item, 'genres') and item.genres:

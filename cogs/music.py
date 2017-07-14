@@ -240,8 +240,15 @@ class Music:
                                                   *plsts, *songs, *albms, *artts
       )
 
+      if not items:
+        await self.bot.say('could not find song')
+        return
+
       if hasattr(items[0], 'songs') and items[0].songs:
-        items = items[0].songs
+        display_item = items[0]
+        items        = items[0].songs
+      else:
+        display_item = self.conn
 
       items = [s for s in items if s.type == 'Audio']
 
@@ -255,7 +262,7 @@ class Music:
       if mult:
         if num > 0:
           items = items[:num]
-        em = await emby_helper.makeEmbed(self.conn, 'Queued: ')
+        em = await emby_helper.makeEmbed(display_item, 'Queued: ')
         songs_str = ''
         for i in items:
           if hasattr(i, 'index_number'):

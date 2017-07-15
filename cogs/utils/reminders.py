@@ -51,7 +51,7 @@ class Reminder:
     offset = time.time()
     m_time = None
     m_date = None
-    if re.search(r'(?i)^(me)?\s*at', self.message):
+    if re.search(r'(?i)^(me)?\s*(at|on)', self.message):
       date_time = datetime.datetime.today()
       for t in Reminder.tm:
         m_time = t.search(self.message)

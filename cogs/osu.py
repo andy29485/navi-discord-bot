@@ -169,7 +169,7 @@ class Osu:
       em.add_field(name='Level',     value='{} ({:02.4}%)'.format(level, nextl))
       em.add_field(name='Total PP',  value=str(osu_obj.pp_raw))
       em.add_field(name='Play Count',value=str(osu_obj.playcount))
-    em.set_image(get_thumb_url(osu_obj))
+    em.set_image(url=get_thumb_url(osu_obj))
     return em
 
 def get_thumb_url(osu_obj):

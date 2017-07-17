@@ -34,12 +34,14 @@ class Osu:
     if message.author.bot:
       return
 
+    chan = message.channel
+
     for pattern in Osu.breatmap_sets_url_patterns:
       match = pattern.search(message.content)
       if match:
         beatmap = await self.api.get_beatmaps(beatmap_id=match.group('id'))
         em = await self.osu_embed(beatmap[0])
-        await self.bot.say(embed=em)
+        await self.bot.send_message(chan, embed=em)
         break
 
     for pattern in Osu.breatmap_url_patterns:
@@ -47,7 +49,7 @@ class Osu:
       if match:
         beatmap = await self.api.get_beatmaps(beatmapset_id=match.group('id'))
         em = await self.osu_embed(beatmap)
-        await self.bot.say(embed=em)
+        await self.bot.send_message(chan, embed=em)
         break
 
     for pattern in Osu.user_url_patterns:
@@ -55,7 +57,7 @@ class Osu:
       if match:
         user = await self.api.get_user(int(match.group('id')))
         em = await self.osu_embed(user[0])
-        await self.bot.say(embed=em)
+        await self.bot.send_message(chan, embed=em)
         break
 
   @commands.group(name='osu', aliases=["o"], pass_context=True)

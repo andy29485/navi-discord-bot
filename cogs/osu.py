@@ -38,7 +38,7 @@ class Osu:
       match = pattern.search(message.content)
       if match:
         beatmap = await self.api.get_beatmaps(beatmap_id=match.group('id'))
-        em = await self.osu_embed(beatmap)
+        em = await self.osu_embed(beatmap[0])
         await self.bot.say(embed=em)
         break
 
@@ -54,7 +54,7 @@ class Osu:
       match = pattern.search(message.content)
       if match:
         user = await self.api.get_user(int(match.group('id')))
-        em = await self.osu_embed(user)
+        em = await self.osu_embed(user[0])
         await self.bot.say(embed=em)
         break
 

@@ -53,7 +53,7 @@ class Osu:
     for pattern in Osu.user_url_patterns:
       match = pattern.search(message.content)
       if match:
-        user = await self.api.user(int(match.group('id')))
+        user = await self.api.get_user(int(match.group('id')))
         em = await self.osu_embed(user)
         await self.bot.say(embed=em)
         break

@@ -90,11 +90,12 @@ class Osu:
     auth = ctx.message.author.id
     chan = ctx.message.channel.id
     user = await self.api.get_user(osu_username)
-    if not users:
+    if not user:
       await self.bot.say('could not find user')
       return
 
     top_scores = max(0, min(100, top_scores))
+    name       = user.username
     user       = user[0].user_id
     if top_scores:
       best     = await self.api.get_user_best(user, limit=top_scores)
@@ -116,7 +117,7 @@ class Osu:
       }
     self.conf.save()
     await self.bot.say(
-        formatter.ok('you are now linked to: {}'.format(user.username))
+        formatter.ok('you are now linked to: {}'.format(name))
     )
 
   async def check_scores(self):
@@ -126,8 +127,9 @@ class Osu:
         num   = self.conf['watched-users'][duid]['num']
         chans = self.conf['watched-users'][duid]['chans']
         last  = self.conf['watched-users'][duid]['last']
-        name  = await self.api.get_user(user)[0].username
-        best  = await self.api.get_user_best(user, limit=num)
+        name  = await self.api.get_user(ouid)
+        name  = name[0].username
+        best  = await self.api.get_user_best(ouid, limit=num)
 
         for i, old, new in itertools.zip_longest(range(num), last, best):
           if new.beatmap_id != old[0] or new.score > old[1]:

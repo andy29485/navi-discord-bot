@@ -40,16 +40,22 @@ class Osu:
       for bid in pattern.findall(message.content):
         beatmap = await self.api.get_beatmaps(beatmapset_id=bid)
         em = await self.osu_embed(beatmap)
-        await self.bot.send_message(chan, embed=em)
+        if not em:
+          self.bot.send_message(chan, 'could not find beatmap')
+        else:
+          await self.bot.send_message(chan, embed=em)
       else:
         continue
       break
 
     for pattern in Osu.breatmap_url_patterns:
       for bid in pattern.findall(message.content):
-        beatmap = await self.api.get_beatmaps(beatmap_id=match.group('id'))
+        beatmap = await self.api.get_beatmaps(beatmap_id=bid)
         em = await self.osu_embed(beatmap[0])
-        await self.bot.send_message(chan, embed=em)
+        if not em:
+          self.bot.send_message(chan, 'could not find beatmap')
+        else:
+          await self.bot.send_message(chan, embed=em)
       else:
         continue
       break
@@ -58,7 +64,10 @@ class Osu:
       for uid in pattern.findall(message.content):
         user = await self.api.get_user(int(uid))
         em = await self.osu_embed(user[0])
-        await self.bot.send_message(chan, embed=em)
+        if not em:
+          self.bot.send_message(chan, 'could not find user')
+        else:
+          await self.bot.send_message(chan, embed=em)
       else:
         continue
       break
@@ -143,11 +152,13 @@ class Osu:
     if type(osu_obj) == osuapi.model.Beatmap:
       length = osu_obj.total_length
       length = '{:02}:{:02}:{:02}'.format(length//3600, length//60, length%60)
+      diff   = '{:.2}'.format(osu_obj.difficultyrating)
+
       em.title = osu_obj.title
       em.url   = 'https://osu.ppy.sh/b/{}'.format(osu_obj.beatmap_id)
       em.add_field(name='Artist',    value=osu_obj.artist)
       em.add_field(name='Creator',   value=osu_obj.creator)
-      em.add_field(name='Difficulty',value='{:.2}'.format(i.difficultyrating))
+      em.add_field(name='Difficulty',value=diff)
       em.add_field(name='BPM',       value=str(osu_obj.bpm))
       em.add_field(name='Source',    value=osu_obj.source)
       em.add_field(name='Max Combo', value=str(osu_obj.max_combo))
@@ -156,9 +167,9 @@ class Osu:
       if len(osu_obj) == 0:
         return None
       diff     = ', '.join(['{:.2}'.format(i.difficultyrating)for i in osu_obj])
-      em       = self.osu_embed(osu_obj[0])
+      em       = await self.osu_embed(osu_obj[0])
       em.url   = 'https://osu.ppy.sh/s/{}'.format(osu_obj[0].beatmapset_id)
-      em.fields[2] = diff
+      em.set_field_at(2, name='Difficulty', value=diff)
       em.remove_field(3)
       em.remove_field(4)
       return em
@@ -174,15 +185,17 @@ class Osu:
       em.add_field(name='Level',     value='{} ({:02.4}%)'.format(level, nextl))
       em.add_field(name='Total PP',  value=str(osu_obj.pp_raw))
       em.add_field(name='Play Count',value=str(osu_obj.playcount))
-    em.set_image(url=get_thumb_url(osu_obj))
+    em.set_thumbnail(url=await self.get_thumb_url(osu_obj))
     return em
 
-def get_thumb_url(osu_obj):
-  if type(osu_obj) == osuapi.model.Beatmap:
-    return 'https://b.ppy.sh/thumb/{}l.jpg'.format(osu_obj.beatmap_id)
-  elif type(osu_obj) == osuapi.model.User:
-    return 'https://a.ppy.sh/{}.png'.format(osu_obj.user_id)
-  return 'http://w.ppy.sh/c/c9/Logo.png'
+  async def get_thumb_url(self, osu_obj):
+    if type(osu_obj) == osuapi.model.Beatmap:
+      if not hasattr(osu_obj, 'beatmapset_id') or not osu_obj.beatmapset_id:
+        osu_obj = await self.api.get_beatmaps(beatmap_id=osu_obj.beatmap_id)[0]
+      return 'https://b.ppy.sh/thumb/{}l.jpg'.format(osu_obj.beatmapset_id)
+    elif type(osu_obj) == osuapi.model.User:
+      return 'https://a.ppy.sh/{}?.png'.format(osu_obj.user_id)
+    return 'http://w.ppy.sh/c/c9/Logo.png'
 
 def setup(bot):
   o = Osu(bot)

@@ -84,7 +84,7 @@ class Osu:
     user       = user[0].user_id
     if top_scores:
       best     = await self.api.get_user_best(user, limit=top_scores)
-      best     = [(i.beatmap_id, i.score) for in best]
+      best     = [(i.beatmap_id, i.score) for i in best]
     else:
       best = []
 
@@ -128,7 +128,7 @@ class Osu:
             break
         else:
           continue
-        best = [(i.beatmap_id, i.score) for in best]
+        best = [(i.beatmap_id, i.score) for i in best]
         self.conf['watched-users'][auth]['last'] = best
         self.conf.save()
       await asyncio.sleep(30)

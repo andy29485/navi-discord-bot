@@ -11,9 +11,9 @@ from cogs.utils import format as formatter
 from cogs.utils.config import Config
 
 class Osu:
-  breatmap_sets_url_patterns = [re.compile('https://osu.ppy.sh/s/(?P<id>\\d+)')]
-  breatmap_url_patterns      = [re.compile('https://osu.ppy.sh/b/(?P<id>\\d+)')]
-  user_url_patterns          = [re.compile('https://osu.ppy.sh/u/(?P<id>\\d+)')]
+  breatmap_sets_url_patterns=[re.compile('https?://osu.ppy.sh/s/(\\d+)')]
+  breatmap_url_patterns     =[re.compile('https?://osu.ppy.sh/b/(\\d+)')]
+  user_url_patterns         =[re.compile('https?://osu.ppy.sh/u/(\\d+)')]
 
   def __init__(self, bot):
     self.bot           = bot
@@ -37,28 +37,31 @@ class Osu:
     chan = message.channel
 
     for pattern in Osu.breatmap_sets_url_patterns:
-      match = pattern.search(message.content)
-      if match:
+      for bid in pattern.findall(message.content):
+        beatmap = await self.api.get_beatmaps(beatmapset_id=bid)
+        em = await self.osu_embed(beatmap)
+        await self.bot.send_message(chan, embed=em)
+      else:
+        continue
+      break
+
+    for pattern in Osu.breatmap_url_patterns:
+      for bid in pattern.findall(message.content):
         beatmap = await self.api.get_beatmaps(beatmap_id=match.group('id'))
         em = await self.osu_embed(beatmap[0])
         await self.bot.send_message(chan, embed=em)
-        break
-
-    for pattern in Osu.breatmap_url_patterns:
-      match = pattern.search(message.content)
-      if match:
-        beatmap = await self.api.get_beatmaps(beatmapset_id=match.group('id'))
-        em = await self.osu_embed(beatmap)
-        await self.bot.send_message(chan, embed=em)
-        break
+      else:
+        continue
+      break
 
     for pattern in Osu.user_url_patterns:
-      match = pattern.search(message.content)
-      if match:
-        user = await self.api.get_user(int(match.group('id')))
+      for uid in pattern.findall(message.content):
+        user = await self.api.get_user(int(uid))
         em = await self.osu_embed(user[0])
         await self.bot.send_message(chan, embed=em)
-        break
+      else:
+        continue
+      break
 
   @commands.group(name='osu', aliases=["o"], pass_context=True)
   async def _osu(self, ctx):

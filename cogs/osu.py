@@ -5,7 +5,6 @@ import asyncio
 import itertools
 from discord.ext import commands
 from discord import Embed
-from osuapi import OsuApi, AHConnector
 import osuapi
 from cogs.utils import format as formatter
 from cogs.utils.config import Config
@@ -26,7 +25,7 @@ class Osu:
       self.conf['watched-users'] = {}
     self.conf.save()
 
-    self.api = OsuApi(self.conf['api-key'], connector=AHConnector())
+    self.api=osuapi.OsuApi(self.conf['api-key'],connector=osuapi.AHConnector())
 
     self.loop.create_task(self.check_scores())
 
@@ -80,6 +79,18 @@ class Osu:
     #TODO
     pass
 
+  @_osu.command(name='recent', aliases=['r', 'last'], pass_context=True)
+  async def _recent(self, ctx, osu_username : str =''):
+    """
+    shows last played map for a user
+    if no user is specified, shows your last played item
+    """
+    #TODO - shows last played map for a user
+    #       if no user is specified, show linked user latest
+    #        self.conf['watched-users']['<discord id>']
+    #        if discord user is not linked, ask the to link using `.osu connect`
+    pass
+
   @_osu.command(name='connect', aliases=['c', 'link'], pass_context=True)
   async def _osu_watch(self, ctx, osu_username : str, top_scores : int = 50):
     """
@@ -104,6 +115,7 @@ class Osu:
       best = []
 
     if auth in self.conf['watched-users']:
+      #TODO do not include duplicate channels
       self.conf['watched-users'][auth]['uid']  = user
       self.conf['watched-users'][auth]['chans'].append(chan)
       self.conf['watched-users'][auth]['last'] = best
@@ -151,6 +163,14 @@ class Osu:
 
   async def osu_embed(self, osu_obj):
     em = Embed()
+    #TODO - currently only does general info of maps
+    #       want:
+    #          when given a played map also include:
+    #          (as in something returned by latest or best)
+    #             - score (as an int and the SS/S/A/B/C/Fail thing)
+    #             - rank (aka global rank)
+    #             - accuracy (as a percent)
+    #             - combo (x/total)
     if type(osu_obj) == osuapi.model.Beatmap:
       length = osu_obj.total_length
       length = '{:02}:{:02}:{:02}'.format(length//3600, length//60, length%60)

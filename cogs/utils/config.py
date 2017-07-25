@@ -4,7 +4,15 @@ from cogs.utils.reminders import Reminder
 from cogs.utils.timeout import Timeout
 import json
 
-class Config(dict):
+configs = {}
+
+def Config(name, *args, **kw):
+  global configs
+  if name not in configs:
+    configs[name] = CConfig(name, *args, **kw)
+  return configs[name]
+
+class CConfig(dict):
   def __init__(self, name, *args, **kw):
     super(Config,self).__init__(*args, **kw)
     self.name = name

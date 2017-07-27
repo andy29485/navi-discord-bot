@@ -5,15 +5,15 @@ def insertInto(values, item):
   values.append(item)
   pushUp(values, i)
 
-def popFrom(values):
-  largest   = values[0]
-  size      = len(values)-1
+def popFrom(values, index=0):
+  val    = values[index]
+  size   = len(values)-1
   if size == 0:
-    values.pop()
-  elif size > 0:
-    values[0] = values.pop()
-    pushDown(values, 0, size-1)
-  return largest
+    return values.pop()
+  else:
+    values[index] = values.pop()
+    pushDown(values, index, size-1)
+  return val
 
 def pushUp(values, index, first = 0):
   parent = (index-1)//2;

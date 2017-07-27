@@ -14,7 +14,7 @@ def Config(name, *args, **kw):
 
 class CConfig(dict):
   def __init__(self, name, *args, **kw):
-    super(Config,self).__init__(*args, **kw)
+    super(CConfig,self).__init__(*args, **kw)
     self.name = name
     self.load()
     self.save()
@@ -34,18 +34,18 @@ class CConfig(dict):
       json.dump(self.copy(), f, cls=ObjEncoder)
 
   def __setitem__(self, key, value):
-    super(Config,self).__setitem__(key, value)
+    super(CConfig,self).__setitem__(key, value)
     self.save()
 
   def __delitem__(self, key):
-    super(Config,self).__delitem__(key)
+    super(CConfig,self).__delitem__(key)
     self.save()
 
   def __iter__(self):
-    return super(Config,self).__iter__()
+    return super(CConfig,self).__iter__()
 
   def keys(self):
-    return super(Config,self).keys()
+    return super(CConfig,self).keys()
 
   def values(self):
     return [self[key] for key in self]
@@ -59,7 +59,7 @@ def as_obj(dct):
                     dct['message'], end_time=dct['end_time']
     )
   elif '__timeout__' in dct:
-    return Reminder(dct['channel_id'], dct['server_id'], dct['user_id'],
+    return Timeout(dct['channel_id'], dct['server_id'], dct['user_id'],
                     dct['roles'], dct['end_time'], importing=True
     )
   return dct

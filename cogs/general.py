@@ -356,9 +356,14 @@ class General:
         elif sides < 2:
           message = 'No  '
         else:
+          total = 0
           for i in range(times):
-            message += '{}, '.format(random.randint(1, sides)+add)
+            num      = random.randint(1, sides)+add
+            total   += num
+            message += '{}, '.format(num)
         message = message[:-2]
+        if times > 1:
+          message += '(sum = {})'.format(total)
       out.append('{}: {}'.format(roll, message))
     return out
 

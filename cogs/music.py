@@ -31,13 +31,14 @@ class VoiceEntry:
 
 
 class VoiceState:
-  def __init__(self, bot, cog):
+  def __init__(self, bot, cog, sid):
     self.current = None
-    self.vchan = None
+    self.vchan   = None
+    self.sid = sid
     self.bot = bot
     self.cog = cog
     self.play_next_song = asyncio.Event()
-    self.songs = asyncio.Queue()
+    self.songs          = asyncio.Queue()
     self.skip_votes = set() # a set of user_ids that voted
     self.audio_player = self.bot.loop.create_task(self.audio_player_task())
 
@@ -59,8 +60,22 @@ class VoiceState:
   def toggle_next(self):
     self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
+  aysnc def stop(self):
+    if self.is_playing():
+      self.player.stop()
+
+    try:
+      self.audio_player.cancel()
+      await self.vchan.disconnect()
+      del self.cog.voice_states[self.sid]
+    except:
+      pass
+
   async def emby_player(self, item):
-    url    = item.stream_url
+    if os.path.exists(item.path):
+      url  = item.path
+    else:
+      url  = item.stream_url
     player = self.vchan.create_ffmpeg_player(url,
                                               before_options=' -threads 4 ',
                                               options='-b:a 64k -bufsize 64k',
@@ -81,7 +96,13 @@ class VoiceState:
       self.play_next_song.clear()
       self.skip_votes.clear()
 
+      handle = self.bot.loop.call_later(300, self.stop)
       self.current = await self.songs.get()
+      try:
+        handle.cancel()
+      except:
+        #raise #TODO - debugging
+        return
 
       if self.current.item:
         em = await emby_helper.makeEmbed(self.current.item, 'Now playing: ')
@@ -121,7 +142,7 @@ class Music:
   def get_voice_state(self, server):
     state = self.voice_states.get(server.id)
     if state is None:
-      state = VoiceState(self.bot, self)
+      state = VoiceState(self.bot, self, server.id)
       self.voice_states[server.id] = state
 
     return state
@@ -240,8 +261,15 @@ class Music:
                                                   *plsts, *songs, *albms, *artts
       )
 
+      if not items:
+        await self.bot.say('could not find song')
+        return
+
       if hasattr(items[0], 'songs') and items[0].songs:
-        items = items[0].songs
+        display_item = items[0]
+        items        = items[0].songs
+      else:
+        display_item = self.conn
 
       items = [s for s in items if s.type == 'Audio']
 
@@ -255,7 +283,7 @@ class Music:
       if mult:
         if num > 0:
           items = items[:num]
-        em = await emby_helper.makeEmbed(self.conn, 'Queued: ')
+        em = await emby_helper.makeEmbed(display_item, 'Queued: ')
         songs_str = ''
         for i in items:
           if hasattr(i, 'index_number'):
@@ -315,18 +343,9 @@ class Music:
     This also clears the queue.
     """
     server = ctx.message.server
-    state = self.get_voice_state(server)
+    state  = self.get_voice_state(server)
 
-    if state.is_playing():
-      player = state.player
-      player.stop()
-
-    try:
-      state.audio_player.cancel()
-      del self.voice_states[server.id]
-      await state.vchan.disconnect()
-    except:
-      pass
+    await state.stop()
 
   @commands.command(pass_context=True, no_pm=True)
   async def skip(self, ctx):

@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
+import re
 import time
 import asyncio
 import requests
-import re
-from cogs.utils import perms
-from discord.ext.commands.errors import CheckFailure
 import discord
-from cogs.utils.format import *
 from discord.ext import commands
-from cogs.utils.config import Config
+from discord.ext.commands.errors import CheckFailure
 from discord.ext.commands.converter import MemberConverter
+from cogs.utils import perms
+from cogs.utils.format import *
+from cogs.utils.config import Config
+from cogs.utils import discord_helper as dh
 
 class EmWrap:
   def __init__(self, d):
@@ -68,16 +69,36 @@ class Server:
     )
 
   @commands.group(name='role', pass_context=True)
-  async def _role(self, ctx):
+  async def _role(self, ctx, role : str = ''):
     """
     Manage publicly available roles
     """
     if ctx.invoked_subcommand is None:
-      await self.bot.say(error("Please specify valid subcommand"))
+      await self.bot.say('Are you trying to [a]dd a new role' + \
+                         'or are you [r]equesting this role for yourself?'
+      )
+      try:
+        msg = await self.bot.wait_for_message(30, author=ctx.message.author,
+                                                  channel=ctx.message.channel
+        )
+      except:
+        msg = None
+      if msg:
+        msg = msg.content.lower()
+        if msg.startswith('a') or 'add' in msg:
+          await self._add_wrap(ctx, role)
+        elif msg.startswith('r') or 'request ' in msg:
+          await self._add_wr_request_wrap(ctx, role)
+        else:
+          await self.bot.say(error('I have no idea what you are attempting' + \
+                                   ' to do, maybe look at the help?')
+          )
+      else:
+        await self.bot.say(error('Response timeout, maybe look at the help?'))
 
   @_role.command(name='add', pass_context=True)
   @perms.has_perms(manage_roles=True)
-  async def _add(self, ctx, role : discord.Role):
+  async def _add(self, ctx, role : str):
     """
     adds role to list of public roles
     """
@@ -122,8 +143,18 @@ class Server:
       msg += line.format(name, rid)
     await self.bot.say(msg+'```')
 
-  async def _add_wrap(self, ctx, role : discord.Role):
+  async def _add_wrap(self, ctx, role):
     serv = ctx.message.server
+
+    if type(role) != discord.Role:
+      role = dh.get_role(role)
+
+    if not role:
+      await self.bot.say(error("could not find role"))
+      # honestly I could probably just do:
+      #role = await self.bot.create_role(serv, name=role_name, mentionable=True)
+      # but instead, error and return
+      return
 
     if role.is_everyone:
       await self.bot.say(error('umm... no'))
@@ -158,12 +189,20 @@ class Server:
       await self.bot.say(error('role is not in the list'))
 
   @_role.command(name='request', pass_context=True)
-  async def _request(self, ctx, role : discord.Role):
+  async def _request(self, ctx, role : str):
+    await _request_wrap(ctx, role)
+
+  async def _request_wrap(self, ctx, role):
     """
     adds role to requester(if in list)
     """
     auth = ctx.message.author
     serv = ctx.message.server
+
+    if type(role) != discord.Role:
+      role = dh.get_role(role)
+      await self.bot.say(error("could not find role, ask a mod to create it"))
+      return
 
     available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
     if role.id in available_roles:

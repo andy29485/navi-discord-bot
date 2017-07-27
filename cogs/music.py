@@ -4,6 +4,7 @@ import asyncio
 import discord
 import random
 import re
+import os
 from discord.ext import commands
 from ctypes.util import find_library
 import cogs.utils.emby_helper as emby_helper

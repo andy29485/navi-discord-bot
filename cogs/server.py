@@ -216,7 +216,7 @@ class Server:
     aid  = ctx.message.author.id
     chan = ctx.message.channel
     cid  = chan.id
-    bef = ctx.message.timestamp
+    bef  = ctx.message.timestamp
     await self.bot.delete_message(ctx.message)
 
     if num_to_skip > 0:

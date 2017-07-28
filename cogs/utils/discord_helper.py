@@ -60,7 +60,7 @@ def get_role(server, search_param):
     server = server.server
 
   if type(search_param) == int:
-    search_param = str(search_param))
+    search_param = str(search_param)
   else:
     match = id_pattern.match(search_param)
     search_param = match.group(1) if match else search_param.lower()

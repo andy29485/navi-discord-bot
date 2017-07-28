@@ -55,7 +55,6 @@ class VoiceState:
 
   def skip(self):
     if self.is_playing():
-
       self.player.stop()
 
   def toggle_next(self):

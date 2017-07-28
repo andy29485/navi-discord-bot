@@ -476,7 +476,7 @@ class General:
         delay = min(self.conf['reminders'][0].time_left, 15)
       else:
         delay = 15
-      await asyncio.sleep(delay-0.5)
+      await asyncio.sleep(delay+0.5)
 
 
 def split(choices):

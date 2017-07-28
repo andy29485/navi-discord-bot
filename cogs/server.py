@@ -5,14 +5,23 @@ import time
 import asyncio
 import requests
 import discord
+from collections import namedtuple
 from discord.ext import commands
 from discord.ext.commands.errors import CheckFailure
 from discord.ext.commands.converter import MemberConverter
 from cogs.utils import perms
 from cogs.utils.format import *
 from cogs.utils.config import Config
+from cogs.utils.timeout import Timeout
 from cogs.utils import discord_helper as dh
 
+# wrapper class for embeds,
+#   just stores a dict, and returns the dict when to_dict is called
+# This was created for the cut/paste commands,
+#   when cutting messages, embeds were returned as dicts. Creating an Embed
+#   object from these embeds is currently not possible (directly at least).
+#   Insted, I created an class that can be passed to the api as an embed, since
+#   discordpy just uses the to_dict method when passing the call up the the web.
 class EmWrap:
   def __init__(self, d):
     self.d = d
@@ -22,9 +31,8 @@ class EmWrap:
 class Server:
   def __init__(self, bot):
     self.bot      = bot
-    self.timeouts = {}
     self.conf     = Config('configs/server.json')
-    self.cut      = {}
+    self.cut      = {}                             # cuts get lost on restart
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='prune', pass_context=True)
@@ -38,28 +46,35 @@ class Server:
     NOTE: if first word after number is a user,
           only user's messages will be pruned
     """
+    # tmp channel/server pointer
     chan = ctx.message.channel
-    if num_to_delete > 100:
-      await self.bot.say('Sorry, only up to 100')
-      return
-    if num_to_delete < 1:
-      await self.bot.say('umm... no')
+    serv = ctx.message.server
+
+    if num_to_delete > 100:                       # api only allows up to 100
+      await self.bot.say('Sorry, only up to 100') # TODO - copy thing done in
+      return                                      #        self._paste
+    if num_to_delete < 1:                         # delete nothing?
+      await self.bot.say('umm... no')             #  answer: no
       return
 
+    # if the first word in the message matches a user,
+    #   remove that word from the message, store the user
     try:
-      conv    = MemberConverter(ctx, message[0])
-      user    = conv.convert()
-      message = message[1:]
+      user = dh.get_user(serv, message[0])
+      if user:
+        message = message[1:]
     except:
       user = None
 
-    message = ' '.join(message)
+    message = ' '.join(message) #make the message a string
 
-    if user:
+    if user: # if a user was matched, delete messages from tat user only
       c       = lambda m: m.author.id == user.id
-      deleted = await self.bot.purge_from(chan ,limit=num_to_delete, check = c)
-    else:
-      deleted = await self.bot.purge_from(chan ,limit=num_to_delete)
+      deleted = await self.bot.purge_from(chan, limit=num_to_delete, check = c)
+    else:    # other wise just delete messages
+      deleted = await self.bot.purge_from(chan, limit=num_to_delete)
+
+    #report that prume was complete, how many were prunned, and the message
     await self.bot.say(ok('Deleted {} message{} {}'.format(
                              len(deleted),
                              '' if len(deleted) == 1    else 's',
@@ -115,7 +130,6 @@ class Server:
     await self._add_wrap(ctx, role)
 
   @_role.command(name='list', aliases=['ls'], pass_context=True)
-  @perms.has_perms(manage_roles=True)
   async def _list(self, ctx):
     """
     lists public roles avalible in the server
@@ -142,6 +156,41 @@ class Server:
     for name,rid in zip(names, self.conf[serv.id]['pub_roles']):
       msg += line.format(name, rid)
     await self.bot.say(msg+'```')
+
+  @_role.command(name='delete', pass_context=True)
+  @perms.has_perms(manage_roles=True)
+  async def _delete(self, ctx, role : discord.Role):
+    """
+    removes role from list of public roles
+    """
+    serv = ctx.message.server
+
+    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
+    if role.id in available_roles:
+      self.conf[serv.id]['pub_roles'].remove(role.id)
+      await self.bot.say(ok('role removed from public list'))
+    else:
+      await self.bot.say(error('role is not in the list'))
+
+  @_role.command(name='request', pass_context=True)
+  async def _request(self, ctx, role : str):
+    await _request_wrap(ctx, role)
+
+  @_role.command(name='unrequest', aliases=['requestrm'], pass_context=True)
+  async def _unrequest(self, ctx, role : discord.Role):
+    """removes role from requester(if in list)"""
+    auth = ctx.message.author
+    serv = ctx.message.server
+
+    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
+    found           = discord.utils.find(lambda r: r.id == role.id, auth.roles)
+
+    if role.id in available_roles and found:
+      await self.bot.remove_roles(auth, role)
+      await self.bot.say(ok('you no longer have that role'))
+    else:
+      await self.bot.say(error('I\'m afraid that I can\'t remove that role'))
+
 
   async def _add_wrap(self, ctx, role):
     serv = ctx.message.server
@@ -173,25 +222,6 @@ class Server:
     self.conf.save()
     await self.bot.say(ok('role added to public role list'))
 
-  @_role.command(name='delete', pass_context=True)
-  @perms.has_perms(manage_roles=True)
-  async def _delete(self, ctx, role : discord.Role):
-    """
-    removes role from list of public roles
-    """
-    serv = ctx.message.server
-
-    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
-    if role.id in available_roles:
-      self.conf[serv.id]['pub_roles'].remove(role.id)
-      await self.bot.say(ok('role removed from public list'))
-    else:
-      await self.bot.say(error('role is not in the list'))
-
-  @_role.command(name='request', pass_context=True)
-  async def _request(self, ctx, role : str):
-    await _request_wrap(ctx, role)
-
   async def _request_wrap(self, ctx, role):
     """
     adds role to requester(if in list)
@@ -211,25 +241,9 @@ class Server:
     else:
       await self.bot.say(error('I\'m afraid that I can\'t give you that role'))
 
-  @_role.command(name='unrequest', aliases=['requestrm'], pass_context=True)
-  async def _unrequest(self, ctx, role : discord.Role):
-    """removes role from requester(if in list)"""
-    auth = ctx.message.author
-    serv = ctx.message.server
-
-    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
-    found           = discord.utils.find(lambda r: r.id == role.id, auth.roles)
-
-    if role.id in available_roles and found:
-      await self.bot.remove_roles(auth, role)
-      await self.bot.say(ok('you no longer have that role'))
-    else:
-      await self.bot.say(error('I\'m afraid that I can\'t remove that role'))
-
-
   @perms.has_perms(manage_messages=True)
   @commands.command(name='cut', pass_context=True)
-  async def _cut(self, ctx, num_to_cut : int, num_to_skip=0 : int):
+  async def _cut(self, ctx, num_to_cut : int, num_to_skip : int = 0):
     '''
     cuts num_to_cut messages from the current channel
     skips over num_to_skip messages (skips none if not specified)
@@ -248,28 +262,36 @@ class Server:
     #if num_to_cut > 100:
     #  await self.bot.say('Sorry, only up to 100')
     #  return
-    if num_to_cut < 1:
+    if num_to_cut < 1: # can't cut no messages
       await self.bot.say('umm... no')
       return
 
+    # store info in easier to access variables
     aid  = ctx.message.author.id
     chan = ctx.message.channel
     cid  = chan.id
     bef  = ctx.message.timestamp
+
+    # delete the original `.cut` message(not part of cutting)
+    # also sorta serves as confirmation that messages have been cut
     await self.bot.delete_message(ctx.message)
 
+    # if messages should be skipped when cutting
+    # save the timestamp of the oldest message
     if num_to_skip > 0:
-      mes_to_skip = []
-      async for m in self.bot.logs_from(chan, num_to_skip):
-        mes_to_skip.insert(0, m)
-      bef = mes_to_skip[0].timestamp
+      async for m in self.bot.logs_from(chan, num_to_skip, reverse=True):
+        bef = m.timestamp
+        break
 
+    # save the logs to a list
     logs = []
-    async for m in self.bot.logs_from(chan, num_to_cut, bef):
-      logs.insert(0, m)
+    async for m in self.bot.logs_from(chan,num_to_cut,before=bef,reverse=True):
+      logs.append(m)
 
+    #store true in position 0 of list if channel is a nsfw channel
     logs.insert(0, 'nsfw' in chan.name.lower())
 
+    # save logs to dict (associate with user)
     self.cut[aid] = logs
 
   @perms.has_perms(manage_messages=True)
@@ -282,67 +304,98 @@ class Server:
     deletes original messages
     see .cut
     '''
+    # get messages that were cut and other variables
     aid  = ctx.message.author.id
     chan = ctx.message.channel
     logs = self.cut.pop(aid, [])
 
+    # if nothing was cut, stop
     if not logs:
       await self.bot.say('You have not cut anything')
       return
 
+    # it messages were cut in a nsfw channel,
+    #   do not paste unless this is a nsfw channel
+    # NOTE: cutting/pasting to/from PMs is not possible(for now)
     if logs[0] and 'nsfw' not in chan.name.lower():
       await self.bot.say('That which hath been cut in nsfw, ' + \
-                         'mustn\'t be pasted in such a place')
+                         'mustn\'t be pasted in such a place'
+      )
       return
+
+    # remove the nsfw indicator(since it's not really part of the logs)
     logs = logs[1:]
 
+    # delete the `.paste` message
     await self.bot.delete_message(ctx.message)
 
-    buf = ''
-    out = []
+    # compress the messages - many messages can be squished into 1 big message
+    # but ensure that output messages do not exceede the discord message limit
+    buf = ''  # current out message that is being compressed to
+    out = []  # output messages that have been compressed
     for message in logs:
+      # save messages as:
+      #   <nick> message
+      # and attachments as(after the message):
+      #   filename: url_to_attachment
       if message.content or message.attachments:
         tmp = '<{0.author.name}> {0.content}\n'.format(message)
         for a in message.attachments:
           tmp += '{filename}: {url}\n'.format(**a)
       else:
         tmp = ''
+      # if this message would make the current output buffer too long,
+      #   append it to the output message list and reset the buffer
+      # or just append to the buffer if it's not going to be too long
       if len(buf) + len(tmp) > 1900:
         out.append(buf)
         buf = tmp
       else:
         buf += tmp
+
+      # if the message is composed of *only* embeds,
+      #   flush buffer,
+      #   and append embed to output list
       if message.embeds and not message.content:
-        out.append(buf)
-        buf = ''
+        if buf:
+          out.append(buf)
+          buf = ''
         for embed in message.embeds:
           out.append(embed)
+
+    # if there is still content in the buffer after messages have been traversed
+    #   treat buffer as complete message
     if buf:
       out.append(buf)
 
+    # send each message in output list
     for mes in out:
       if type(mes) == str:
         if mes:
           await self.bot.say(mes)
-      else:
-        await self.bot.say(embed=EmWrap(mes))
+      else:                                   # if it's an embed, n
+        await self.bot.say(embed=EmWrap(mes)) #   it needs to be wrapped
 
-    old = False
-    while len(logs) > 0:
-      if len(logs) > 1:
-        if not old:
+    # once all messages have been pasted, delete(since cut) the old ones
+
+    old = False # messages older than 2 weeks cannot be batch deleted
+
+    while len(logs) > 0:     # while there are messages to delete
+      if len(logs) > 1:      #   if more than one left to delete and not old,
+        if not old:          #     attempt batch delete [2-100] messages
           try:
             await self.bot.delete_messages(logs[:100])
-          except:
-            old = True
-        if old:
+          except:            #   if problem when batch deleting
+            old = True       #     then the messages must be old
+        if old:              # if old, traverse and delete individually
           for entry in logs[:100]:
             await self.bot.delete_message(entry)
         logs = logs[100:]
-      else:
+      else:                   # if only one message, delete individually
         await self.bot.delete_message(logs[0])
         logs.remove(logs[0])
 
+    # remove cut entry from dict of cuts
     if aid in self.cut:
       del self.cut[aid]
 
@@ -353,8 +406,13 @@ class Server:
     if a new_topic is specified, changes the topic
     otherwise, displays the current topic
     """
+    # store channel in tmp pointer
     c = ctx.message.channel
+
     if new_topic:
+      # if a topic was passed,
+      #   change it if user has the permisssions to do so
+      #   or tell user that they can't do that
       if perms.check_permissions(ctx.message, manage_channels=True):
         await self.bot.edit_channel(c, topic = new_topic)
         await self.bot.say(ok('Topic for #{} has been changed'.format(c.name)))
@@ -363,8 +421,12 @@ class Server:
            error('You cannot change the topic for #{}'.format(c.name))
         )
     elif c.topic:
+      # if no topic has been passed,
+      #   say the topic
       await self.bot.say('Topic for #{}: `{}`'.format(c.name, c.topic))
     else:
+      # if not topic in channel,
+      #   say so
       await self.bot.say('#{} has no topic'.format(c.name))
 
   @perms.has_perms(manage_roles=True)
@@ -382,10 +444,6 @@ class Server:
     server  = ctx.message.server
     channel = ctx.message.channel
 
-    if server in self.timeouts and member in self.timeouts[server]:
-      await self.bot.say('{}\'s already in timeout...'.format(member.name))
-      return
-
     if perms.in_group('timeout') and not perms.is_owner():
       await self.bot.say('You\'re in timeout... No.')
       return
@@ -398,12 +456,18 @@ class Server:
       await self.bot.say('And what would the point of that be?')
       return
 
-    if time > 4000:
+    if time > 10000:
       await self.bot.say('Too long, at this point consider banning them')
       return
 
+    criteria = lambda m: re.search('(?i)^time?[ _-]?out.*', m.name)
+
+    to_role = discord.utils.find(criteria, server.roles   )
+    to_chan = discord.utils.find(criteria, server.channels)
+
     try:
-      await self.timeout_send(channel, server, member, time)
+      timeout_obj = Timeout(channel, server, member, time)
+      await timeout_obj.start(self.bot, to_role, to_chan)
     except:
       await self.bot.say(
         'There was an error sending {}\'s to timeout \n({}{}\n)'.format(
@@ -416,24 +480,15 @@ class Server:
       )
       #raise
 
+  @perms.has_perms(manage_roles=True)
   @commands.command(name='timeout_end', aliases=['te'], pass_context=True)
   async def _timeout_end(self, ctx, member: discord.Member):
     """removes a member from timeout
 
     usage `.timeout end @member`
     """
-    if not perms.is_owner() and \
-      ctx.message.author.server_permissions < member.server_permissions:
-      await self.bot.say('Can\'t end equal/higher ranking user\'s timeouts')
-      return
-
     server  = ctx.message.server
     channel = ctx.message.channel
-
-    if server not in self.timeouts or member not in self.timeouts[server]:
-      await self.bot.say('{} is not in timeout...'.format(member.name))
-      return
-
 
     if perms.in_group('timeout') and not perms.is_owner():
       await self.bot.say('You\'re in timeout... No.')
@@ -443,90 +498,46 @@ class Server:
       await self.bot.say('not in a server at the moment')
       return
 
-    try:
-      await self.timeout_end(channel, server, member)
-    except:
-      await self.bot.say(
-        'There was an error ending {}\'s timeout \n({}{}\n)'.format(
-          member.name,
-          '\n  - do I have permission to manage roles(and possibly channels)?',
-          '\n  - is my highest role above {}\'s highest role?'.format(
-             member.name
-          )
-        )
+    # test timeout object for comparison
+    test  = namedtuple({'server_id':server.id, 'user_id':member.id})
+    index = 0 # inext is used to more efficently pop from heap
+
+    # error message in case ending timeout fails
+    error_msg = 'There was an error ending {}\'s timeout \n({}{}\n)'.format(
+      member.name,
+      '\n  - do I have permission to manage roles(and possibly channels)?',
+      '\n  - is my highest role above {}\'s highest role?'.format(
+         member.name
       )
+    )
 
-  async def timeout_send(self, channel, server, member, time):
-    roles = member.roles[1:]
-
-    if server not in self.timeouts:
-      self.timeouts[server] = {}
-    self.timeouts[server][member] = roles
-    criteria = lambda m: re.search('(?i)^time?[ _-]?out.*', m.name)
-
-    to_role = discord.utils.find(criteria, server.roles   )
-    to_chan = discord.utils.find(criteria, server.channels)
-
-    if not to_role:
-      p = discord.Permissions.none()
-      to_role = await self.bot.create_role(server,            name='timeout',
-                                           hoist=True,        permissions=p,
-                                           mentionable=False,
-                                           colour=discord.Colour.dark_red()
-      )
-      if not to_role:
-        await self.bot.send_message(channel,
-                                   'no `timeout` role found/unable to create it'
-        )
+    for timeout in Timeout.conf['timeouts']:  # look trhough all timouts
+      if timeout == test:                     #   if found
+        try:
+          await timeout.end(self.bot, index)  #     attempt to end
+        except:
+          await self.bot.say(error_msg)       #     if error when ending, report
         return
+      index += 1                              #   not found increment index
+    else:                                     # not found at all, report
+      await self.bot.say('{} is not in timeout...'.format(member.name))
+      return
 
-    po1 = discord.PermissionOverwrite(read_messages        = False,
-                                      read_message_history = False,
-                                      send_messages        = False
-    )
-    po2 = discord.PermissionOverwrite(read_messages        = True,
-                                      read_message_history = False,
-                                      send_messages        = True
-    )
-    po3 = discord.PermissionOverwrite(read_messages        = True,
-                                      read_message_history = True,
-                                      send_messages        = True
-    )
+  async def check_timeouts(self):
+    while self == self.bot.get_cog('Server'): # in case of cog reload
+      # while timeouts exist, and the next one's time has come,
+      #   end it
+      while Timeout.conf['timeouts'] and \
+            Timeout.conf['timeouts'][0].time_left < 1:
+        await Timeout.conf['timeouts'][0].end(self.bot, 0)
 
-    for chan in server.channels:
-      await self.bot.edit_channel_permissions(chan, to_role, po1)
-    if not to_chan:
-      p1 = discord.ChannelPermissions(target=server.default_role, overwrite=po1)
-      p2 = discord.ChannelPermissions(target=to_role,             overwrite=po2)
-      to_chan = await self.bot.create_channel(server, 'timeout_room', p1, p2)
-    me = discord.utils.find(lambda m: m.id == self.bot.user.id,server.members)
-    await self.bot.edit_channel_permissions(to_chan, me, po3)
-
-    message = '{}: you are now under a {} second timeout'.format(
-                member.mention,
-                time
-    )
-    await self.bot.replace_roles(member, to_role)
-    await asyncio.sleep(1)
-    await self.bot.send_message(channel, message)
-    if to_chan and to_chan != channel:
-      try:
-        await self.bot.send_message(to_chan, message)
-      except:
-        pass
-
-    await asyncio.sleep(time)
-
-    await self.timeout_end(channel, server, member)
-
-  async def timeout_end(self, channel, server, member):
-    if server in self.timeouts and member in self.timeouts[server]:
-      await self.bot.replace_roles(member, *self.timeouts[server].pop(member))
-      await self.bot.send_message(channel,
-            '{}: your time out is up, permissions restored'.format(
-              member.mention
-            )
-      )
+      # wait a bit and check again
+      #   if the next one ends in < 15s, wait that much instead of 15s
+      if Timeout.conf['timeouts']:
+        delay = min(Timeout.conf['timeouts'].time_left, 15)
+      else:
+        delay = 15
+      await asyncio.sleep(delay+0.5)
 
 def setup(bot):
   g = Server(bot)

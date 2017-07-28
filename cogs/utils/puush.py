@@ -6,40 +6,47 @@ import requests
 import tempfile
 import hashlib
 
+# open config and set up puush
 conf = Config('configs/az.json')
 if 'path' not in conf:
   conf['path'] = input('Enter dir to search for: ')
-
-if 'key' not in conf:
-  conf['key'] = input('Enter puush api key: ')
-
-account = puush.Account(conf['key'])
-
 if 'images' not in conf or type(conf['images']) != dict:
   conf['images'] = {}
-
+if 'key' not in conf:
+  conf['key'] = input('Enter puush api key: ')
 account = puush.Account(conf['key'])
 
-def upload(paths, p=None):
-  if not paths:
-    return []
-  if not p:
-    p = get_hash(paths[0])
+def upload(paths, h=None):
+  '''
+  given a list of file paths, upload all files to push and return urls
+
+  paths: list of paths to files to upload
+  h:     hash to use when remembering upload urls
+
+  If h is not given,
+    the file located at the first path will be hashed and used as h
+  '''
+  if not paths: # no file -> done
+    return ''
+
+  if not h: #no hash - calulate from first file
+    h = get_hash(paths[0])
+
   urls = ''
-  for path in paths:
-    for i in range(3):
+  for path in paths:                  # for each file
+    for i in range(3):                #   try at most 3 times
       try:
-        image = account.upload(path)
+        image = account.upload(path)  #   to upload it
         if image and image.url:
           urls += image.url + '\n'
           break
-      except ValueError:
+      except:
         pass
-    else:
-      return 'could not upload image'
-  conf['images'][p] = {'url':urls}
-  conf.save()
-  return urls
+    else:                             # if failed to upload after 3 attempts
+      return 'could not upload image' #   return error string
+  conf['images'][h] = {'url':urls}    # if success,
+  conf.save()                         #   save urls under hash
+  return urls                         #   and return
 
 def get_url(path):
   tempfiles = []

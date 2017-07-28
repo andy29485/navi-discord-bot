@@ -60,7 +60,7 @@ class VoiceState:
   def toggle_next(self):
     self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
-  aysnc def stop(self):
+  async def stop(self):
     if self.is_playing():
       self.player.stop()
 

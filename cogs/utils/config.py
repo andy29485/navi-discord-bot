@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from cogs.utils.reminders import Reminder
-from cogs.utils.timeout import Timeout
 import json
 
 
@@ -55,6 +53,8 @@ def as_obj(dct):
     - Reminders
     - Timeouts
   '''
+  from cogs.utils.reminders import Reminder
+  from cogs.utils.timeout import Timeout
   if '__reminder__' in dct:
     return Reminder(dct['channel_id'], dct['user_id'],
                     dct['message'], end_time=dct['end_time']
@@ -69,6 +69,8 @@ def as_obj(dct):
 # supports same conversions as the function that goes the other way
 class ObjEncoder(json.JSONEncoder):
   def default(self, obj):
+    from cogs.utils.reminders import Reminder
+    from cogs.utils.timeout import Timeout
     if isinstance(obj, Reminder):
       return obj.to_dict()
     elif isinstance(obj, Timeout):

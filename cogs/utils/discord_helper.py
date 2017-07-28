@@ -24,7 +24,7 @@ def get_user(server, search_param):
     server = server.server
 
   if type(search_param) == int:
-    user = server.get_member(str(search_param))
+    user = server.get_member(str(search_param)
     if user:
       return user
 
@@ -87,7 +87,7 @@ def get_channel(server, search_param):
     server = server.server
 
   if type(search_param) == int:
-    search_param = str(search_param))
+    search_param = str(search_param)
   else:
     match = id_pattern.match(search_param)
     search_param = match.group(1) if match else search_param.lower()

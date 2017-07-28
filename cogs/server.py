@@ -229,9 +229,17 @@ class Server:
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='cut', pass_context=True)
-  async def _cut(self, ctx, num_to_cut : int):
+  async def _cut(self, ctx, num_to_cut : int, num_to_skip=0 : int):
     '''
     cuts num_to_cut messages from the current channel
+    skips over num_to_skip messages (skips none if not specified)
+
+    example:
+    User1: first message
+    User2: other message
+    User3: final message
+    Using ".cut 1 1" will cut User2's message
+    Using ".cut 1" will cut User3's message
 
     messages will not be deleted until paste
     needs manage_messages perm in the current channel to use
@@ -247,9 +255,17 @@ class Server:
     aid  = ctx.message.author.id
     chan = ctx.message.channel
     cid  = chan.id
+    bef  = ctx.message.timestamp
     await self.bot.delete_message(ctx.message)
+
+    if num_to_skip > 0:
+      mes_to_skip = []
+      async for m in self.bot.logs_from(chan, num_to_skip):
+        mes_to_skip.insert(0, m)
+      bef = mes_to_skip[0].timestamp
+
     logs = []
-    async for m in self.bot.logs_from(chan, num_to_cut):
+    async for m in self.bot.logs_from(chan, num_to_cut, bef):
       logs.insert(0, m)
 
     logs.insert(0, 'nsfw' in chan.name.lower())

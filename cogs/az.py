@@ -43,7 +43,7 @@ class AZ:
   async def censor(self, message):
     msg       = message.content
     to_censor = False
-    for orig,rep in self.conf.get('censor', {}).items:
+    for orig,rep in self.conf.get('censor', {}).items():
       if not to_censor and re.search(orig, msg):
         to_censor = True
       msg = re.sub(orig, rep, msg)

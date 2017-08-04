@@ -16,6 +16,10 @@ class AZ:
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/az.json')
+    if 'lenny' not in self.conf:
+      self.conf['lenny'] = {}
+    if 'censor' not in self.conf:
+      self.conf['censor'] = {}
 
   @commands.command()
   async def lenny(self, first=''):
@@ -35,6 +39,19 @@ class AZ:
   @commands.command()
   async def shrug(self):
     await self.bot.say('\n¯\_(ツ)_/¯')
+
+  async def censor(self, message):
+    msg       = message.content
+    to_censor = False
+    for orig,rep in self.conf.get('censor', {}).items:
+      if not to_censor and re.search(orig, msg):
+        to_censor = True
+      msg = re.sub(orig, rep, msg)
+    if to_censor:
+      await self.bot.delete_message(message)
+      await self.bot.say('<{}> {}'.format(
+        message.author.name, msg
+      ))
 
   @commands.command(pass_context=True)
   async def me(self, ctx, *, message : str):
@@ -156,4 +173,6 @@ class AZ:
     await self.bot.say(url)
 
 def setup(bot):
-  bot.add_cog(AZ(bot))
+  az = AZ(bot)
+  bot.add_cog(az)
+  bot.add_listener(az.censor, "on_message")

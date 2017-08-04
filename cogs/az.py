@@ -49,7 +49,7 @@ class AZ:
       msg = re.sub(orig, rep, msg)
     if to_censor:
       await self.bot.delete_message(message)
-      await self.bot.say('<{}> {}'.format(
+      await self.bot.send_message(message.channel, '<{}> {}'.format(
         message.author.name, msg
       ))
 

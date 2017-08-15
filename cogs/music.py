@@ -334,12 +334,12 @@ class Music:
   async def queue(self, ctx):
     """Checks the song queue, up to 30."""
     state = self.get_voice_state(ctx.message.server)
-    songs = state.songs._queue[:30]
 
     if not state.is_playing():
       await self.bot.say("It seems as though nothing is playing")
       return
 
+    songs = state.songs._queue[:30]
     em = await emby_helper.makeEmbed(self.conn, 'Queued: ')
     songs_str = ''
     for song in songs:

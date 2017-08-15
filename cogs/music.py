@@ -339,17 +339,15 @@ class Music:
       await self.bot.say("It seems as though nothing is playing")
       return
 
-    songs = state.songs._queue[:30]
+    songs = state.songs._queue
     em = await emby_helper.makeEmbed(self.conn, 'Queued: ')
     songs_str = ''
-    for song in songs:
+    for index,song in zip(range(1,31),songs):
       item = song.item
-      if item and hasattr(item, 'index_number'):
-        songs_str += '{:02} - {}\n'.format(item.index_number, item.name)
-      elif item:
-        songs_str += '{}\n'.format(item.name)
+      if item:
+        songs_str += '{:02} - {}\n'.format(index, item.name)
       else:
-        songs_str += '{}\n'.format(song)
+        songs_str += '{:02} - {}\n'.format(index, song)
     em.add_field(name='Items', value=songs_str)
     await self.bot.say(embed=em)
 

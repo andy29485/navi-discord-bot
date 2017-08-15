@@ -96,13 +96,15 @@ class VoiceState:
       self.play_next_song.clear()
       self.skip_votes.clear()
 
-      handle = self.bot.loop.call_later(300, self.stop)
+      handle = self.bot.loop.call_later(300,
+                  lambda: asyncio.ensure_future(self.stop())
+      )
       self.current = await self.songs.get()
       try:
         handle.cancel()
       except:
         #raise #TODO - debugging
-        return
+        pass
 
       if self.current.item:
         em = await emby_helper.makeEmbed(self.current.item, 'Now playing: ')
@@ -250,12 +252,12 @@ class Music:
         await self.bot.say("error joining channel")
         return
 
+
     try:
       plsts=await self.bot.loop.run_in_executor(None,lambda:self.conn.playlists)
       songs=await self.bot.loop.run_in_executor(None,lambda:self.conn.songs)
       albms=await self.bot.loop.run_in_executor(None,lambda:self.conn.albums)
       artts=await self.bot.loop.run_in_executor(None,lambda:self.conn.artists)
-
 
       items = await self.bot.loop.run_in_executor(None, search_f, set(search),
                                                   *plsts, *songs, *albms, *artts
@@ -327,6 +329,29 @@ class Music:
     if state.is_playing():
       player = state.player
       player.pause()
+
+  @commands.command(pass_context=True, no_pm=True)
+  async def queue(self, ctx):
+    """Checks the song queue, up to 30."""
+    state = self.get_voice_state(ctx.message.server)
+    songs = state.songs
+
+    if not state.is_playing():
+      await self.bot.say("It seems as though nothing is playing")
+      return
+
+    em = await emby_helper.makeEmbed(display_item, 'Queued: ')
+    songs_str = ''
+    for song in songs:
+      item = song.item
+      if item and hasattr(item, 'index_number'):
+        songs_str += '{:02} - {}\n'.format(item.index_number, item.name)
+      elif item:
+        songs_str += '{}\n'.format(item.name)
+      else:
+        songs_str += '{}\n'.format(song)
+    em.add_field(name='Items', value=songs_str)
+    await self.bot.say(embed=em)
 
   @commands.command(pass_context=True, no_pm=True)
   async def resume(self, ctx):

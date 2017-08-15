@@ -16,10 +16,6 @@ class AZ:
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/az.json')
-    if 'lenny' not in self.conf:
-      self.conf['lenny'] = {}
-    if 'censor' not in self.conf:
-      self.conf['censor'] = {}
 
   @commands.command()
   async def lenny(self, first=''):
@@ -40,26 +36,9 @@ class AZ:
   async def shrug(self):
     await self.bot.say('\n¯\_(ツ)_/¯')
 
-  async def censor(self, message):
-    msg       = message.content
-    to_censor = False
-    for orig,rep in self.conf.get('censor', {}).items():
-      if not to_censor and re.search(orig, msg):
-        to_censor = True
-      msg = re.sub(orig, rep, msg)
-    if to_censor:
-      await self.bot.delete_message(message)
-      await self.bot.send_message(message.channel, '<{}> {}'.format(
-        message.author.name, msg
-      ))
-
   @commands.command(pass_context=True)
   async def me(self, ctx, *, message : str):
     await self.bot.say('*{} {}*'.format(ctx.message.author.name, message))
-    try:
-      await self.bot.delete_message(ctx.message)
-    except:
-      pass
 
   @commands.command(pass_context=True,name='set_colour',aliases=['sc'])
   @perms.is_in_servers('168702989324779520')
@@ -165,14 +144,15 @@ class AZ:
       return
 
     try:
-      future_url = loop.run_in_executor(None, puush.get_url, path)
-      url = await future_url
+      em  = discord.Embed()
+      url = path.replace(puush.conf['path'], puush.conf['path-rep'])
+      em.set_image(url=url)
+      await self.bot.say(embed=em)
     except:
-      url = 'There was an error uploading the image, ' + \
-            'but at least I didn\'t crash :p'
-    await self.bot.say(url)
+      raise
+      await self.bot.say('There was an error uploading the image, ' + \
+                         'but at least I didn\'t crash :p'
+      )
 
 def setup(bot):
-  az = AZ(bot)
-  bot.add_cog(az)
-  bot.add_listener(az.censor, "on_message")
+  bot.add_cog(AZ(bot))

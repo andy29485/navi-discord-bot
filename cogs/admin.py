@@ -57,8 +57,8 @@ class Admin:
   async def update(self):
     loop = asyncio.get_event_loop()
     g = git.cmd.Git('.')
-    loop.run_in_executor(None, g.execute, ['git', 'reset', 'HEAD~1', '--hard'])
-    print(loop.run_in_executor(None, g.pull))
+    await loop.run_in_executor(None,g.execute,['git','reset','HEAD~1','--hard'])
+    await loop.run_in_executor(None,g.pull)
     await self.bot.say(formatter.ok('restarting'))
     await self.bot.logout()
     loop.stop()

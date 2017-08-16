@@ -76,8 +76,8 @@ class Osu:
     """
     manages osu stuff
     """
-    #TODO
-    pass
+    if ctx.invoked_subcommand is None:
+      await self.bot.say(formatter.error("Please specify valid subcommand"))
 
   @_osu.command(name='recent', aliases=['r', 'last'], pass_context=True)
   async def _recent(self, ctx, osu_username : str =''):
@@ -89,7 +89,31 @@ class Osu:
     #       if no user is specified, show linked user latest
     #        self.conf['watched-users']['<discord id>']
     #        if discord user is not linked, ask the to link using `.osu connect`
-    pass
+    auth = ctx.message.author.id
+    if osu_username:
+      user = osu_username
+    elif auth in self.conf['watched-users']:
+      user = self.conf['watched-users'][auth]['uid']
+    else:
+      await self.bot.say('No user specified, nor are you linked to an OSU user')
+      return
+
+    user = await self.api.get_user(user)
+    if not user:
+      await self.bot.say('Could not find user with matching name')
+      return
+    user = user[0]
+
+    last = await self.api.get_user_recent(user.user_id)
+    if not last:
+      await self.bot.say(f'No recent play history for {user.username}')
+      return
+
+    em = await self.osu_embed(last[0])
+    print(last[0].__dict__)
+    print(em.to_dict())
+    await self.bot.say(embed=em)
+
 
   @_osu.command(name='connect', aliases=['c', 'link'], pass_context=True)
   async def _osu_watch(self, ctx, osu_username : str, top_scores : int = 50):
@@ -106,7 +130,7 @@ class Osu:
       return
 
     top_scores = max(0, min(100, top_scores))
-    name       = user.username
+    name       = user[0].username
     user       = user[0].user_id
     if top_scores:
       best     = await self.api.get_user_best(user, limit=top_scores)
@@ -115,9 +139,9 @@ class Osu:
       best = []
 
     if auth in self.conf['watched-users']:
-      #TODO do not include duplicate channels
-      self.conf['watched-users'][auth]['uid']  = user
-      self.conf['watched-users'][auth]['chans'].append(chan)
+      self.conf['watched-users'][auth]['uid'] = user
+      if chan not in self.conf['watched-users'][auth]['chans']:
+        self.conf['watched-users'][auth]['chans'].append(chan)
       self.conf['watched-users'][auth]['last'] = best
 
     else:
@@ -129,7 +153,7 @@ class Osu:
       }
     self.conf.save()
     await self.bot.say(
-        formatter.ok('you are now linked to: {}'.format(name))
+        formatter.ok(f'you are now linked to: {name}')
     )
 
   async def check_scores(self):
@@ -146,7 +170,7 @@ class Osu:
         for i, old, new in itertools.zip_longest(range(num), last, best):
           if new.beatmap_id != old[0] or new.score > old[1]:
             em = await self.osu_embed(new)
-            em.title = 'New best #{} for {} - {}'.format(i+1, name, em.title)
+            em.title = f'New best #{i+1} for {name} - {em.title}'
             for chan_id in chans:
               try:
                 chan = await self.bot.get_channel(chan_id)
@@ -157,27 +181,21 @@ class Osu:
         else:
           continue
         best = [(i.beatmap_id, i.score) for i in best]
-        self.conf['watched-users'][auth]['last'] = best
+        self.conf['watched-users'][duid]['last'] = best
         self.conf.save()
       await asyncio.sleep(30)
 
   async def osu_embed(self, osu_obj):
     em = Embed()
-    #TODO - currently only does general info of maps
-    #       want:
-    #          when given a played map also include:
-    #          (as in something returned by latest or best)
-    #             - score (as an int and the SS/S/A/B/C/Fail thing)
-    #             - rank (aka global rank)
-    #             - accuracy (as a percent)
-    #             - combo (x/total)
+    print(str(type(osu_obj)))
+
     if type(osu_obj) == osuapi.model.Beatmap:
       length = osu_obj.total_length
-      length = '{:02}:{:02}:{:02}'.format(length//3600, length//60, length%60)
-      diff   = '{:.2}'.format(osu_obj.difficultyrating)
+      length = f'{length//3600:02}:{length//60:02}:{length%60:02}'
+      diff   = f'{osu_obj.difficultyrating:.2}'
 
       em.title = osu_obj.title
-      em.url   = 'https://osu.ppy.sh/b/{}'.format(osu_obj.beatmap_id)
+      em.url   = f'https://osu.ppy.sh/b/{osu_obj.beatmap_id}'
       em.add_field(name='Artist',    value=osu_obj.artist)
       em.add_field(name='Creator',   value=osu_obj.creator)
       em.add_field(name='Difficulty',value=diff)
@@ -185,39 +203,72 @@ class Osu:
       em.add_field(name='Source',    value=osu_obj.source)
       em.add_field(name='Max Combo', value=str(osu_obj.max_combo))
       em.add_field(name='Length',    value=length)
+
     elif type(osu_obj) == list:
       if len(osu_obj) == 0:
         return None
-      diff     = ', '.join(['{:.2}'.format(i.difficultyrating)for i in osu_obj])
+      diff     = ', '.join([f'{i.difficultyrating:.2}' for i in osu_obj])
       em       = await self.osu_embed(osu_obj[0])
-      em.url   = 'https://osu.ppy.sh/s/{}'.format(osu_obj[0].beatmapset_id)
+      em.url   = f'https://osu.ppy.sh/s/{osu_obj[0].beatmapset_id}'
       em.set_field_at(2, name='Difficulty', value=diff)
-      em.remove_field(3)
-      em.remove_field(4)
+      em.remove_field(3) # remove BPM
+      em.remove_field(4) # remove Max Combo
       return em
+
     elif type(osu_obj) == osuapi.model.User:
       rank  = '#{0.pp_rank} ({0.country} #{0.pp_country_rank})'.format(osu_obj)
       level = int(osu_obj.level)
       nextl = osu_obj.level * 100 % 100
 
       em.title = osu_obj.username
-      em.url   = 'https://osu.ppy.sh/u/{}'.format(osu_obj.user_id)
+      em.url   = f'https://osu.ppy.sh/u/{osu_obj.user_id}'
       em.add_field(name='Rank',      value=rank)
-      em.add_field(name='Accuracy',  value='{:02.4}%'.format(osu_obj.accuracy))
-      em.add_field(name='Level',     value='{} ({:02.4}%)'.format(level, nextl))
+      em.add_field(name='Accuracy',  value=f'{osu_obj.accuracy:02.4}%')
+      em.add_field(name='Level',     value=f'{level} ({nextl:02.4}%)')
       em.add_field(name='Total PP',  value=str(osu_obj.pp_raw))
       em.add_field(name='Play Count',value=str(osu_obj.playcount))
-    em.set_thumbnail(url=await self.get_thumb_url(osu_obj))
+
+    elif type(osu_obj) in (osuapi.model.SoloScore, osuapi.model.RecentScore):
+      print(1)
+      beatmap = await self.api.get_beatmaps(beatmap_id=osu_obj.beatmap_id)
+      beatmap = beatmap[0]
+      print(type(beatmap))
+      em      = await self.osu_embed(beatmap)
+      print(em.to_dict())
+      rank    = osu_obj.rank.replace('X', 'SS')
+      if type(osu_obj) == osuapi.model.SoloScore:
+        score   = f'{osu_obj.score:,} ({rank} - {osu_obj.pp}pp)'
+      else:
+        score   = f'{osu_obj.score:,} ({rank})'
+      combo   = f'{osu_obj.maxcombo}/{beatmap.max_combo}'
+      print(2)
+
+      em.add_field(name='Score',    value=score)
+      em.add_field(name='Combo',    value=combo)
+      em.remove_field(5) # remove Max Combo
+      print(3)
+
+    print(4)
+    print(em.to_dict())
+    if not em.thumbnail.url:
+      print(5)
+      em.set_thumbnail(url=await self.get_thumb_url(osu_obj))
+    print(6)
+    print(em.to_dict())
     return em
 
   async def get_thumb_url(self, osu_obj):
     if type(osu_obj) == osuapi.model.Beatmap:
       if not hasattr(osu_obj, 'beatmapset_id') or not osu_obj.beatmapset_id:
-        osu_obj = await self.api.get_beatmaps(beatmap_id=osu_obj.beatmap_id)[0]
-      return 'https://b.ppy.sh/thumb/{}l.jpg'.format(osu_obj.beatmapset_id)
+        osu_obj = await self.api.get_beatmaps(beatmap_id=osu_obj.beatmap_id)
+        osu_obj = osu_obj[0]
+      return f'https://b.ppy.sh/thumb/{osu_obj.beatmapset_id}l.jpg'
     elif type(osu_obj) == osuapi.model.User:
-      return 'https://a.ppy.sh/{}?.png'.format(osu_obj.user_id)
+      return f'https://a.ppy.sh/{osu_obj.user_id}?.png'
     return 'http://w.ppy.sh/c/c9/Logo.png'
+
+  def __unload(self):
+    self.api.close()
 
 def setup(bot):
   o = Osu(bot)

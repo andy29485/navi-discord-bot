@@ -85,10 +85,6 @@ class Osu:
     shows last played map for a user
     if no user is specified, shows your last played item
     """
-    #TODO - shows last played map for a user
-    #       if no user is specified, show linked user latest
-    #        self.conf['watched-users']['<discord id>']
-    #        if discord user is not linked, ask the to link using `.osu connect`
     auth = ctx.message.author.id
     if osu_username:
       user = osu_username
@@ -114,9 +110,29 @@ class Osu:
     print(em.to_dict())
     await self.bot.say(embed=em)
 
+  @_osu.command(name='disconnect', aliases=['u', 'unlink'], pass_context=True)
+  async def _osu_delink(self, ctx):
+    """
+    Unlinks a channel from watching an osu account
+    """
+    auth = ctx.message.author.id
+    chan = ctx.message.channel.id
+
+    if auth not in self.conf['watched-users']:
+      await self.bot.say("You arn't linked to an OSU account yet")
+      return
+
+    if chan not in self.conf['watched-users'][auth]['chans']:
+      await self.bot.say('This channel is not linked to your account')
+      return
+
+    self.conf['watched-users'][auth]['chans'].remove(chan)
+    self.conf.save()
+
+    await self.bot.say(formatter.ok("Channel is now unlinked"))
 
   @_osu.command(name='connect', aliases=['c', 'link'], pass_context=True)
-  async def _osu_watch(self, ctx, osu_username : str, top_scores : int = 50):
+  async def _osu_link(self, ctx, osu_username = '', top_scores : int = 50):
     """
     Links a discord user account to an osu account
     osu_username - the username that you go by on https://osu.ppy.sh
@@ -124,7 +140,9 @@ class Osu:
     """
     auth = ctx.message.author.id
     chan = ctx.message.channel.id
-    user = await self.api.get_user(osu_username)
+
+    user = self.conf['watched-users'].get(auth, {}).get('uid', None)
+    user = await self.api.get_user(osu_username or user)
     if not user:
       await self.bot.say('could not find user')
       return

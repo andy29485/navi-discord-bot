@@ -106,8 +106,6 @@ class Osu:
       return
 
     em = await self.osu_embed(last[0])
-    print(last[0].__dict__)
-    print(em.to_dict())
     await self.bot.say(embed=em)
 
   @_osu.command(name='disconnect', aliases=['u', 'unlink'], pass_context=True)
@@ -191,7 +189,7 @@ class Osu:
             em.title = f'New best #{i+1} for {name} - {em.title}'
             for chan_id in chans:
               try:
-                chan = await self.bot.get_channel(chan_id)
+                chan = self.bot.get_channel(chan_id)
                 await self.bot.send_message(chan, embed=em)
               except:
                 pass
@@ -205,7 +203,6 @@ class Osu:
 
   async def osu_embed(self, osu_obj):
     em = Embed()
-    print(str(type(osu_obj)))
 
     if type(osu_obj) == osuapi.model.Beatmap:
       length = osu_obj.total_length
@@ -247,32 +244,22 @@ class Osu:
       em.add_field(name='Play Count',value=str(osu_obj.playcount))
 
     elif type(osu_obj) in (osuapi.model.SoloScore, osuapi.model.RecentScore):
-      print(1)
       beatmap = await self.api.get_beatmaps(beatmap_id=osu_obj.beatmap_id)
       beatmap = beatmap[0]
-      print(type(beatmap))
       em      = await self.osu_embed(beatmap)
-      print(em.to_dict())
       rank    = osu_obj.rank.replace('X', 'SS')
       if type(osu_obj) == osuapi.model.SoloScore:
         score   = f'{osu_obj.score:,} ({rank} - {osu_obj.pp}pp)'
       else:
         score   = f'{osu_obj.score:,} ({rank})'
       combo   = f'{osu_obj.maxcombo}/{beatmap.max_combo}'
-      print(2)
 
       em.add_field(name='Score',    value=score)
       em.add_field(name='Combo',    value=combo)
       em.remove_field(5) # remove Max Combo
-      print(3)
 
-    print(4)
-    print(em.to_dict())
     if not em.thumbnail.url:
-      print(5)
       em.set_thumbnail(url=await self.get_thumb_url(osu_obj))
-    print(6)
-    print(em.to_dict())
     return em
 
   async def get_thumb_url(self, osu_obj):

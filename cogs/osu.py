@@ -100,7 +100,8 @@ class Osu:
       return
     user = user[0]
 
-    last = await self.api.get_user_recent(user.user_id)
+    last = await self.api.get_user_recent(user.user_id, limit=50)
+    last = [l for l in last if (not l.perfect) or (l.rank in 'SX')]
     if not last:
       await self.bot.say(f'No recent play history for {user.username}')
       return

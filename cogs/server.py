@@ -211,7 +211,7 @@ class Server:
     """
     adds role to requester(if in list)
     """
-    await _request_wrap(ctx, role)
+    await self._request_wrap(ctx, role)
 
   @_role.command(name='unrequest', aliases=['rmr', 'u'], pass_context=True)
   async def _unrequest(self, ctx, role : str):
@@ -271,7 +271,7 @@ class Server:
       await self.bot.say('role already in list')     #   report and stop
       return
     else: # otherwise add it to the list and end
-      self.conf[serv.id]['pub_roles'].append()
+      self.conf[serv.id]['pub_roles'].append(role.id)
 
     # save any changes to config file, and report success
     self.conf.save()
@@ -287,6 +287,7 @@ class Server:
     #   if not found, stop
     if type(role) != discord.Role:
       role = dh.get_role(serv, role)
+    if not role:
       await self.bot.say(error("could not find role, ask a mod to create it"))
       return
 
@@ -303,7 +304,12 @@ class Server:
     if date: # if a timeout was specified
       end_time = dh.get_end_time(date)[0]
       role_end = RoleStruct(end_time, role.id, auth.id, chann.id)
+      for index,role in enumerate(self.conf[serv.id]['end_role']):
+        if role_end == role:
+          heap.popFrom(self.conf[serv.id]['end_role'], index)
+          break
       heap.insertInto(self.conf[serv.id]['end_role'], role_end)
+      self.conf.save()
 
   # check if roles need to be removed from user, if they do, remove them
   async def remove_roles(self):

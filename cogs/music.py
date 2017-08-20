@@ -322,7 +322,7 @@ class Music:
       state.songs._queue.appendleft(item)
       state.songs._unfinished_tasks += 1
       state.songs._finished.clear()
-      state.songs._wakeup_next(self._getters)
+      state.songs._wakeup_next(state.songs._getters)
     else:
       await state.songs.put(entry)
 

@@ -87,7 +87,7 @@ class Server:
                          )
     )
 
-  @commands.group(name='role', aliases=['give', 'giveme', 'gimmie'],
+  @commands.group(name='role', aliases=['give', 'giveme', 'gimme'],
                   pass_context=True)
   async def _role(self, ctx):
     """

@@ -89,22 +89,29 @@ class Server:
 
   @commands.group(name='role', aliases=['give', 'giveme', 'gimmie'],
                   pass_context=True)
-  async def _role(self, ctx, role : str = ''):
+  async def _role(self, ctx):
     """
     Manage publicly available roles
     """
     # if no sub commands were called, guess at what the user wanted to do
     if ctx.invoked_subcommand is None:
+      msg = ctx.message.content.split() # attempt to parse args
+      if len(msg) < 2:
+        await self.bot.say('see help (`.help role`)')
+        return
+      role = msg[1]
+      date = ' '.join(msg[2:])
+
       # if the user cannot manage roles, then they must be requesting a role
       #   or they are trying to do something that they are not allowed to
       if not perms.check_permissions(ctx.message, manage_roles=True):
-        await self._request_wrap(ctx, role) # attempt to request role
+        await self._request_wrap(ctx, role, date) # attempt to request role
         return
 
       #if the user does have permission to manage, they must be an admin/mod
       #  ask them what they want to do - since they clearly did not know what
       #  they were trying to do
-      await self.bot.say('Are you trying to [a]dd a new role' + \
+      await self.bot.say('Are you trying to [a]dd a new role ' + \
                          'or are you [r]equesting this role for yourself?'
       )
       try: # wait for them to reply
@@ -120,7 +127,7 @@ class Server:
       if msg.startswith('a') or 'add' in msg:       # adding new role to list
         await self._add_wrap(ctx, role)
       elif msg.startswith('r') or 'request' in msg: # requesting existing role
-        await self._request_wrap(ctx, role)
+        await self._request_wrap(ctx, role, date)
       else:                                         # they can't read
         await self.bot.say(error('I have no idea what you are attempting' + \
                                  ' to do, maybe look at the help?')
@@ -242,7 +249,7 @@ class Server:
     # if it is not found, create a new role
     role_str = role
     if type(role) != discord.Role:
-      role = dh.get_role(role_str)
+      role = dh.get_role(serv, role_str)
     if not role:
       role = await self.bot.create_role(serv, name=role_name, mentionable=True)
 
@@ -279,7 +286,7 @@ class Server:
     # attempt to find the role if a string was given,
     #   if not found, stop
     if type(role) != discord.Role:
-      role = dh.get_role(role)
+      role = dh.get_role(serv, role)
       await self.bot.say(error("could not find role, ask a mod to create it"))
       return
 
@@ -298,6 +305,7 @@ class Server:
       role_end = RoleStruct(end_time, role.id, auth.id, chann.id)
       heap.insertInto(self.conf[serv.id]['end_role'], role_end)
 
+  # check if roles need to be removed from user, if they do, remove them
   async def remove_roles(self):
     while self == self.bot.get_cog('Server'): # in case of cog reload, stop
       for serv_id, conf in self.conf.items():

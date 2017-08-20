@@ -199,6 +199,7 @@ class Music:
 
     flags:
       -r and -s will shuffle the songs
+      -n will queue next instead of queue last
       -a and -m will enable playing multiple songs
         if no number is specified then all songs will be played
         if  a number is specified then that many song will play
@@ -220,6 +221,7 @@ class Music:
     This command searchs emby for a song
     """
     search = search.split(' ')
+    qnext  = False
     mult   = False
     shuf   = False
     num    = 0
@@ -233,10 +235,13 @@ class Music:
         for flag in search[0][1:]:
           if flag in 'am':
             search = search[1:]
-            mult  = True
+            mult   = True
           elif flag in 'rs':
             search = search[1:]
-            shuf  = True
+            shuf   = True
+          elif flag in 'n':
+            search = search[1:]
+            qnext  = True
           else:
             break
         else:
@@ -292,11 +297,14 @@ class Music:
             songs_str += '{:02} - {}\n'.format(i.index_number, i.name)
           else:
             songs_str += '{}\n'.format(i.name)
-          await self._play_emby(ctx, state, i, display=False)
+          await self._play_emby(ctx, state, i, display=False, qnext=qnext)
+        if qnext:
+          songs_str = songs_str.split('\n')
+          songs_str = '\n'.join(songs_str[::-1])
         em.add_field(name='Items', value=songs_str)
         await self.bot.say(embed=em)
       else:
-        await self._play_emby(ctx, state, random.choice(items))
+        await self._play_emby(ctx, state, random.choice(items), qnext=qnext)
 
     except Exception as e:
       fmt='An error occurred while processing this request: ```py\n{}: {}\n```'
@@ -305,12 +313,18 @@ class Music:
       )
       raise
 
-  async def _play_emby(self, ctx, state, item, display=True):
+  async def _play_emby(self, ctx, state, item, display=True,, qnext=False):
     entry = VoiceEntry(ctx.message, item=item)
     if display:
       em = await emby_helper.makeEmbed(item, 'Queued: ')
       await self.bot.say(embed=em)
-    await state.songs.put(entry)
+    if qnext:
+      state.songs._queue.appendleft(item)
+      state.songs._unfinished_tasks += 1
+      state.songs._finished.clear()
+      state.songs._wakeup_next(self._getters)
+    else:
+      await state.songs.put(entry)
 
   @commands.command(pass_context=True, no_pm=True)
   async def volume(self, ctx, value : int):

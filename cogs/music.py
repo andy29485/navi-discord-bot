@@ -313,7 +313,7 @@ class Music:
       )
       raise
 
-  async def _play_emby(self, ctx, state, item, display=True,, qnext=False):
+  async def _play_emby(self, ctx, state, item, display=True, qnext=False):
     entry = VoiceEntry(ctx.message, item=item)
     if display:
       em = await emby_helper.makeEmbed(item, 'Queued: ')

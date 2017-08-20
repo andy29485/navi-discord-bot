@@ -126,6 +126,8 @@ class Server:
       msg = msg.content.lower()
       if msg.startswith('a') or 'add' in msg:       # adding new role to list
         await self._add_wrap(ctx, role)
+        reply = f"Please run `.role request {role}` to get the \"{role}\" role"
+        await self.bot.say(reply)
       elif msg.startswith('r') or 'request' in msg: # requesting existing role
         await self._request_wrap(ctx, role, date)
       else:                                         # they can't read
@@ -206,7 +208,7 @@ class Server:
     else:                          # if role is not in server, just report
       await self.bot.say(error('role is not in the list'))
 
-  @_role.command(name='request', pass_context=True)
+  @_role.command(name='request', aliases=['r'], pass_context=True)
   async def _request(self, ctx, role : str, date : str = ''):
     """
     adds role to requester(if in list)
@@ -251,7 +253,8 @@ class Server:
     if type(role) != discord.Role:
       role = dh.get_role(serv, role_str)
     if not role:
-      role = await self.bot.create_role(serv, name=role_name, mentionable=True)
+      role = await self.bot.create_role(serv, name=role_str, mentionable=True)
+      await self.bot.say(ok(f'New role created: {role_str}'))
 
     # if still no role, report and stop
     if not role:

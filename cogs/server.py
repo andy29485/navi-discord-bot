@@ -14,6 +14,7 @@ from cogs.utils.format import *
 from cogs.utils.config import Config
 from cogs.utils.timeout import Timeout
 from cogs.utils import discord_helper as dh
+from cogs.utils.role_removals import RoleStruct
 
 # wrapper class for embeds,
 #   just stores a dict, and returns the dict when to_dict is called
@@ -32,7 +33,10 @@ class Server:
   def __init__(self, bot):
     self.bot      = bot
     self.conf     = Config('configs/server.json')
-    self.cut      = {}                             # cuts get lost on restart
+    self.cut      = {}
+
+    self.bot.loop.create_task(self.remove_roles())
+    self.bot.loop.create_task(self.check_timeouts())
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='prune', pass_context=True)
@@ -83,35 +87,46 @@ class Server:
                          )
     )
 
-  @commands.group(name='role', pass_context=True)
+  @commands.group(name='role', aliases=['give', 'giveme', 'gimmie'],
+                  pass_context=True)
   async def _role(self, ctx, role : str = ''):
     """
     Manage publicly available roles
     """
+    # if no sub commands were called, guess at what the user wanted to do
     if ctx.invoked_subcommand is None:
+      # if the user cannot manage roles, then they must be requesting a role
+      #   or they are trying to do something that they are not allowed to
+      if not perms.check_permissions(ctx.message, manage_roles=True):
+        await self._request_wrap(ctx, role) # attempt to request role
+        return
+
+      #if the user does have permission to manage, they must be an admin/mod
+      #  ask them what they want to do - since they clearly did not know what
+      #  they were trying to do
       await self.bot.say('Are you trying to [a]dd a new role' + \
                          'or are you [r]equesting this role for yourself?'
       )
-      try:
+      try: # wait for them to reply
         msg = await self.bot.wait_for_message(30, author=ctx.message.author,
                                                   channel=ctx.message.channel
         )
-      except:
-        msg = None
-      if msg:
-        msg = msg.content.lower()
-        if msg.startswith('a') or 'add' in msg:
-          await self._add_wrap(ctx, role)
-        elif msg.startswith('r') or 'request ' in msg:
-          await self._add_wr_request_wrap(ctx, role)
-        else:
-          await self.bot.say(error('I have no idea what you are attempting' + \
-                                   ' to do, maybe look at the help?')
-          )
-      else:
+      except: # if they do not reply, give them a helpful reply
+            #   without commenting on their IQ
         await self.bot.say(error('Response timeout, maybe look at the help?'))
+        return
+      # if a reply was recived, check what they wanted to do and pass along
+      msg = msg.content.lower()
+      if msg.startswith('a') or 'add' in msg:       # adding new role to list
+        await self._add_wrap(ctx, role)
+      elif msg.startswith('r') or 'request' in msg: # requesting existing role
+        await self._request_wrap(ctx, role)
+      else:                                         # they can't read
+        await self.bot.say(error('I have no idea what you are attempting' + \
+                                 ' to do, maybe look at the help?')
+        )
 
-  @_role.command(name='add', pass_context=True)
+  @_role.command(name='add', aliases=['create', 'a'], pass_context=True)
   @perms.has_perms(manage_roles=True)
   async def _add(self, ctx, role : str):
     """
@@ -119,127 +134,189 @@ class Server:
     """
     await self._add_wrap(ctx, role)
 
-  @_role.command(name='create', pass_context=True)
-  @perms.has_perms(manage_roles=True)
-  async def _create(self, ctx, role_name : str):
-    """
-    creates and adds a new role to list of public roles
-    """
-    serv = ctx.message.server
-    role = await self.bot.create_role(serv, name=role_name, mentionable=True)
-    await self._add_wrap(ctx, role)
-
-  @_role.command(name='list', aliases=['ls'], pass_context=True)
+  @_role.command(name='list', aliases=['ls', 'l'], pass_context=True)
   async def _list(self, ctx):
     """
     lists public roles avalible in the server
     """
+
+    # pull roles out of the config file
     serv            = ctx.message.server
     names           = []
     m_len           = 0
     available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
 
+    # if no roles, say so
     if not available_roles:
       await self.bot.say('no public roles in this server\n' + \
                          ' see `.help role create` and `.help role add`'
       )
       return
 
+    # For each id in list
+    #   find matching role in server
+    #   if role exists, add it to the role list
+    # Note: this block also finds the strlen of the longest role name,
+    #       this will be used later for formatting
     for role_id in available_roles:
       role = discord.utils.find(lambda r: r.id == role_id, serv.roles)
       if role:
         names.append(role.name)
         m_len = max(m_len, len(role.name))
 
+    # create a message with each role name and id on a seperate line
+    # seperators(role - id) should align due to spacing - this is what the
+    #   lenght of the longest role name is used for
     msg  = 'Roles:\n```'
     line = '{{:{}}} - {{}}\n'.format(m_len)
     for name,rid in zip(names, self.conf[serv.id]['pub_roles']):
       msg += line.format(name, rid)
+
+    # send message with role list
     await self.bot.say(msg+'```')
 
-  @_role.command(name='delete', pass_context=True)
+  @_role.command(name='remove', aliases=['rm'], pass_context=True)
   @perms.has_perms(manage_roles=True)
-  async def _delete(self, ctx, role : discord.Role):
+  async def _delete(self, ctx, role : str):
     """
     removes role from list of public roles
     """
-    serv = ctx.message.server
 
+    # attempt to find specified role and get list of roles in server
+    serv            = ctx.message.server
+    role            = dh.get_role(serv, role)
     available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
-    if role.id in available_roles:
+
+    # if user failed to specify role, complain
+    if not role:
+      await self.bot.say('Please specify a valid role')
+      return
+
+    if role.id in available_roles: # if role is found, remove and report
       self.conf[serv.id]['pub_roles'].remove(role.id)
+      self.conf.save()
       await self.bot.say(ok('role removed from public list'))
-    else:
+    else:                          # if role is not in server, just report
       await self.bot.say(error('role is not in the list'))
 
   @_role.command(name='request', pass_context=True)
-  async def _request(self, ctx, role : str):
+  async def _request(self, ctx, role : str, date : str = ''):
+    """
+    adds role to requester(if in list)
+    """
     await _request_wrap(ctx, role)
 
-  @_role.command(name='unrequest', aliases=['requestrm'], pass_context=True)
-  async def _unrequest(self, ctx, role : discord.Role):
+  @_role.command(name='unrequest', aliases=['rmr', 'u'], pass_context=True)
+  async def _unrequest(self, ctx, role : str):
     """removes role from requester(if in list)"""
+
+    # attempt to find role that user specied for removal
     auth = ctx.message.author
     serv = ctx.message.server
+    role = dh.get_role(serv, role)
 
+    # if user failed to find specify role, complain
+    if not role:
+      await self.bot.say('Please specify a valid role')
+      return
+
+    # get a list of roles that are listed as public and the user roles
     available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
-    found           = discord.utils.find(lambda r: r.id == role.id, auth.roles)
+    user_roles      = discord.utils.find(lambda r: r.id == role.id, auth.roles)
 
-    if role.id in available_roles and found:
+    # ONLY remove roles if they are in the public roles list
+    # Unless there is no list,
+    #   in which case any of the user's roles can be removed
+    if role.id in available_roles or user_roles:
       await self.bot.remove_roles(auth, role)
       await self.bot.say(ok('you no longer have that role'))
     else:
       await self.bot.say(error('I\'m afraid that I can\'t remove that role'))
 
 
+  # wrapper function for adding roles to public list
   async def _add_wrap(self, ctx, role):
     serv = ctx.message.server
 
+    # find the role,
+    # if it is not found, create a new role
+    role_str = role
     if type(role) != discord.Role:
-      role = dh.get_role(role)
-
+      role = dh.get_role(role_str)
     if not role:
-      await self.bot.say(error("could not find role"))
-      # honestly I could probably just do:
-      #role = await self.bot.create_role(serv, name=role_name, mentionable=True)
-      # but instead, error and return
+      role = await self.bot.create_role(serv, name=role_name, mentionable=True)
+
+    # if still no role, report and stop
+    if not role:
+      await self.bot.say(error("could not find or create role role"))
       return
 
+    # The @everyone role (also @here iiuc) cannot be given/taken
     if role.is_everyone:
       await self.bot.say(error('umm... no'))
       return
 
-    if serv.id not in self.conf:
-      self.conf[serv.id] = {'pub_roles': []}
-    if 'pub_roles' not in self.conf[serv.id]:
-      self.conf[serv.id]['pub_roles'] = []
-
-    if role.id in self.conf[serv.id]['pub_roles']:
-      await self.bot.say('role already in list')
+    if serv.id not in self.conf: # if server does not have a list yet create it
+      self.conf[serv.id] = {'end_role':[], 'pub_roles': [role.id]}
+    elif 'pub_roles' not in self.conf[serv.id]:   # if list is corruptted
+      self.conf[serv.id]['pub_roles'] = [role.id] # fix it
+    elif role.id in self.conf[serv.id]['pub_roles']: # if role is already there
+      await self.bot.say('role already in list')     #   report and stop
       return
+    else: # otherwise add it to the list and end
+      self.conf[serv.id]['pub_roles'].append()
 
-    self.conf[serv.id]['pub_roles'].append(role.id)
+    # save any changes to config file, and report success
     self.conf.save()
     await self.bot.say(ok('role added to public role list'))
 
-  async def _request_wrap(self, ctx, role):
-    """
-    adds role to requester(if in list)
-    """
+  # wrapper function for getting roles that are on the list
+  async def _request_wrap(self, ctx, role, date = ''):
     auth = ctx.message.author
+    chan = ctx.message.channel
     serv = ctx.message.server
 
+    # attempt to find the role if a string was given,
+    #   if not found, stop
     if type(role) != discord.Role:
       role = dh.get_role(role)
       await self.bot.say(error("could not find role, ask a mod to create it"))
       return
 
+    # get list of public roles
     available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
-    if role.id in available_roles:
-      await self.bot.add_roles(auth, role)
+
+    if role.id in available_roles:         # if role is a public role,
+      await self.bot.add_roles(auth, role) #   give it
       await self.bot.say(ok('you now have that role'))
-    else:
+    else:                                  # otherwise don't
       await self.bot.say(error('I\'m afraid that I can\'t give you that role'))
+      return
+
+    if date: # if a timeout was specified
+      end_time = dh.get_end_time(date)[0]
+      role_end = RoleStruct(end_time, role.id, auth.id, chann.id)
+      heap.insertInto(self.conf[serv.id]['end_role'], role_end)
+
+  async def remove_roles(self):
+    while self == self.bot.get_cog('Server'): # in case of cog reload, stop
+      for serv_id, conf in self.conf.items():
+        serv = self.bot.get_server(serv_id)
+        while conf.get('end_role', None) and conf['end_role'][0].time_left < 1:
+          role = heap.popFrom(conf['end_role'])  # remove role from list
+          auth = dh.get_user(serv, role.auth)    # get author info
+          chan = dh.get_channel(serv, role.chan) # get channel info
+          role = dh.get_user(serv, role.role)    # get role info
+
+          # remove the role
+          await self.bot.remove_roles(auth, role)
+
+          # create a message, and report that role has been removed
+          msg = f"{auth.mention}: role {role.name} has been removed"
+          await self.bot.send_message(channel, msg)
+
+      await asyncio.sleep(15) # wait a bit before checking again
+
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='cut', pass_context=True)
@@ -523,7 +600,11 @@ class Server:
       await self.bot.say('{} is not in timeout...'.format(member.name))
       return
 
+  # checks timeouts and restores perms when timout expires
   async def check_timeouts(self):
+    if 'timeouts' not in Timeout.conf: #create timeouts list if needed
+      Timeout.conf['timeouts'] = []
+
     while self == self.bot.get_cog('Server'): # in case of cog reload
       # while timeouts exist, and the next one's time has come,
       #   end it

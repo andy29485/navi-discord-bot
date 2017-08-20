@@ -53,6 +53,7 @@ def as_obj(dct):
     - Reminders
     - Timeouts
   '''
+  from cogs.utils.role_removals import RoleStruct
   from cogs.utils.reminders import Reminder
   from cogs.utils.timeout import Timeout
   if '__reminder__' in dct:
@@ -63,17 +64,25 @@ def as_obj(dct):
     return Timeout(dct['channel_id'], dct['server_id'], dct['user_id'],
                     dct['end_time'], dct['roles'], importing=True
     )
+  elif '__role_rem__' in dct:
+    return RoleStruct(dct['end_time'],  dct['role_id'],
+                      dct['author_id'], dct['channel_id']
+    )
   return dct
 
 # convert python obj to json obj
 # supports same conversions as the function that goes the other way
 class ObjEncoder(json.JSONEncoder):
   def default(self, obj):
+    from cogs.utils.role_removals import RoleStruct
     from cogs.utils.reminders import Reminder
     from cogs.utils.timeout import Timeout
+
     if isinstance(obj, Reminder):
       return obj.to_dict()
     elif isinstance(obj, Timeout):
+      return obj.to_dict()
+    elif isinstance(obj, RoleStruct):
       return obj.to_dict()
     # Let the base class default method raise the TypeError
     return json.JSONEncoder.default(self, obj)

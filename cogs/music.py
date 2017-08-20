@@ -319,7 +319,7 @@ class Music:
       em = await emby_helper.makeEmbed(item, 'Queued: ')
       await self.bot.say(embed=em)
     if qnext:
-      state.songs._queue.appendleft(item)
+      state.songs._queue.appendleft(entry)
       state.songs._unfinished_tasks += 1
       state.songs._finished.clear()
       state.songs._wakeup_next(state.songs._getters)
@@ -357,7 +357,7 @@ class Music:
     em = await emby_helper.makeEmbed(self.conn, 'Queued: ')
     songs_str = ''
     for index,song in zip(range(1,31),songs):
-      item = song.item
+      item = getattr(song, 'item', None)
       if item:
         songs_str += '{:02} - {}\n'.format(index, item.name)
       else:

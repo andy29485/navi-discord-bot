@@ -114,7 +114,7 @@ def get_user(server, search_param):
   for user in server.members:
     if name == user.name and discr in str(user.discriminator):
       return user
-    if name in (user.name.lower(), getattr(user, 'nick', '').lower()):
+    if name in (user.name.lower(), (user.nick or '').lower()):
       return user
 
   return None

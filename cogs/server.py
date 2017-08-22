@@ -213,7 +213,7 @@ class Server:
     """
     adds role to requester(if in list)
     """
-    await self._request_wrap(ctx, role)
+    await self._request_wrap(ctx, role, date)
 
   @_role.command(name='unrequest', aliases=['rmr', 'u'], pass_context=True)
   async def _unrequest(self, ctx, role : str):
@@ -307,7 +307,7 @@ class Server:
     if date: # if a timeout was specified
       end_time = dh.get_end_time(date)[0]
       print(end_time)
-      role_end = RoleStruct(end_time, role.id, auth.id, chann.id, serv.id)
+      role_end = RoleStruct(end_time, role.id, auth.id, chan.id, serv.id)
       if 'end_role' not in self.conf:
         self.conf['end_role'] = []
       for index,role in enumerate(self.conf['end_role']):

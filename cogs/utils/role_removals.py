@@ -38,26 +38,6 @@ class RoleStruct:
     return d
 
   @property
-  def end_time():
-    return self.end_time
-  
-  @property
-  def role_id():
-    return self.role_id
-
-  @property
-  def serv_id():
-    return self.serv_id
-
-  @property
-  def channel_id():
-    return self.channel_id
-
-  @property
-  def author_id():
-    return self.author_id
-
-  @property
   def time_left():
     '''
     return number of seconds left

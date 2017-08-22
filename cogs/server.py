@@ -306,7 +306,8 @@ class Server:
 
     if date: # if a timeout was specified
       end_time = dh.get_end_time(date)[0]
-      role_end = RoleStruct(end_time, role.id, auth.id, chann.id)
+      print(end_time)
+      role_end = RoleStruct(end_time, role.id, auth.id, chann.id, serv.id)
       if 'end_role' not in self.conf:
         self.conf['end_role'] = []
       for index,role in enumerate(self.conf['end_role']):
@@ -319,15 +320,22 @@ class Server:
   # check if roles need to be removed from user, if they do, remove them
   async def remove_roles(self):
     while self == self.bot.get_cog('Server'): # in case of cog reload, stop
+      print(self.conf.get('end_role', {}))
       while self.conf.get('end_role') and self.conf['end_role'][0].time_left<1:
+        print(2)
         role = heap.popFrom(self.conf['end_role'])  # remove role from list
-        serv = self.bot.get_server( role.serv) # get server info
-        auth = dh.get_user(serv,    role.auth) # get author info
-        chan = dh.get_channel(serv, role.chan) # get channel info
-        role = dh.get_user(serv,    role.role) # get role info
+        print(role.to_dict())
+        serv = self.bot.get_server(role.serv)       # get server info
+        auth = dh.get_user(serv,   role.auth)       # get author info
+        chan = dh.get_channel(serv,role.chan)       # get channel info
+        role = dh.get_user(serv,   role.role)       # get role info
+
+        print(3)
 
         # remove the role
         await self.bot.remove_roles(auth, role)
+
+        print(4)
 
         # create a message, and report that role has been removed
         msg = f"{auth.mention}: role {role.name} has been removed"

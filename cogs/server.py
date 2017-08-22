@@ -15,6 +15,7 @@ from cogs.utils.config import Config
 from cogs.utils.timeout import Timeout
 from cogs.utils import discord_helper as dh
 from cogs.utils.role_removals import RoleStruct
+import cogs.utils.heap as heap
 
 # wrapper class for embeds,
 #   just stores a dict, and returns the dict when to_dict is called
@@ -325,10 +326,10 @@ class Server:
         print(2)
         role = heap.popFrom(self.conf['end_role'])  # remove role from list
         print(role.to_dict())
-        serv = self.bot.get_server(role.serv)       # get server info
-        auth = dh.get_user(serv,   role.auth)       # get author info
-        chan = dh.get_channel(serv,role.chan)       # get channel info
-        role = dh.get_user(serv,   role.role)       # get role info
+        serv = self.bot.get_server(role.serv_id)     # get server info
+        auth = dh.get_user(serv,   role.auth_id)     # get author info
+        chan = dh.get_channel(serv,role.chan_id)     # get channel info
+        role = dh.get_user(serv,   role.role_id)     # get role info
 
         print(3)
 

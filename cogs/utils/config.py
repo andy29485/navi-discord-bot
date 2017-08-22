@@ -66,7 +66,7 @@ def as_obj(dct):
     )
   elif '__role_rem__' in dct:
     return RoleStruct(dct['end_time'],  dct['role_id'],
-                      dct['author_id'], dct['channel_id'], dct['serv_id']
+                      dct['auth_id'],   dct['chan_id'], dct['serv_id']
     )
   return dct
 

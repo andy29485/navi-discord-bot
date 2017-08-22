@@ -7,10 +7,11 @@ from cogs.utils import discord_helper as dh
 
 class Reminder:
   def __init__(self, channel_id, user_id, message, end_time=0):
-    self.channel_id = channel_id
-    self.user_id    = user_id
+    self.user_id    = getattr(user_id,    'id',    user_id)
+    self.channel_id = getattr(channel_id, 'id', channel_id)
     self.message    = message
     self.end_time   = end_time
+
     if not end_time:
       self.parse_time()
 

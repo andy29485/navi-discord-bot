@@ -267,7 +267,7 @@ class Server:
       return
 
     if serv.id not in self.conf: # if server does not have a list yet create it
-      self.conf[serv.id] = {'end_role':[], 'pub_roles': [role.id]}
+      self.conf[serv.id] = {'pub_roles': [role.id]}
     elif 'pub_roles' not in self.conf[serv.id]:   # if list is corruptted
       self.conf[serv.id]['pub_roles'] = [role.id] # fix it
     elif role.id in self.conf[serv.id]['pub_roles']: # if role is already there
@@ -307,30 +307,31 @@ class Server:
     if date: # if a timeout was specified
       end_time = dh.get_end_time(date)[0]
       role_end = RoleStruct(end_time, role.id, auth.id, chann.id)
-      for index,role in enumerate(self.conf[serv.id]['end_role']):
+      if 'end_role' not in self.conf:
+        self.conf['end_role'] = []
+      for index,role in enumerate(self.conf['end_role']):
         if role_end == role:
-          heap.popFrom(self.conf[serv.id]['end_role'], index)
+          heap.popFrom(self.conf['end_role'], index)
           break
-      heap.insertInto(self.conf[serv.id]['end_role'], role_end)
+      heap.insertInto(self.conf['end_role'], role_end)
       self.conf.save()
 
   # check if roles need to be removed from user, if they do, remove them
   async def remove_roles(self):
     while self == self.bot.get_cog('Server'): # in case of cog reload, stop
-      for serv_id, conf in self.conf.items():
-        serv = self.bot.get_server(serv_id)
-        while conf.get('end_role', None) and conf['end_role'][0].time_left < 1:
-          role = heap.popFrom(conf['end_role'])  # remove role from list
-          auth = dh.get_user(serv, role.auth)    # get author info
-          chan = dh.get_channel(serv, role.chan) # get channel info
-          role = dh.get_user(serv, role.role)    # get role info
+      while self.conf.get('end_role') and self.conf['end_role'][0].time_left<1:
+        role = heap.popFrom(self.conf['end_role'])  # remove role from list
+        serv = self.bot.get_server( role.serv) # get server info
+        auth = dh.get_user(serv,    role.auth) # get author info
+        chan = dh.get_channel(serv, role.chan) # get channel info
+        role = dh.get_user(serv,    role.role) # get role info
 
-          # remove the role
-          await self.bot.remove_roles(auth, role)
+        # remove the role
+        await self.bot.remove_roles(auth, role)
 
-          # create a message, and report that role has been removed
-          msg = f"{auth.mention}: role {role.name} has been removed"
-          await self.bot.send_message(channel, msg)
+        # create a message, and report that role has been removed
+        msg = f"{auth.mention}: role {role.name} has been removed"
+        await self.bot.send_message(channel, msg)
 
       await asyncio.sleep(15) # wait a bit before checking again
 

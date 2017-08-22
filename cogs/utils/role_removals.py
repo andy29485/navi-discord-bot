@@ -3,7 +3,7 @@
 import time
 
 class RoleStruct:
-  def __init__(self, end_time, role_id, author_id, channel_id):
+  def __init__(self, end_time, role_id, author_id, channel_id, serv_id):
     self.end_time   = end_time
     self.role_id    = getattr(role_id,    'id',     role_id)
     self.author_id  = getattr(author_id,  'id',   author_id)

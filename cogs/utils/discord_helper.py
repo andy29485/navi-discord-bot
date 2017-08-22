@@ -2,6 +2,7 @@
 
 import datetime
 import discord
+import time
 import re
 
 id_pattern   = re.compile('<?[@#][!&]?([0-9]{15,21})>?')

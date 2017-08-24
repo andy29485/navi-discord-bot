@@ -4,6 +4,7 @@ from cogs.utils import puush
 from discord import Embed
 import hashlib
 import asyncio
+import requests
 from cogs.utils.config import Config
 from embypy import Emby as EmbyPy
 

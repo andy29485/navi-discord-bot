@@ -35,10 +35,8 @@ async def makeEmbed(item, message=''):
   else:
     name = item.name or '<No name>'
   em = Embed()
-  img_url          = item.primary_image_url
-  if 'https' in img_url:
-    img_url        = await loop.run_in_executor(None, puush.get_url, img_url)
-  em.title         = message+name
+  img       = requests.get(item.primary_image_url)
+  em.title  = message+name
   if hasattr(item, 'overview') and item.overview:
     if len(item.overview) > 250:
       des = item.overview[:247] + '...'
@@ -49,7 +47,8 @@ async def makeEmbed(item, message=''):
     em.description = item.media_type
   em.url           = item.url
   em.colour        = getColour(item.id)
-  em.set_thumbnail(url=img_url)
+  if img.ok:
+    em.set_thumbnail(url=img.url)
   if hasattr(item, 'artist_names'):
     if len(item.artist_names) == 1:
       em.add_field(name='Artist: ', value=item.artist_names[0])

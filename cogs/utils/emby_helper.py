@@ -52,9 +52,9 @@ async def makeEmbed(item, message=''):
     em.set_thumbnail(url=img.url)
   if hasattr(item, 'artist_names'):
     if len(item.artist_names) == 1:
-      em.add_field(name='Artist: ', value=item.artist_names[0])
+      em.add_field(name='Artist ', value=item.artist_names[0])
     else:
-      em.add_field(name='Artists: ', value=', '.join(item.artist_names))
+      em.add_field(name='Artists ', value=', '.join(item.artist_names))
   if hasattr(item, 'genres') and item.genres:
     em.add_field(name='Tags', value=', '.join(item.genres))
   if item.object_dict.get('RunTimeTicks', None):

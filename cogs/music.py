@@ -143,15 +143,7 @@ class Music:
     self.bot.loop.create_task(self.update_db())
 
   async def update_db(self):
-    self.conn.update()
-    while not self.conn.playlists:
-      pass
-    while not self.conn.songs:
-      pass
-    while not self.conn.albums:
-      pass
-    while not self.conn.artists:
-      pass
+    await self.bot.loop.run_in_executor(None, self.conn.update)
     await asyncio.sleep(120)
 
   def get_voice_state(self, server):

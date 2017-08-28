@@ -65,6 +65,7 @@ async def makeEmbed(item, message=''):
     if d > 1:
       d = '{:02}:{:02}:{:02}'.format(d//3600, d//60, d%60)
       em.add_field(name='Duration', value=d)
+  print(em.to_dict())
   return em
 
 def getColour(string : str):

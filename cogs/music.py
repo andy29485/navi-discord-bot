@@ -143,12 +143,13 @@ class Music:
     self.bot.loop.create_task(self.update_db())
 
   async def update_db(self):
-    await self.bot.loop.run_in_executor(None, self.conn.update)
-    for item in ('playlists', 'songs', 'albums', 'artists'):
-      prop = lambda: getattr(self.conn, item)
-      await self.bot.loop.run_in_executor(None, prop)
-      print(item)
-    await asyncio.sleep(120)
+    while self = self.bot.get_cog('Music'):
+      await self.bot.loop.run_in_executor(None, self.conn.update)
+      for item in ('playlists', 'songs', 'albums', 'artists'):
+        prop = lambda: getattr(self.conn, item)
+        await self.bot.loop.run_in_executor(None, prop)
+        print(item)
+      await asyncio.sleep(120)
 
   @commands.group(pass_context=True, aliases=['m'])
   async def music(self, ctx):

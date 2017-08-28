@@ -143,7 +143,7 @@ class Music:
     self.bot.loop.create_task(self.update_db())
 
   async def update_db(self):
-    while self = self.bot.get_cog('Music'):
+    while self == self.bot.get_cog('Music'):
       await self.bot.loop.run_in_executor(None, self.conn.update)
       for item in ('playlists', 'songs', 'albums', 'artists'):
         prop = lambda: getattr(self.conn, item)

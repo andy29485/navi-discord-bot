@@ -146,6 +146,11 @@ class Music:
     await self.bot.loop.run_in_executor(None, self.conn.update)
     await asyncio.sleep(120)
 
+  @commands.group(pass_context=True, aliases=['m'])
+  async def music(self, ctx):
+    """Manage music player stuff"""
+    if ctx.invoked_subcommand is None:
+
   def get_voice_state(self, server):
     state = self.voice_states.get(server.id)
     if state is None:
@@ -168,7 +173,7 @@ class Music:
       except:
         pass
 
-  @commands.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, no_pm=True)
   async def join(self, ctx, *, channel : discord.Channel):
     """Joins a voice channel."""
     try:
@@ -180,7 +185,7 @@ class Music:
     else:
       await self.bot.say('Ready to play audio in ' + channel.name)
 
-  @commands.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, no_pm=True)
   async def summon(self, ctx):
     """Summons the bot to join your voice channel."""
     summoned_channel = ctx.message.author.voice_channel
@@ -196,7 +201,7 @@ class Music:
 
     return True
 
-  @commands.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, aliases=['p'], no_pm=True)
   async def play(self, ctx, *, search : str):
     """Plays a searched song from emby.
 
@@ -331,7 +336,15 @@ class Music:
     else:
       await state.songs.put(entry)
 
-  @commands.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, aliases=['shuff'], no_pm=True)
+  async def shuffle(self, ctx, value : int):
+    """Shuffles the queue (excluding the current song)"""
+
+    state = self.get_voice_state(ctx.message.server)
+    if state.is_playing():
+      random.shuffle(state.songs._queue)
+
+  @music.command(pass_context=True, aliases=['v'], no_pm=True)
   async def volume(self, ctx, value : int):
     """Sets the volume of the currently playing song."""
 
@@ -341,7 +354,7 @@ class Music:
       player.volume = value / 100
       await self.bot.say('Set the volume to {:.0%}'.format(player.volume))
 
-  @commands.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, no_pm=True)
   async def pause(self, ctx):
     """Pauses the currently played song."""
     state = self.get_voice_state(ctx.message.server)
@@ -349,7 +362,7 @@ class Music:
       player = state.player
       player.pause()
 
-  @commands.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, aliases=['q'], no_pm=True)
   async def queue(self, ctx):
     """Checks the song queue, up to 30."""
     state = self.get_voice_state(ctx.message.server)
@@ -370,7 +383,7 @@ class Music:
     em.add_field(name='Items', value=songs_str)
     await self.bot.say(embed=em)
 
-  @commands.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, no_pm=True)
   async def resume(self, ctx):
     """Resumes the currently played song."""
     state = self.get_voice_state(ctx.message.server)
@@ -378,7 +391,7 @@ class Music:
       player = state.player
       player.resume()
 
-  @commands.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, aliases=['s'], no_pm=True)
   async def stop(self, ctx):
     """Stops playing audio and leaves the voice channel.
 
@@ -389,7 +402,7 @@ class Music:
 
     await state.stop()
 
-  @commands.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, no_pm=True)
   async def skip(self, ctx):
     """Vote to skip a song. The song requester can automatically skip.
 
@@ -418,7 +431,7 @@ class Music:
     else:
       await self.bot.say('You have already voted to skip this song.')
 
-  @commands.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, aliases=['np'], no_pm=True)
   async def playing(self, ctx):
     """Shows info about the currently played song."""
 

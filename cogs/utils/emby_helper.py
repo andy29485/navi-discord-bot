@@ -5,6 +5,7 @@ from discord import Embed
 import hashlib
 import asyncio
 import requests
+import aiohttp
 from cogs.utils.config import Config
 from embypy import Emby as EmbyPy
 
@@ -36,7 +37,7 @@ async def makeEmbed(item, message=''):
   else:
     name = item.name or '<No name>'
   em = Embed()
-  img       = requests.get(item.primary_image_url)
+  img       = aiohttp.get(item.primary_image_url)
   em.title  = message+name
   if hasattr(item, 'overview') and item.overview:
     if len(item.overview) > 250:
@@ -50,6 +51,8 @@ async def makeEmbed(item, message=''):
   em.colour        = getColour(item.id)
   if img.ok:
     em.set_thumbnail(url=img.url)
+  else:
+    em.set_thumbnail(url=item.parent.primary_image_url)
   if hasattr(item, 'artist_names'):
     if len(item.artist_names) == 1:
       em.add_field(name='Artist ', value=item.artist_names[0])

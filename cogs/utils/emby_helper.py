@@ -37,7 +37,7 @@ async def makeEmbed(item, message=''):
   else:
     name = item.name or '<No name>'
   em = Embed()
-  async with aiohttp.get(item.primary_image_url):
+  async with aiohttp.get(item.primary_image_url) as img:
     if img.status == 200:
       em.set_thumbnail(url=img.url)
     else:

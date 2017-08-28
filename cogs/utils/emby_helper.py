@@ -40,7 +40,7 @@ async def makeEmbed(item, message=''):
   async with aiohttp.get(item.primary_image_url) as img:
     if img.status == 200:
       em.set_thumbnail(url=img.url)
-    else:
+    elif item.parent:
       em.set_thumbnail(url=item.parent.primary_image_url)
   em.title  = message+name
   if hasattr(item, 'overview') and item.overview:
@@ -71,7 +71,6 @@ async def makeEmbed(item, message=''):
     if d > 1:
       d = '{:02}:{:02}:{:02}'.format(d//3600, d//60, d%60)
       em.add_field(name='Duration', value=d)
-  print(em.to_dict())
   return em
 
 def getColour(string : str):

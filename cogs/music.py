@@ -148,7 +148,6 @@ class Music:
       for item in ('playlists', 'songs', 'albums', 'artists'):
         prop = lambda: getattr(self.conn, item)
         await self.bot.loop.run_in_executor(None, prop)
-        print(item)
       await asyncio.sleep(120)
 
   @commands.group(pass_context=True, aliases=['m'])
@@ -471,9 +470,6 @@ def search_f(terms, *items):
   return out
 
 def match(pattern, *strings):
-  if '01 Seven Doors.flac' in strings:
-    print(pattern)
-    print(strings)
   for patt in pattern:
     lowered = patt.lower()
     if strings[0].lower() == patt: # ID matched

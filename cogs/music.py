@@ -154,6 +154,7 @@ class Music:
   async def music(self, ctx):
     """Manage music player stuff"""
     if ctx.invoked_subcommand is None:
+      await self.bot.say(formatter.error("Please specify valid subcommand"))
 
   def get_voice_state(self, server):
     state = self.voice_states.get(server.id)

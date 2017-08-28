@@ -342,12 +342,15 @@ class Music:
       await state.songs.put(entry)
 
   @music.command(pass_context=True, aliases=['shuff'], no_pm=True)
-  async def shuffle(self, ctx, value : int):
+  async def shuffle(self, ctx):
     """Shuffles the queue (excluding the current song)"""
 
     state = self.get_voice_state(ctx.message.server)
     if state.is_playing():
       random.shuffle(state.songs._queue)
+      await self.bot.say(ok('items shuffled'))
+    else:
+      await self.bot.say(error('nothing seems to be playing'))
 
   @music.command(pass_context=True, aliases=['v'], no_pm=True)
   async def volume(self, ctx, value : int):

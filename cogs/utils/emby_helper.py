@@ -50,7 +50,7 @@ async def makeEmbed(item, message=''):
   em.url           = item.url
   em.colour        = getColour(item.id)
   async with img:
-    if img.ok:
+    if img.status == 200:
       em.set_thumbnail(url=img.url)
     else:
       em.set_thumbnail(url=item.parent.primary_image_url)

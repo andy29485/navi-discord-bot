@@ -49,10 +49,11 @@ async def makeEmbed(item, message=''):
     em.description = item.media_type
   em.url           = item.url
   em.colour        = getColour(item.id)
-  if img.ok:
-    em.set_thumbnail(url=img.url)
-  else:
-    em.set_thumbnail(url=item.parent.primary_image_url)
+  async with img:
+    if img.ok:
+      em.set_thumbnail(url=img.url)
+    else:
+      em.set_thumbnail(url=item.parent.primary_image_url)
   if hasattr(item, 'artist_names'):
     if len(item.artist_names) == 1:
       em.add_field(name='Artist ', value=item.artist_names[0])

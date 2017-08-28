@@ -77,9 +77,9 @@ class VoiceState:
     else:
       url  = item.stream_url
     player = self.vchan.create_ffmpeg_player(url,
-                                              before_options=' -threads 4 ',
-                                              options='-b:a 64k -bufsize 64k',
-                                              after=self.toggle_next
+                                  before_options=' -threads 4 ',
+                                  options='-b:a 64k -threads 2 -bufsize 64k',
+                                  after=self.toggle_next
     )
     player.duration   = int(float(item.object_dict['RunTimeTicks']) * (10**-7))
     player.title      = item.name
@@ -445,12 +445,16 @@ def search_f(terms, *items):
         attribute = getattr(item, attr, '')
         if type(attribute) == list:
           attribute = ', '.join(attribute)
-        strings.append(attribute)
+        if attribute:
+          strings.append(attribute)
     if match(terms, *strings):
       out.append(item)
   return out
 
 def match(pattern, *strings):
+  if '01 Seven Doors.flac' in strings:
+    print(pattern)
+    print(strings)
   for patt in pattern:
     lowered = patt.lower()
     if strings[0].lower() == patt: # ID matched

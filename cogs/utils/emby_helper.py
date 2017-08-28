@@ -37,7 +37,11 @@ async def makeEmbed(item, message=''):
   else:
     name = item.name or '<No name>'
   em = Embed()
-  img       = aiohttp.get(item.primary_image_url)
+  async with aiohttp.get(item.primary_image_url):
+    if img.status == 200:
+      em.set_thumbnail(url=img.url)
+    else:
+      em.set_thumbnail(url=item.parent.primary_image_url)
   em.title  = message+name
   if hasattr(item, 'overview') and item.overview:
     if len(item.overview) > 250:
@@ -49,11 +53,6 @@ async def makeEmbed(item, message=''):
     em.description = item.media_type
   em.url           = item.url
   em.colour        = getColour(item.id)
-  async with img:
-    if img.status == 200:
-      em.set_thumbnail(url=img.url)
-    else:
-      em.set_thumbnail(url=item.parent.primary_image_url)
   if hasattr(item, 'artist_names'):
     if len(item.artist_names) == 1:
       em.add_field(name='Artist ', value=item.artist_names[0])

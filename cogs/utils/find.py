@@ -6,6 +6,7 @@ import random
 import os
 
 def search(directory, pattern, single=True):
+  pattern = [x.lower() for x in pattern]
   pattern = set(filter(None, pattern))
   if '...' in pattern:
     pattern.add('ellipsis')
@@ -16,7 +17,7 @@ def search(directory, pattern, single=True):
     for filename in filenames:
       filename = os.path.join(root,filename)
       filename = os.path.realpath(filename)
-      if match(filename, pattern):
+      if match(filename.lower(), pattern):
         matches.append(filename)
 
   if single:
@@ -27,9 +28,9 @@ def match(filename, pattern):
   pattern.add('-.git')
   for i in pattern:
     if i[0] == '-':
-      if i[1:].lower() in filename.lower():
+      if i[1:] in filename:
         return False
-    elif i not in filename.lower():
+    elif i not in filename:
       return False
   return True
 

@@ -7,6 +7,9 @@ import os
 
 def search(directory, pattern, single=True):
   pattern = set(filter(None, pattern))
+  if '...' in pattern:
+    pattern.add('ellipsis')
+    pattern.remove('...')
   matches = []
 
   for root, directories, filenames in os.walk(directory):

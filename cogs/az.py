@@ -145,10 +145,13 @@ class AZ:
       return
 
     try:
-      em  = discord.Embed()
-      url = path.replace(puush.conf['path'], puush.conf['path-rep'])
-      em.set_image(url=url)
-      await self.bot.say(embed=em)
+      url  = path.replace(puush.conf['path'], puush.conf['path-rep'])
+      if url.rpartition('.')[2] in ('gif', 'png', 'jpg', 'jpeg'):
+        em = discord.Embed()
+        em.set_image(url=url)
+        await self.bot.say(embed=em)
+      else:
+        await self.bot.say(url)
     except:
       raise
       await self.bot.say('There was an error uploading the image, ' + \

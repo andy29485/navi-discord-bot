@@ -4,13 +4,17 @@ import zipfile
 import tempfile
 import random
 import os
+from cogs.utils.config import Config
+
+conf = Config('configs/az.json')
 
 def search(directory, pattern, single=True):
   pattern = [x.lower() for x in pattern]
   pattern = set(filter(None, pattern))
-  if '...' in pattern:
-    pattern.add('ellipsis')
-    pattern.remove('...')
+  for word,rep in conf.get('img-reps', {}).items():
+    if word in pattern:
+      pattern.add(rep)
+      pattern.remove(word)
   matches = []
 
   for root, directories, filenames in os.walk(directory):

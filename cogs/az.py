@@ -7,7 +7,6 @@ import os
 from discord.ext import commands
 from cogs.utils.format import *
 from cogs.utils import perms
-from cogs.utils import puush
 from cogs.utils import find as azfind
 from cogs.utils.config import Config
 
@@ -16,6 +15,11 @@ class AZ:
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/az.json')
+    if 'lenny' not in self.conf:
+      self.conf['lenny'] = {}
+    if 'img-reps' not in self.conf:
+      self.conf['img-reps'] = {}
+    self.conf.save()
 
   @commands.command()
   async def lenny(self, first=''):
@@ -27,10 +31,8 @@ class AZ:
         num = 10
     except:
       num = 1
-    if num == 1 and first.lower() in self.conf['lenny']:
-      await self.bot.say(code(self.conf['lenny'][first]))
-    else:
-      await self.bot.say('\n( ͡° ͜ʖ ͡° )'*num)
+    out = self.conf['lenny'].get(first.lower(), '\n( ͡° ͜ʖ ͡° )')
+    await self.bot.say(out*num)
 
   @commands.command()
   async def shrug(self):
@@ -113,7 +115,7 @@ class AZ:
   @commands.command(pass_context=True)
   @perms.in_group('img')
   async def img(self, ctx, *search):
-    if 'path' not in puush.conf or not os.path.exists(puush.conf['path']):
+    if not os.path.exists(self.conf.get('path', '')):
       await self.bot.say('{path} does not exist')
       return
 
@@ -133,7 +135,7 @@ class AZ:
 
     loop = asyncio.get_event_loop()
     try:
-      f = loop.run_in_executor(None, azfind.search, puush.conf['path'], search)
+      f = loop.run_in_executor(None, azfind.search, self.conf['path'], search)
       path = await f
     except:
       path = ''
@@ -145,7 +147,7 @@ class AZ:
       return
 
     try:
-      url  = path.replace(puush.conf['path'], puush.conf['path-rep'])
+      url  = path.replace(self.conf['path'], self.conf['path-rep'])
       if url.rpartition('.')[2] in ('gif', 'png', 'jpg', 'jpeg'):
         em = discord.Embed()
         em.set_image(url=url)

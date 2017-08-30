@@ -66,7 +66,7 @@ def get_end_time(message):
           s = int(m_time.group('sec'))
           date_time = date_time.replace(second=s)
         message = message.replace(m_time.group(0), '')
-        if offset>date_time.timestamp() and not (m_date and m_date.group('day'):
+        if offset>date_time.timestamp()and not(m_date and m_date.group('day')):
           # if user specified time(hour/minute) that has already happened today
           # (and no date was given)
           #   for example it is 11:00, but user wants 10:00

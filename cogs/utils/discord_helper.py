@@ -32,6 +32,20 @@ def get_end_time(message):
   m_date = None
   if re.search(r'(?i)^(me|remove|end)?\s*(at|on)', message):
     date_time = datetime.datetime.today()
+    for d in dt:
+      m_date = d.search(message)
+      if m_date:
+        if m_date.group('year'):
+          y = int(m_date.group('year'))
+          date_time = date_time.replace(year=y)
+        if m_date.group('month'):
+          m = int(m_date.group('month'))
+          date_time = date_time.replace(month=m)
+        if m_date.group('day'):
+          d = int(m_date.group('day'))
+          date_time = date_time.replace(day=d)
+        message = message.replace(m_date.group(0), '')
+        break
     for t in tm:
       m_time = t.search(message)
       if m_time:
@@ -52,20 +66,12 @@ def get_end_time(message):
           s = int(m_time.group('sec'))
           date_time = date_time.replace(second=s)
         message = message.replace(m_time.group(0), '')
-        break
-    for d in dt:
-      m_date = d.search(message)
-      if m_date:
-        if m_date.group('year'):
-          y = int(m_date.group('year'))
-          date_time = date_time.replace(year=y)
-        if m_date.group('month'):
-          m = int(m_date.group('month'))
-          date_time = date_time.replace(month=m)
-        if m_date.group('day'):
-          d = int(m_date.group('day'))
-          date_time = date_time.replace(day=d)
-        message = message.replace(m_date.group(0), '')
+        if offset>date_time.timestamp() and not (m_date and m_date.group('day'):
+          # if user specified time(hour/minute) that has already happened today
+          # (and no date was given)
+          #   for example it is 11:00, but user wants 10:00
+          # then use that time, but increment the day by one
+          date_time += datetime.timedelta(days=1)
         break
     if m_time or m_date:
       offset = date_time.timestamp()

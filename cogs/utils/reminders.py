@@ -2,10 +2,13 @@
 
 import re
 import time
+import logging
 import datetime
 import cogs.utils.heap as heap
 from cogs.utils.format import ok
 from cogs.utils import discord_helper as dh
+
+logger = logging.getLogger('navi')
 
 class Reminder(heap.HeapNode):
   def __init__(self, channel_id, user_id, message, end_time=0):
@@ -59,7 +62,7 @@ class Reminder(heap.HeapNode):
     if not chan:
       chan = self.channel_id
       msg  = self.get_message()
-      print(f'error: could not send message \"{msg}\" to {chan}')
+      logger.error(f'error: could not send message \"{msg}\" to <#{chan}>')
     else:
       await  bot.send_message(chan, self.get_message())
 

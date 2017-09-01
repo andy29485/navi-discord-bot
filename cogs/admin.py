@@ -10,6 +10,7 @@ from cogs.utils import format as formatter
 # to expose to the eval command
 import datetime
 from collections import Counter
+from cogs.utils.config import Config
 from cogs.utils import discord_helper as dh
 
 class Admin:

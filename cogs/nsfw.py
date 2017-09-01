@@ -41,11 +41,13 @@ class NSFW:
   async def nsfw(self, ctx):
     """NSFW stuff"""
     channel = ctx.message.channel
+    # ensure that the current channel is marked as nsfw
     if not channel.is_private and 'nsfw' not in channel.name.lower():
       await self.bot.say(formatter.error('not in nsfw channel'))
       ctx.invoked_subcommand = None
       return
 
+    # if user misstyped or does not know what they are doing, complain
     if ctx.invoked_subcommand is None:
       await self.bot.say(formatter.error("Please specify valid subcommand"))
       return
@@ -57,7 +59,7 @@ class NSFW:
 
       usage: .nsfw danbooru [num] tags1 tag2, tag_3, etc...
       (optional) num: number of posts to show [1,5]
-      if not tags are given, rating:e is assumed
+      if no tags are given, rating:e is assumed
       will potentially return nsfw images
     """
     tags  = re.split(',?\\s+', search_tags)
@@ -122,7 +124,7 @@ class NSFW:
 
       usage: .nsfw lolibooru [num] tags1 tag2, tag_3, etc...
       (optional) num: number of posts to show [1,5]
-      if not tags are given, rating:e is assumed
+      if no tags are given, rating:e is assumed
       will potentially return nsfw images
     """
     tags  = re.split(',?\\s+', search_tags)
@@ -181,7 +183,7 @@ class NSFW:
 
       usage: .nsfw yandere [num] tags1 tag2, tag_3, etc...
       (optional) num: number of posts to show [1,5]
-      if not tags are given, rating:e is assumed
+      if no tags are given, rating:e is assumed
       will potentially return nsfw images
     """
     tags  = re.split(',?\\s+', search_tags)

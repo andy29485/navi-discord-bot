@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
 
-from cogs.utils.role_removals import RoleStruct
-from cogs.utils.reminders import Reminder
-from cogs.utils.timeout import Timeout
-
 from cogs.utils import puush
 from discord import Embed
 import hashlib

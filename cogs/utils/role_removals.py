@@ -20,7 +20,7 @@ class RoleRemove(heap.HeapNode):
     auth_id  = dct.get('auth_id')
     chan_id  = dct.get('chan_id')
 
-    return RoleStruct(end_time, role_id, auth_id, chan_id, serv_id)
+    return RoleRemove(end_time, role_id, auth_id, chan_id, serv_id)
 
   def to_dict(self):
     '''

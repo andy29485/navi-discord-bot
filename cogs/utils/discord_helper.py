@@ -27,9 +27,10 @@ times = {
 }
 
 def get_end_time(message):
-  offset = time.time()
-  m_time = None
-  m_date = None
+  datestrs = []
+  offset   = time.time()
+  m_time   = None
+  m_date   = None
   date_time = datetime.datetime.today()
   for d in dt:
     m_date = d.search(message)
@@ -44,6 +45,7 @@ def get_end_time(message):
         d = int(m_date.group('day'))
         date_time = date_time.replace(day=d)
       message = message.replace(m_date.group(0), '')
+      datestrs.append(m_date.group(0))
       break
   for t in tm:
     m_time = t.search(message)
@@ -65,6 +67,7 @@ def get_end_time(message):
         s = int(m_time.group('sec'))
         date_time = date_time.replace(second=s)
       message = message.replace(m_time.group(0), '')
+      datestrs.append(m_time.group(0))
       if offset>date_time.timestamp()and not(m_date and m_date.group('day')):
         # if user specified time(hour/minute) that has already happened today
         # (and no date was given)
@@ -77,10 +80,11 @@ def get_end_time(message):
   else:
     for t in times:
       match = re.search(t, message)
-      message = re.sub(t, '', message).strip()
+      datestrs[](match.group(0))
+      message = re.replace(match.group(0), '')
       if match:
         offset += times[t]*float(match.group(1))
-  return int(offset), message
+  return int(offset), message.strip(), datestrs
 
 def get_user(server, search_param):
   '''

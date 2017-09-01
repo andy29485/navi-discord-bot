@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.6
 
 if __name__ == '__main__' and __package__ is None:
   from os import sys, path, makedirs
@@ -15,19 +15,19 @@ from cogs.utils.config import Config
 import cogs.utils.format as formatter
 
 starting_cogs = [
-  'cogs.general',
-  'cogs.az',
+  #'cogs.general',
+  #'cogs.az',
   'cogs.admin',
-  'cogs.internet',
-  'cogs.quotes',
+  #'cogs.internet',
+  #'cogs.quotes',
   'cogs.server',
-  'cogs.regex',
-  'cogs.groupme',
-  'cogs.dnd',
-  'cogs.emby',
-  'cogs.music',
-  'cogs.nsfw',
-  'cogs.osu'
+  #'cogs.regex',
+  #'cogs.groupme',
+  #'cogs.dnd',
+  #'cogs.emby',
+  #'cogs.music',
+  #'cogs.nsfw',
+  #'cogs.osu'
 ]
 
 
@@ -128,9 +128,9 @@ async def on_message(message):
     await bot.process_commands(message)
 
 auth = Config('configs/auth.json')
-
-while 'token' not in auth or len(auth['token']) < 30:
+while len(auth.get('token', '')) < 30:
   auth['token'] = input('Please enter bot\'s token: ')
+  auth.save()
 
 #start bot
 bot.run(auth['token'])

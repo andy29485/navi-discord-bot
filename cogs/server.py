@@ -32,12 +32,10 @@ class EmWrap:
 
 class Server:
   def __init__(self, bot):
-    self.bot      = bot
-    self.conf     = Config('configs/server.json')
-    self.cut      = {}
-
-    self.bot.loop.create_task(self.remove_roles())
-    self.bot.loop.create_task(self.check_timeouts())
+    self.bot  = bot
+    self.conf = Config('configs/server.json')
+    self.heap = Config('configs/heap.json')['heap']
+    self.cut  = {}
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='prune', pass_context=True)
@@ -308,35 +306,10 @@ class Server:
     if date: # if a timeout was specified
       end_time = dh.get_end_time(date)[0]
       role_end = RoleStruct(end_time, role.id, auth.id, chan.id, serv.id)
-      if 'end_role' not in self.conf:
-        self.conf['end_role'] = []
-      for index,role in enumerate(self.conf['end_role']):
-        if role_end == role:
-          heap.popFrom(self.conf['end_role'], index)
-          break
-      heap.insertInto(self.conf['end_role'], role_end)
+
+      self.heap.push(role_end)
+      await role_end.begin(self.bot)
       self.conf.save()
-
-  # check if roles need to be removed from user, if they do, remove them
-  async def remove_roles(self):
-    while self == self.bot.get_cog('Server'): # in case of cog reload, stop
-      while self.conf.get('end_role') and self.conf['end_role'][0].time_left<1:
-        role = heap.popFrom(self.conf['end_role'])  # remove role from list
-        serv = self.bot.get_server(role.serv_id)     # get server info
-        auth = dh.get_user(serv,   role.auth_id)     # get author info
-        chan = dh.get_channel(serv,role.chan_id)     # get channel info
-        role = dh.get_role(serv,   role.role_id)     # get role info
-
-        # remove the role
-        await self.bot.remove_roles(auth, role)
-
-        # create a message, and report that role has been removed
-        msg = f"{auth.mention}: role {role.name} has been removed"
-        await self.bot.send_message(chan, msg)
-        self.conf.save()
-
-      await asyncio.sleep(15) # wait a bit before checking again
-
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='cut', pass_context=True)
@@ -564,8 +537,13 @@ class Server:
 
     try:
       timeout_obj = Timeout(channel, server, member, time)
-      await timeout_obj.start(self.bot, to_role, to_chan)
+      self.heap.push(timeout_obj)
+      await timeout_obj.begin(self.bot, to_role, to_chan)
     except:
+      for index,obj in enumerate(self.heap):
+        if obj == timeout_obj:
+          self.heap.pop(index)
+          break
       await self.bot.say(
         'There was an error sending {}\'s to timeout \n({}{}\n)'.format(
           member.name,

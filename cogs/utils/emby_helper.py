@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from cogs.utils import puush
 from discord import Embed
 import hashlib
 import asyncio

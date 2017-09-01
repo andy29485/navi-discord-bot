@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import json
-
+from cogs.utils.obj_creator import as_obj, ObjEncoder
 
 class Config(dict):
   configs = {}
@@ -13,8 +13,10 @@ class Config(dict):
       cls.configs[name] = super(Config, cls).__new__(cls)
     return cls.configs[name]
 
-  # load config from file, also test save just in case
   def __init__(self, name, *args, **kwargs):
+    '''
+    load config from file, also test save just in case
+    '''
     super(Config, self).__init__(*args, **kwargs)
     self.name = name
     self.load()
@@ -27,6 +29,7 @@ class Config(dict):
       with open(self.name, 'r') as f:        # open associated file
         d = json.load(f, object_hook=as_obj) # and parse it as a json file
     except:                                  #   see `as_obj` function
+      raise
       d = {}                                 # on failure, empty dict is used
     self.update(d)                           # copy temp dict to self
 
@@ -45,44 +48,3 @@ class Config(dict):
   def __delitem__(self, key):
     super(Config,self).__delitem__(key)
     self.save()
-
-def as_obj(dct):
-  '''
-  convert json obj to python obj
-  currently supports:
-    - Reminders
-    - Timeouts
-  '''
-  from cogs.utils.role_removals import RoleStruct
-  from cogs.utils.reminders import Reminder
-  from cogs.utils.timeout import Timeout
-  if '__reminder__' in dct:
-    return Reminder(dct['channel_id'], dct['user_id'],
-                    dct['message'], end_time=dct['end_time']
-    )
-  elif '__timeout__' in dct:
-    return Timeout(dct['channel_id'], dct['server_id'], dct['user_id'],
-                    dct['end_time'], dct['roles'], importing=True
-    )
-  elif '__role_rem__' in dct:
-    return RoleStruct(dct['end_time'],  dct['role_id'],
-                      dct['auth_id'],   dct['chan_id'], dct['serv_id']
-    )
-  return dct
-
-# convert python obj to json obj
-# supports same conversions as the function that goes the other way
-class ObjEncoder(json.JSONEncoder):
-  def default(self, obj):
-    from cogs.utils.role_removals import RoleStruct
-    from cogs.utils.reminders import Reminder
-    from cogs.utils.timeout import Timeout
-
-    if isinstance(obj, Reminder):
-      return obj.to_dict()
-    elif isinstance(obj, Timeout):
-      return obj.to_dict()
-    elif isinstance(obj, RoleStruct):
-      return obj.to_dict()
-    # Let the base class default method raise the TypeError
-    return json.JSONEncoder.default(self, obj)

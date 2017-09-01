@@ -5,11 +5,8 @@ import asyncio
 import discord
 import cogs.utils.heap as heap
 import cogs.utils.discord_helper as dh
-from cogs.utils.config import Config
 
-class Timeout:
-  conf = Config('configs/timeouts.json')
-
+class Timeout(heap.HeapNode):
   def __init__(self, chan, serv, user, end_time, roles=[]):
     # append an extraniouse role to the start
     #  to simulate the @everyone role
@@ -26,21 +23,15 @@ class Timeout:
     # remove the everyone role from the list
     self.roles = self.roles[1:]
 
-    # if config is not initialized, initialize it
-    if 'timeouts' not in Timeout.conf:
-      Timeout.conf['timeouts'] = []
+  @staticmethod
+  def from_dict(dct):
+    chan     = dct.get('channel_id')
+    serv     = dct.get('server_id')
+    user     = dct.get('user_id')
+    end_time = dct.get('end_time')
+    roles    = dct.get('roles')
 
-  # ==
-  def __eq__(self, other):
-    return self.server_id == other.server_id and self.user_id == other.user_id
-
-  # <
-  def __lt__(self, other):
-    return self.end_time < other.end_time
-
-  # >
-  def __gt__(self, other):
-    return self.end_time > other.end_time
+    return Timeout(constr, chan, serv, user, end_time, roles)
 
   def to_dict(self):
     '''
@@ -55,14 +46,21 @@ class Timeout:
     d['end_time']   = self.end_time
     return d
 
-  @property
-  def time_left():
-    '''
-    return number of seconds left
-    '''
-    return self.end_time - time.time()
+  # ==
+  def __eq__(self, other):
+    if type(self) != type(other):
+      return False
+    return self.server_id == other.server_id and self.user_id == other.user_id
 
-  async def start(self, bot, timeout_role, timeout_channel):
+  # <
+  def __lt__(self, other):
+    return self.end_time < other.end_time
+
+  # >
+  def __gt__(self, other):
+    return self.end_time > other.end_time
+
+  async def begin(self, bot, timeout_role, timeout_channel):
     '''
     starts the timout:
       - user gets send to timeout
@@ -76,14 +74,11 @@ class Timeout:
     member = dh.get_user(serv, self.user_id)
 
     # if matching timout obj exists... ignore this one
-    for timeout_obj in Timeout.conf['timeouts']:
+    for index,timeout_obj in enumerate(self.heap):
       if timeout_obj == self:
-        await bot.send_message(chan, 'They\'re already in timeout...')
-        return
-
-    # add this timout to the heap
-    heap.insertInto(Timeout.conf['timeouts'], self)
-    Timeout.conf.save()
+        self.heap.pop(index)
+        await bot.say('user is in timout, their timout will be extend')
+        break
 
     # if timeout_role does not exist, create it
     if not timeout_role:
@@ -157,8 +152,6 @@ class Timeout:
     chan   = dh.get_channel(serv, self.channel_id)
     member = dh.get_user(serv, self.user_id)
     roles  = [dh.get_role(dh, role_id) for role_id in self.roles]
-    index  = index if index >= 0 else Timeout.conf['timeouts'].index(self)
-
 
     # restore perms and notify user
     await bot.replace_roles(member, *roles)
@@ -167,10 +160,3 @@ class Timeout:
             member.mention
           )
     )
-
-    # remove from heap
-    heap.popFrom(Timeout.conf['timeouts'], index)
-    Timeout.conf.save()
-
-  async def extend(self, bot):
-    pass

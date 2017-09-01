@@ -4,6 +4,9 @@ from discord.ext import commands
 import discord.utils
 from cogs.utils.config import Config
 
+# Check for perms, used for checking if a user can run a command
+
+# load the config with special perms
 config = Config('configs/perms.json')
 
 if 'owner' not in config:
@@ -12,6 +15,7 @@ if 'owner' not in config:
   while not owner or not re.search('^\\d{15,}$', owner):
     owner = input('please enter YOUR id(use `\\@NAME` to find yours): ')
   config['owner'] = owner
+  config.save()
 
 def is_owner():
   return commands.check(lambda ctx: is_owner_check(ctx.message))
@@ -24,16 +28,6 @@ def has_perms(**perms):
 
 def has_role_check(check, **perms):
   return commands.check(lambda ctx: role_or_permissions(ctx, check, **perms))
-
-# The permission system of the bot is based on a "just works" basis
-# You have permissions and the bot has permissions. If you meet the permissions
-# required to execute the command (and the bot does as well) then it goes
-# through and you can execute the command.
-# If these checks fail, then there are two fallbacks.
-# A role with the name of Bot Mod and a role with the name of Bot Admin.
-# Having these roles provides you access to certain commands without actually
-# having the permissions required for them.
-# Of course, the owner will always be able to execute commands.
 
 def is_owner_check(message):
   return message.author.id == config['owner']
@@ -59,7 +53,7 @@ def check_permissions(msg, **perms):
   )
 
 def role_or_permissions(ctx, check, **perms):
-  #http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
+  # http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
   if check_permissions(ctx.message, **perms):
     return True
 

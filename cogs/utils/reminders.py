@@ -24,7 +24,7 @@ class Reminder(heap.HeapNode):
     user     = dct.get('user_id')
     end_time = dct.get('end_time')
 
-    return Reminder(constr, chan, user, mesg, end_time)
+    return Reminder(chan, user, mesg, end_time)
 
   def to_dict(self):
     dct = {'__reminder__':'true'}
@@ -56,7 +56,12 @@ class Reminder(heap.HeapNode):
 
   async def end(self, bot):
     chan = bot.get_channel(self.channel_id)
-    await  bot.send_message(chan, self.get_message())
+    if not chan:
+      chan = self.channel_id
+      msg  = self.get_message()
+      print(f'error: could not send message \"{msg}\" to {chan}')
+    else:
+      await  bot.send_message(chan, self.get_message())
 
   def get_message(self):
     return '{}: {}'.format(self.user_id, self.message)

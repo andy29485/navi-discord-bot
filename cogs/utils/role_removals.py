@@ -4,7 +4,6 @@ import time
 import cogs.utils.heap as heap
 from cogs.utils import discord_helper as dh
 
-
 class RoleRemove(heap.HeapNode):
   def __init__(self, end_time, role_id, auth_id, chan_id, serv_id):
     self.end_time= end_time

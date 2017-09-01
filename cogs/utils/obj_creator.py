@@ -15,16 +15,18 @@ def as_obj(dct):
   from cogs.utils.heap import Heap
   from cogs.utils.poll import Poll
 
-  if '__reminder__' in dct:
+  if dct.get('__reminder__', False):
     return Reminder.from_dict(dct)
-  elif '__poll__' in dct:
+  elif dct.get('__poll__', False):
     return Poll.from_dict(dct)
-  elif '__timeout__' in dct:
+  elif dct.get('__timeout__', False):
     return Timeout.from_dict(dct)
-  elif '__role_rem__' in dct:
+  elif dct.get('__role_rem__', False):
     return RoleRemove.from_dict(dct)
-  elif '__heap__' in dct:
+  elif dct.get('__heap__', False):
     return Heap.from_dict(dct)
+  elif dct.get('__set__', False):
+    return set(dct['items'])
   return dct
 
 def get_type(name):
@@ -46,5 +48,7 @@ class ObjEncoder(json.JSONEncoder):
     for dictable_type in (Heap, HeapNode):
       if isinstance(obj, dictable_type):
         return obj.to_dict()
+    if type(obj) == set:
+      return {'__set__':True, 'items':list(obj)}
     # Let the base class default method raise the TypeError
     return json.JSONEncoder.default(self, obj)

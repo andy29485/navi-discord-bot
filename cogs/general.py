@@ -17,9 +17,8 @@ class General:
     self.bot         = bot
     self.loop        = bot.loop
     self.stopwatches = {}
-    self.polls       = {}
     self.conf        = Config('configs/general.json')
-    self.heap        = heap.conf
+    self.heap        = Config('configs/heap.json')
 
     if 'responses' not in self.conf:
       self.conf['responses'] = {}
@@ -29,6 +28,9 @@ class General:
       self.conf['situations'] = []
     if '8-ball' not in self.conf:
       self.conf['8-ball'] = []
+    for rem in self.conf.pop('reminders', []):
+      self.heap['heap'].push(rem)
+    self.heap.save()
     self.conf.save()
 
 
@@ -51,7 +53,7 @@ class General:
         mess.strip()[0] in self.bot.command_prefix + ['$','?','!']:
       return
 
-    test_poll = Poll('', [], chan, 0, False, 1)
+    test_poll = Poll('', [], chan, 0, 1)
 
     for poll in self.heap['heap']:
       if test_poll == poll:
@@ -406,6 +408,7 @@ class General:
     channel = ctx.message.channel.id
     r = Reminder(channel, author, message)
     self.heap['heap'].push(r)
+    self.heap.save()
     await r.begin(self.bot)
 
   @commands.command(pass_context=True, aliases=['a', 'ask'])
@@ -429,6 +432,7 @@ class General:
         if isinstance(poll, Poll) and poll.channel_id == ctx.message.channel.id:
           self.heap['heap'].pop(index)
           await poll.end(self.bot)
+          self.heap.save()
           break
       else:
         await self.bot.say('There is no poll active in this channel')
@@ -449,6 +453,7 @@ class General:
         await self.bot.say('There is a poll active in this channel already')
         return
     self.heap['heap'].push(poll)
+    self.heap.save()
     await poll.begin(self.bot)
 
 def split(choices):

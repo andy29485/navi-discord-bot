@@ -8,32 +8,29 @@ import cogs.utils.heap as heap
 import cogs.utils.format as formatter
 
 class Poll(heap.HeapNode):
-  def __init__(self, question, opt, channel, sleep, ongoing=False, timeout=0):
+  def __init__(self, question, opts, channel, sleep, timeout=0):
     self.options    = {}
     self.question   = question
-    self.ongoing    = ongoing
     self.channel_id = getattr(channel, 'id', channel)
     self.end_time   = timeout if timeout else sleep + time.time()
 
-    for opt in options:
+    for opt in opts:
       self.options[opt] = set()
 
   @staticmethod
   def from_dict(dct):
     question   = dct.get('question')
     options    = dct.get('options')
-    ongoing    = dct.get('ongoing')
     channel_id = dct.get('channel_id')
     end_time   = dct.get('end_time')
 
-    return Poll(question, options, channel_id, 0, ongoing, end_time)
+    return Poll(question, options, channel_id, 0, end_time)
 
   def to_dict(self):
     return {
       '__poll__'   : True,
       'question'   : self.question,
       'options'    : self.options,
-      'ongoing'    : self.ongoing,
       'channel_id' : self.channel_id,
       'end_time'   : self.end_time
     }
@@ -52,17 +49,12 @@ class Poll(heap.HeapNode):
     return self.end_time > other.end_time
 
   async def begin(self, bot):
-
     message = 'Poll stated: \"{}\"\n{}'.format(self.question,
-                                               '\n'.join(self.options))
+                                               '\n'.join(self.options)
+    )
     await bot.say(formatter.escape_mentions(message))
-    self.ongoing = True
-    await asyncio.sleep(self.sleep)
-    if self.ongoing:
-      await self.stop()
 
   async def end(self, bot):
-    self.ongoing = False
     chan = bot.get_channel(self.channel_id)
     await bot.send_message(chan, formatter.escape_mentions(self.results()))
 

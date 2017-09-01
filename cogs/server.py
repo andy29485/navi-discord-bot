@@ -34,8 +34,11 @@ class Server:
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/server.json')
-    self.heap = heap.conf
+    self.heap = Config('configs/heap.json')
     self.cut  = {}
+
+    for rem in self.conf.pop('end_role', []):
+      self.heap['heap'].push(rem)
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='prune', pass_context=True)
@@ -315,6 +318,7 @@ class Server:
       role_end = RoleRemove(end_time, role.id, auth.id, chan.id, serv.id)
 
       self.heap['heap'].push(role_end)
+      self.heap.save()
       await role_end.begin(self.bot)
 
   @perms.has_perms(manage_messages=True)
@@ -544,6 +548,7 @@ class Server:
     try:
       timeout_obj = Timeout(channel, server, member, time)
       self.heap['heap'].push(timeout_obj)
+      self.heap.save()
       await timeout_obj.begin(self.bot, to_role, to_chan)
     except:
       for index,obj in enumerate(self.heap['heap']):

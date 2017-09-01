@@ -9,10 +9,6 @@ import cogs.utils.obj_creator as obj_creator
 # smallest items "float" up to the top of the heap
 # also two classes that will be used as a heap comtainer and heap nodes
 
-
-# load and create heap if it doesn't exist
-conf = Config('configs/heap.json')
-
 class Heap:
   '''
   container heap class
@@ -66,7 +62,6 @@ class Heap:
 
     self.items.append(item) # append it
     self._pushUp(i)         # move it up to the position that it should be in
-    conf.save()
 
   def pop(self, index=0):
     '''

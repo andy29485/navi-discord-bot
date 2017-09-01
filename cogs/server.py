@@ -34,7 +34,7 @@ class Server:
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/server.json')
-    self.heap = Config('configs/heap.json')
+    self.heap = heap.conf
     self.cut  = {}
 
   @perms.has_perms(manage_messages=True)
@@ -177,7 +177,7 @@ class Server:
     #   lenght of the longest role name is used for
     msg  = 'Roles:\n```'
     line = '{{:{}}} - {{}}\n'.format(m_len)
-    for name,rid in zip(names, self.conf[serv.id]['pub_roles']):
+    for name,rid in zip(names, available_roles):
       msg += line.format(name, rid)
 
     # send message with role list
@@ -199,6 +199,13 @@ class Server:
     if not role:
       await self.bot.say('Please specify a valid role')
       return
+
+    if serv.id not in self.conf:
+      self.conf[serv.id] = {'pub_roles':[]}
+      self.conf.save()
+    elif 'pub_roles' not in self.conf[serv.id]:
+      self.conf[serv.id]['pub_roles'] = []
+      self.conf.save()
 
     if role.id in available_roles: # if role is found, remove and report
       self.conf[serv.id]['pub_roles'].remove(role.id)
@@ -309,7 +316,6 @@ class Server:
 
       self.heap['heap'].push(role_end)
       await role_end.begin(self.bot)
-      self.conf.save()
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='cut', pass_context=True)

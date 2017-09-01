@@ -10,15 +10,16 @@ from cogs.utils.poll import Poll
 from cogs.utils.config import Config
 import cogs.utils.format as formatter
 from cogs.utils.reminders import Reminder
+import cogs.utils.heap as heap
 
 class General:
   def __init__(self, bot):
-    self.bot           = bot
-    self.loop          = bot.loop
-    self.stopwatches   = {}
-    self.polls         = {}
-    self.conf          = Config('configs/general.json')
-    self.heap          = Config('configs/heap.json')
+    self.bot         = bot
+    self.loop        = bot.loop
+    self.stopwatches = {}
+    self.polls       = {}
+    self.conf        = Config('configs/general.json')
+    self.heap        = heap.conf
 
     if 'responses' not in self.conf:
       self.conf['responses'] = {}

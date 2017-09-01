@@ -7,7 +7,7 @@ import cogs.utils.heap as heap
 class HeapCog:
   def __init__(self, bot):
     self.bot  = bot
-    self.conf = Config('configs/heap.json')
+    self.conf = heap.conf
     if 'heap' not in self.conf:
       self.conf['heap'] = heap.Heap()
 

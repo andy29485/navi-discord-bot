@@ -2,6 +2,8 @@
 
 import time
 import cogs.utils.heap as heap
+from cogs.utils import discord_helper as dh
+
 
 class RoleRemove(heap.HeapNode):
   def __init__(self, end_time, role_id, auth_id, chan_id, serv_id):
@@ -51,7 +53,7 @@ class RoleRemove(heap.HeapNode):
 
   async def begin(self, bot):
     for index,role in enumerate(self.heap):
-      if self == role:
+      if self is not role and self == role:
         self.heap.pop(index)
         break
 

@@ -43,7 +43,7 @@ class ObjEncoder(json.JSONEncoder):
   '''
   def default(self, obj):
     from cogs.utils.heap import Heap, HeapNode
-    for dictable_type in (Heap, HeapNode)
+    for dictable_type in (Heap, HeapNode):
       if isinstance(obj, dictable_type):
         return obj.to_dict()
     # Let the base class default method raise the TypeError

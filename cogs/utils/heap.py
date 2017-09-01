@@ -12,9 +12,6 @@ import cogs.utils.obj_creator as obj_creator
 
 # load and create heap if it doesn't exist
 conf = Config('configs/heap.json')
-if 'heap' not in conf:
-  conf['heap'] = Heap()
-  conf.save()
 
 class Heap:
   '''
@@ -30,6 +27,10 @@ class Heap:
 
   def __iter__(self):
     return self.items.__iter__()
+
+  def __repr__(self):
+    h = self.__hash__()
+    return f"<heap {h} {self.items}>"
 
   @staticmethod
   def from_dict(dct):
@@ -62,6 +63,7 @@ class Heap:
     item.heap = self        # create pointer to self
 
     i = len(self.items)     # get the to-be-index of the to-be-inserted item
+
     self.items.append(item) # append it
     self._pushUp(i)         # move it up to the position that it should be in
     conf.save()

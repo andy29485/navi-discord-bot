@@ -5,19 +5,19 @@
 #   the names of the methods should make it evident whay they do
 
 def error(text):
-  return f"{{NO ENTRY SIGN}} {text}"
+  return f"\N{NO ENTRY SIGN} {text}"
 
 def warning(text):
-  return f"{{WARNING SIGN}} {text}"
+  return f"\N{WARNING SIGN} {text}"
 
 def info(text):
-  return f"{{INFORMATION SOURCE}} {text}"
+  return f"\N{INFORMATION SOURCE} {text}"
 
 def ok(text=''):
-  return f"{{OK HAND SIGN}} {text}"
+  return f"\N{OK HAND SIGN} {text}"
 
 def question(text):
-  return f"{{BLACK QUESTION MARK ORNAMENT}} {text}"
+  return f"\N{BLACK QUESTION MARK ORNAMENT} {text}"
 
 def bold(text):
   return f"**{text}**"

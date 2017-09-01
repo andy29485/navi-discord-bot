@@ -14,7 +14,7 @@ from cogs.utils.format import *
 from cogs.utils.config import Config
 from cogs.utils.timeout import Timeout
 from cogs.utils import discord_helper as dh
-from cogs.utils.role_removals import RoleStruct
+from cogs.utils.role_removals import RoleRemove
 import cogs.utils.heap as heap
 
 # wrapper class for embeds,
@@ -34,7 +34,7 @@ class Server:
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/server.json')
-    self.heap = Config('configs/heap.json')['heap']
+    self.heap = Config('configs/heap.json')
     self.cut  = {}
 
   @perms.has_perms(manage_messages=True)
@@ -305,9 +305,9 @@ class Server:
 
     if date: # if a timeout was specified
       end_time = dh.get_end_time(date)[0]
-      role_end = RoleStruct(end_time, role.id, auth.id, chan.id, serv.id)
+      role_end = RoleRemove(end_time, role.id, auth.id, chan.id, serv.id)
 
-      self.heap.push(role_end)
+      self.heap['heap'].push(role_end)
       await role_end.begin(self.bot)
       self.conf.save()
 
@@ -537,12 +537,12 @@ class Server:
 
     try:
       timeout_obj = Timeout(channel, server, member, time)
-      self.heap.push(timeout_obj)
+      self.heap['heap'].push(timeout_obj)
       await timeout_obj.begin(self.bot, to_role, to_chan)
     except:
-      for index,obj in enumerate(self.heap):
+      for index,obj in enumerate(self.heap['heap']):
         if obj == timeout_obj:
-          self.heap.pop(index)
+          self.heap['heap'].pop(index)
           break
       await self.bot.say(
         'There was an error sending {}\'s to timeout \n({}{}\n)'.format(

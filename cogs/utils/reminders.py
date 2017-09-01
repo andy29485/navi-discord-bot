@@ -51,7 +51,7 @@ class Reminder(heap.HeapNode):
     return self.end_time > other.end_time
 
   async def begin(self, bot):
-    t = datetime.fromtimestamp(self.end_time).isoformat()
+    t = datetime.datetime.fromtimestamp(self.end_time).isoformat()
     await bot.say(ok(f'Will remind you at {t}'))
 
   async def end(self, bot):

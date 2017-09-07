@@ -91,6 +91,7 @@ class Reminder(heap.HeapNode):
         channel=chan,
         author=user,
         attachments=[],
+        reactions=[],
         type=0,
         channel_id=chan.id,
       )

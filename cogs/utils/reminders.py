@@ -85,11 +85,19 @@ class Reminder(heap.HeapNode):
       return
 
     if self.command:
+      member = {
+        'user': {
+          'id': user.id,
+          'username': user.username,
+          'avatar': user.avatar,
+          'discriminator': user.discriminator
+        }
+      }
       msg = Message(
         content=self.message,
         id='',
         channel=chan,
-        author=user,
+        author=member,
         attachments=[],
         reactions=[],
         type=0,

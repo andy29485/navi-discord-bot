@@ -80,7 +80,7 @@ def get_end_time(message):
   else:
     for t in times:
       match = re.search(t, message)
-      datestrs[](match.group(0))
+      datestrs.append(match.group(0))
       message = re.replace(match.group(0), '')
       if match:
         offset += times[t]*float(match.group(1))

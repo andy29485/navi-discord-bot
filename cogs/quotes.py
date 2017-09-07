@@ -89,7 +89,7 @@ class Quote:
       return
 
     if ctx.message.author.id != self.quotes_dict['quotes'][index]['id'] \
-       and not perms.check_permissions(ctx, {'manage_messages':True}):
+       and not perms.check_permissions(ctx, manage_messages=True):
         raise commands.errors.CheckFailure('Cannot delete')
 
     self.quotes_dict['quotes'].pop(index)

@@ -63,10 +63,10 @@ def write_image(text, out, **kargs):
   match     = kargs.get('match',     '')
 
   if match:
-    match = re.match(match, text)
+    match = re.search(match, text)
 
   # bad idea, I know
-  text  = eval("f'''{" + kargs.get('format', '{text}') + "}'''")
+  text  = eval("f'''" + kargs.get('format', '{text}') + "'''")
 
   # load stuff
   img   = Image.open(image)
@@ -100,7 +100,7 @@ class MemeGenerator:
     self.bot  = bot
     self.conf = Config('configs/memes.json')
 
-  @commands.command(pass_context=True)
+  @commands.command(pass_context=True, aliases=['memes'])
   async def meme(self, ctx, *, text : str):
     """
     Add text to images

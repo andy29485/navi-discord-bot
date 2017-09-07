@@ -91,7 +91,8 @@ class Reminder(heap.HeapNode):
           'username':      user.name,
           'avatar':        user.avatar,
           'discriminator': user.discriminator
-        }
+        },
+        'nick': user.display_name
       }
       msg = Message(
         content=self.message,

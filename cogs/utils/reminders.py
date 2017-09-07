@@ -4,6 +4,7 @@ import re
 import time
 import logging
 import datetime
+from discord import Message
 import cogs.utils.heap as heap
 from cogs.utils.format import ok
 from cogs.utils import discord_helper as dh
@@ -75,15 +76,27 @@ class Reminder(heap.HeapNode):
 
   async def end(self, bot):
     chan = bot.get_channel(self.channel_id)
+    serv = chan and chan.serv
+    user = chan and dh.get_user(server, mention)
+
     if not chan:
       chan = self.channel_id
-      msg  = self.get_message()
-      logger.error(f'could not send message \"{msg}\" to <#{chan}>')
+      logger.error(f'could not send message \"{self.message}\" to <#{chan}>')
       return
+
     if self.command:
-      pass #TODO run as command
+      msg = Message(
+        content=self.message,
+        id='',
+        channel=chan,
+        author=user,
+        attachments=[],
+        type=0,
+        channel_id=chan.id,
+      )
+      await bot.process_commands(msg)
     else:
-      await bot.send_message(chan, self.get_message())
+      await bot.send_message(chan, self.get_message(serv))
     if self.times:
       next_rem = Reminder(
         self.channel_id,
@@ -97,8 +110,8 @@ class Reminder(heap.HeapNode):
       if next_rem.time_left > 600:
         self.heap.push(next_rem)
 
-  def get_message(self):
-    return f'{self.user_id}: {self.message} (id: {self.reminder_id})'
+  def get_message(self, user):
+    return f'{user.mention}: {self.message} (id: {self.reminder_id})'
 
   def parse_time(self):
     times = ' '.join(self.times)

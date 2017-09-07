@@ -406,9 +406,9 @@ class General:
     .remind [me] remove <id>
     .remind [me] end <id>
     '''
-    author  = ctx.message.author.mention
+    author  = ctx.message.author.id
     channel = ctx.message.channel.id
-    match   = re.match(r'(?i)^(me\s+)?(remove|end)\s+(\d+)', message)
+    match   = re.match(r'(?i)^(me\s+)?(remove|end|stop)\s+(\d+)', message)
     if match:
       rid = int(match.group(3))
       for index,item in enumerate(self.heap['heap']):

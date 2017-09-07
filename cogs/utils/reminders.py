@@ -86,13 +86,10 @@ class Reminder(heap.HeapNode):
 
     if self.command:
       member = {
-        'user': {
-          'id':            user.id,
-          'username':      user.name,
-          'avatar':        user.avatar,
-          'discriminator': user.discriminator
-        },
-        'nick': user.display_name
+        'id':            user.id,
+        'username':      user.name,
+        'avatar':        user.avatar,
+        'discriminator': user.discriminator
       }
       msg = Message(
         content=self.message,

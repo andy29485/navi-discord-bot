@@ -83,7 +83,7 @@ def get_end_time(message):
       if match:
         offset += times[t]*float(match.group(1))
         datestrs.append(match.group(0))
-        message = re.replace(match.group(0), '')
+        message = message.replace(match.group(0), '')
   return int(offset), message.strip(), datestrs
 
 def get_user(server, search_param):

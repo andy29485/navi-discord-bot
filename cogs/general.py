@@ -8,7 +8,7 @@ from discord.ext import commands
 from datetime import datetime, timedelta
 from cogs.utils.poll import Poll
 from cogs.utils.config import Config
-import cogs.utils.format as formatter
+from cogs.utils.format import *
 from cogs.utils.reminders import Reminder
 import cogs.utils.heap as heap
 
@@ -99,9 +99,9 @@ class General:
     roll = '\n'.join(await loop.run_in_executor(None, self.rolls, dice))
     message = ctx.message.author.mention + ':\n'
     if '\n' in roll:
-      message += formatter.code(roll)
+      message += code(roll)
     else:
-      message += formatter.inline(roll)
+      message += inline(roll)
     await self.bot.say(message)
 
   @commands.command(name="8ball", aliases=["8"])
@@ -140,7 +140,7 @@ class General:
     todos.append([False, task])
     self.conf['todo'][ctx.message.author.id] = todos
     self.conf.save()
-    await self.bot.say(formatter.ok())
+    await self.bot.say(ok())
 
   @todo.command(name='done', aliases=['d', 'complete', 'c'], pass_context=True)
   async def _td_done(self, ctx, *, index : int):
@@ -150,13 +150,13 @@ class General:
     '''
     todos = self.conf['todo'].get(ctx.message.author.id, [])
     if len(todos) < index or index <= 0:
-      await self.bot.say(formatter.error('Invalid index'))
+      await self.bot.say(error('Invalid index'))
     else:
       index -= 1
       todos[index][0] = not todos[index][0]
       self.conf['todo'][ctx.message.author.id] = todos
       self.conf.save()
-      await self.bot.say(formatter.ok())
+      await self.bot.say(ok())
 
   @todo.command(name='remove', aliases=['rem', 'rm', 'r'], pass_context=True)
   async def _td_remove(self, ctx, *, index : int):
@@ -166,12 +166,12 @@ class General:
     '''
     todos = self.conf['todo'].get(ctx.message.author.id, [])
     if len(todos) < index or index <= 0:
-      await self.bot.say(formatter.error('Invalid index'))
+      await self.bot.say(error('Invalid index'))
     else:
       task = todos.pop(index - 1)
       self.conf['todo'][ctx.message.author.id] = todos
       self.conf.save()
-      await self.bot.say(formatter.ok('Removed task #{}'.format(index)))
+      await self.bot.say(ok('Removed task #{}'.format(index)))
 
   async def _td_list(self, ctx):
     todos = self.conf['todo'].get(ctx.message.author.id, [])
@@ -378,7 +378,7 @@ class General:
       choice = re.sub(r, choice_reps[r], choice)
 
     message  = ctx.message.author.mention + ':\n'
-    message += formatter.inline(choice)
+    message += inline(choice)
     await self.bot.say(message)
 
   @commands.command(name='remindme', pass_context=True, aliases=['remind'])
@@ -386,7 +386,7 @@ class General:
     '''
     adds a reminder
 
-    'at' must be used when specifing exact time
+    'at' can be used when specifing exact time
     'in' is optional for offsets
     'me' can be seperate or part of the command name (also optinal)
     cannot mix offsets and exact times
@@ -403,19 +403,34 @@ class General:
     .remindme at 10/23/2017 5:11 PM message
     .remind at 7:11 message
     .remind at 7:11:15 message
+    .remind [me] remove <id>
+    .remind [me] end <id>
     '''
     author  = ctx.message.author.mention
     channel = ctx.message.channel.id
-    r = Reminder(channel, author, message)
-    self.heap['heap'].push(r)
+    match   = re.match(r'(?i)^(me\s+)?(remove|end)\s+(\d+)')
+    if match:
+      rid = int(match.group(3))
+      for index,item in enumerate(self.heap['heap']):
+        if type(item) == Reminder \
+            and item.reminder_id == rid \
+            and item.user_id == author:
+          self.heap['heap'].pop(index)
+          await self.bot.say(ok(f'Message with id {rid} has been removed'))
+          return
+      else:
+        await self.bot.say(ok(f'Could not find message with id {rid}'))
+    else:
+      r = Reminder(channel, author, message)
+      self.heap['heap'].push(r)
+      await r.begin(self.bot)
     self.heap.save()
-    await r.begin(self.bot)
 
   @commands.command(pass_context=True, aliases=['a', 'ask'])
   async def question(self, ctx):
     '''Answers a question with yes/no'''
     message = ctx.message.author.mention + ':\n'
-    message += formatter.inline(random.choice(['yes', 'no']))
+    message += inline(random.choice(['yes', 'no']))
     await self.bot.say(message)
 
   @commands.command(pass_context=True)
@@ -444,7 +459,7 @@ class General:
       return
 
     options  = split(match.group(2))
-    question = formatter.escape_mentions(match.group(1))
+    question = escape_mentions(match.group(1))
 
     poll = Poll(question, options, ctx.message.channel, 600)
 

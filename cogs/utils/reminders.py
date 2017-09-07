@@ -102,7 +102,8 @@ class Reminder(heap.HeapNode):
 
   def parse_time(self):
     times = ' '.join(self.times)
-    self.end_time,self.message,times = dh.get_end_time(times or self.message)
+    self.end_time,message,times = dh.get_end_time(times or self.message)
+    self.message = message or self.message
 
     while True:
       first = self.message.split()[0]

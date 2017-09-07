@@ -154,7 +154,7 @@ class Music:
   async def music(self, ctx):
     """Manage music player stuff"""
     if ctx.invoked_subcommand is None:
-      await self.bot.say(formatter.error("Please specify valid subcommand"))
+      await self.bot.say(error("Please specify valid subcommand"))
 
   def get_voice_state(self, server):
     state = self.voice_states.get(server.id)
@@ -309,9 +309,9 @@ class Music:
         songs_str = ''
         for i in items:
           if hasattr(i, 'index_number'):
-            songs_str += '{:02} - {}\n'.format(i.index_number, i.name)
+            songs_str += f'{i.index_number:02} - {i.name}\n'
           else:
-            songs_str += '{}\n'.format(i.name)
+            songs_str += f'{i.name}\n'
           await self._play_emby(ctx, state, i, display=False, qnext=qnext)
         if qnext:
           songs_str = songs_str.split('\n')
@@ -360,7 +360,7 @@ class Music:
     if state.is_playing():
       player = state.player
       player.volume = value / 100
-      await self.bot.say('Set the volume to {:.0%}'.format(player.volume))
+      await self.bot.say(f'Set the volume to {player.volume:.0%}'
 
   @music.command(pass_context=True, no_pm=True)
   async def pause(self, ctx):
@@ -385,9 +385,9 @@ class Music:
     for index,song in zip(range(1,31),songs):
       item = getattr(song, 'item', None)
       if item:
-        songs_str += '{:02} - {}\n'.format(index, item.name)
+        songs_str += f'{index:02} - {item.name}\n'
       else:
-        songs_str += '{:02} - {}\n'.format(index, song)
+        songs_str += f'{index:02} - {song}\n'
     em.add_field(name='Items', value=songs_str)
     await self.bot.say(embed=em)
 
@@ -433,9 +433,7 @@ class Music:
         await self.bot.say('Skip vote passed, skipping song...')
         state.skip()
       else:
-        await self.bot.say('Skip vote added, currently at [{}/3]'.format(
-                            total_votes
-        ))
+        await self.bot.say(f'Skip vote added, currently at [{total_votes}/3]'
     else:
       await self.bot.say('You have already voted to skip this song.')
 
@@ -453,9 +451,9 @@ class Music:
         em.add_field(name="**Skip Count**", value=str(skip_count))
         await self.bot.say(embed=em)
       else:
-        await self.bot.say('Now playing {} [skips: {}/3]'.format(state.current,
-                                                                 skip_count)
-        )
+        await self.bot.say('Now playing {} [skips: {}/3]'.format(
+                       state.current, skip_count
+        ))
 
 def search_f(terms, *items):
   out = []

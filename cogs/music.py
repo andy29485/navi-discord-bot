@@ -360,7 +360,7 @@ class Music:
     if state.is_playing():
       player = state.player
       player.volume = value / 100
-      await self.bot.say(f'Set the volume to {player.volume:.0%}'
+      await self.bot.say(f'Set the volume to {player.volume:.0%}')
 
   @music.command(pass_context=True, no_pm=True)
   async def pause(self, ctx):
@@ -433,7 +433,7 @@ class Music:
         await self.bot.say('Skip vote passed, skipping song...')
         state.skip()
       else:
-        await self.bot.say(f'Skip vote added, currently at [{total_votes}/3]'
+        await self.bot.say(f'Skip vote added, currently at [{total_votes}/3]')
     else:
       await self.bot.say('You have already voted to skip this song.')
 

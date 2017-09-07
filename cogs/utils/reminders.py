@@ -11,7 +11,7 @@ from cogs.utils import discord_helper as dh
 logger = logging.getLogger('navi')
 
 class Reminder(heap.HeapNode):
-  def __init__(self, channel_id, user_id, message, end_time=0, times=[]
+  def __init__(self, channel_id, user_id, message, end_time=0, times=[],
                command=False, reminder_id=0):
     self.user_id     = getattr(user_id,    'id',    user_id)
     self.channel_id  = getattr(channel_id, 'id', channel_id)
@@ -81,7 +81,7 @@ class Reminder(heap.HeapNode):
       logger.error(f'could not send message \"{msg}\" to <#{chan}>')
       return
     if self.command:
-      #TODO run as command
+      pass #TODO run as command
     else:
       await bot.send_message(chan, self.get_message())
     if self.times:

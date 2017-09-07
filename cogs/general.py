@@ -408,7 +408,7 @@ class General:
     '''
     author  = ctx.message.author.mention
     channel = ctx.message.channel.id
-    match   = re.match(r'(?i)^(me\s+)?(remove|end)\s+(\d+)')
+    match   = re.match(r'(?i)^(me\s+)?(remove|end)\s+(\d+)', message)
     if match:
       rid = int(match.group(3))
       for index,item in enumerate(self.heap['heap']):

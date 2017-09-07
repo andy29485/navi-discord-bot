@@ -87,9 +87,9 @@ class Reminder(heap.HeapNode):
     if self.command:
       member = {
         'user': {
-          'id': user.id,
-          'username': user.username,
-          'avatar': user.avatar,
+          'id':            user.id,
+          'username':      user.name,
+          'avatar':        user.avatar,
           'discriminator': user.discriminator
         }
       }

@@ -77,7 +77,7 @@ class Reminder(heap.HeapNode):
   async def end(self, bot):
     chan = bot.get_channel(self.channel_id)
     serv = chan and chan.server
-    user = chan and dh.get_user(serv, mention)
+    user = chan and dh.get_user(serv, self.user_id)
 
     if not chan:
       chan = self.channel_id

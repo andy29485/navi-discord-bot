@@ -54,6 +54,7 @@ def wrap_text(text, width, font):
 
 def write_image(text, out, **kargs):
   # get variables
+  print(1)
   sx        = kargs.get('sx',         0)
   sy        = kargs.get('sy',         0)
   mx        = kargs.get('mx',       100)
@@ -62,21 +63,29 @@ def write_image(text, out, **kargs):
   spacing   = kargs.get('spacing',    0)
   font_name = kargs.get('font',      '')
   image     = kargs.get('image',     '')
-  matches   = kargs.get('matches',   [])
+  regexes   = kargs.get('matches',   [])
+  matches   = []
 
-  for i, pat in enumerate(matches):
-    matches[i] = re.search(pat, text) if pat else None
+  #calculate regex
+  print(2)
+  for i, pat in enumerate(regexes):
+    print(f'3 - {i}: "{pat}"')
+    matches.append(re.search(pat, text) if pat else None)
 
   # bad idea, I know
   text  = eval("f'''" + kargs.get('format', '{text}') + "'''")
+  print(4)
 
   # load stuff
   img   = Image.open(image)
   font  = ImageFont.truetype(font_name, size)
   draw  = ImageDraw.Draw(img)
+  print(5)
 
   while True:
+    print(6)
     lines = wrap_text(text, mx, font) # split into lines to fit in image
+    print(7)
 
     # if the lines do not fit in the box, resize the text(font)
     if not lines or len(lines)*(size+spacing) > my:
@@ -86,9 +95,11 @@ def write_image(text, out, **kargs):
       break
 
   # set spacing between lines
+  print(8)
   size += spacing
 
   # calculate offset to center vertically
+  print(9)
   sy += (my-len(lines)*size)/2
 
   # draw the lines

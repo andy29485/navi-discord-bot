@@ -108,7 +108,7 @@ class MemeGenerator:
     Usage: .meme <name> <text to add>
 
     Valid names so far:
-      f'{self.newline.join(self.["memes"].keys())}'
+      f'{self.newline.join(self.conf["memes"].keys())}'
     """
     match = MemeGenerator.pattern.match(text)
     name  = match.group(1).lower()

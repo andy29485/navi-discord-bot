@@ -103,12 +103,12 @@ class MemeGenerator:
 
   @commands.command(pass_context=True, aliases=['memes'])
   async def meme(self, ctx, *, text : str):
-    """
+    f"""
     Add text to images
     Usage: .meme <name> <text to add>
 
     Valid names so far:
-      f'{self.newline.join(self.conf["memes"].keys())}'
+      {self.newline.join(self.conf["memes"].keys())}
     """
     match = MemeGenerator.pattern.match(text)
     name  = match.group(1).lower()

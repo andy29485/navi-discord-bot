@@ -99,6 +99,7 @@ class MemeGenerator:
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/memes.json')
+    self.newline = '\n      '
 
   @commands.command(pass_context=True, aliases=['memes'])
   async def meme(self, ctx, *, text : str):
@@ -107,7 +108,7 @@ class MemeGenerator:
     Usage: .meme <name> <text to add>
 
     Valid names so far:
-      histy
+      f'{self.newline.join(self.["memes"].keys())}'
     """
     match = MemeGenerator.pattern.match(text)
     name  = match.group(1).lower()

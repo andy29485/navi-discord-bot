@@ -99,17 +99,18 @@ class MemeGenerator:
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/memes.json')
-    self.newline = '\n      '
 
   @commands.command(pass_context=True, aliases=['memes'])
   async def meme(self, ctx, *, text : str):
-    f"""
+    """
     Add text to images
     Usage: .meme <name> <text to add>
 
     Valid names so far:
-      {self.newline.join(self.conf["memes"].keys())}
+      histy
+      what
     """
+
     match = MemeGenerator.pattern.match(text)
     name  = match.group(1).lower()
     text  = match.group(2)

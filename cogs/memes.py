@@ -64,8 +64,8 @@ def write_image(text, out, **kargs):
   image     = kargs.get('image',     '')
   matches   = kargs.get('matches',   [])
 
-  for i,match in enumerate(matches):
-    matches[i] = re.search(match, text)
+  for i, pat in enumerate(matches):
+    matches[i] = re.search(pat, text) if pat else None
 
   # bad idea, I know
   text  = eval("f'''" + kargs.get('format', '{text}') + "'''")

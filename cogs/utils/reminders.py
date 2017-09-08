@@ -127,9 +127,12 @@ class Reminder(heap.HeapNode):
 
     while True:
       first = self.message.split()[0]
-      if first in ('-c', '-cr', '-rc'):
+      if first in ('-c'):
         self.command = True
-      elif first in ('-r', '-cr', '-rc'):
+      elif first in ('-r'):
+        self.times = times
+      elif first in ('-cr', '-rc'):
+        self.command = True
         self.times = times
       else:
         break

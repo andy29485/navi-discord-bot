@@ -58,7 +58,7 @@ def write_image(text, out, **kargs):
   my        = kargs.get('my',       100)
   size      = kargs.get('size',      25)
   spacing   = kargs.get('spacing',    0)
-  font_name = kargs.get('font_name', '')
+  font_name = kargs.get('font',      '')
   image     = kargs.get('image',     '')
   match     = kargs.get('match',     '')
 
@@ -75,21 +75,26 @@ def write_image(text, out, **kargs):
 
   while True:
     lines = wrap_text(text, mx, font) # split into lines to fit in image
-    size += spacing
 
     # if the lines do not fit in the box, resize the text(font)
-    if len(lines)*size > my:
-      size -= spacing + 1
+    if len(lines)*(size+spacing) > my:
+      size -= 1
       font  = ImageFont.truetype(font_name, size)
     else:
       break
+
+  # set spacing between lines
+  size += spacing
 
   # calculate offset to center vertically
   sy += (my-len(lines)*size)/2
 
   # draw the lines
   for i,(w,msg) in enumerate(lines):
-    draw.text((sx+((mx-w)/2), sy+size*i), msg, (0,0,0), font=font)
+    try:
+      draw.text((sx+((mx-w)/2), sy+size*i), msg, (0,0,0), font=font)
+    except: #grey scale images I guess
+      draw.text((sx+((mx-w)/2), sy+size*i), msg, 0, font=font)
 
   #save the image
   img.save(out)
@@ -126,8 +131,8 @@ class MemeGenerator:
 
     temp = tempfile.NamedTemporaryFile(suffix=".png")
 
-    if 'font_name' not in cfg:
-      cfg['font_name'] = self.conf['font']
+    if 'font' not in cfg:
+      cfg['font'] = self.conf['font']
 
     write_image(text=text, out=temp.name, **cfg)
 

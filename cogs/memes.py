@@ -62,10 +62,10 @@ def write_image(text, out, **kargs):
   spacing   = kargs.get('spacing',    0)
   font_name = kargs.get('font',      '')
   image     = kargs.get('image',     '')
-  match     = kargs.get('match',     '')
+  matches   = kargs.get('matches',   [])
 
-  if match:
-    match = re.search(match, text)
+  for i,match in enumerate(matches):
+    matches[i] = re.search(match, text)
 
   # bad idea, I know
   text  = eval("f'''" + kargs.get('format', '{text}') + "'''")

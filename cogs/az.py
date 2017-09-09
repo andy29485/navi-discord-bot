@@ -33,7 +33,7 @@ class AZ:
     except:
       num = 1
       out = self.conf['lenny'].get(first.lower(), None)
-    out = code(out) or '\n( ͡° ͜ʖ ͡° )'
+    out = code(out) if out else '\n( ͡° ͜ʖ ͡° )'
     await self.bot.say(out*num)
 
   @commands.command()

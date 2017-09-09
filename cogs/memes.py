@@ -116,9 +116,9 @@ def write_image(lines, out, **kargs):
 class MemeGenerator:
   pattern = re.compile(r'(\w+)\s+(.*)$')
   def __init__(self, bot):
-    self.bot   = bot
-    self.conf  = Config('configs/memes.json')
-    valid_name = '\n      '.join(self.conf.get('memes', []).keys())
+    self.bot    = bot
+    self.conf   = Config('configs/memes.json')
+    valid_names = '\n      '.join(self.conf.get('memes', {}).keys())
     self.meme.__dict__['help'] += valid_names
 
   @commands.command(pass_context=True, aliases=['memes'])

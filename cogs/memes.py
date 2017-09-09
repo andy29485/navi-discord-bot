@@ -149,7 +149,7 @@ class MemeGenerator:
     if 'font' not in cfg:
       cfg['font'] = self.conf['font']
 
-    write_image(text=text, out=temp.name, **cfg)
+    write_image(lines=text, out=temp.name, **cfg)
 
     await self.bot.send_file(ctx.message.channel, temp.name)
 

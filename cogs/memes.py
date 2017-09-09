@@ -118,14 +118,17 @@ class MemeGenerator:
   def __init__(self, bot):
     self.bot    = bot
     self.conf   = Config('configs/memes.json')
-    valid_names = '\n  '.join(self.conf.get('memes', {}).keys())
-    self.meme.__dict__['help'] += '\n  ' + valid_names
+    doc  = '.meme <name> <text to add>\n'
+    doc += self.meme.__dict__['help'].partition('\n')[0]
+    doc += '\n  '
+    doc += '\n  '.join(self.conf.get('memes', {}).keys())
+
+    self.meme.__dict__['help'] = doc
 
   @commands.command(pass_context=True, aliases=['memes'])
   async def meme(self, ctx, *, text : str):
     """
-    Add text to images
-    Usage: .meme <name> <text to add>
+    Adds text to images
 
     Valid names so far:
     """

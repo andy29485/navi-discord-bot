@@ -61,13 +61,14 @@ def write_image(lines, out, **kargs):
   font_name  = kargs.get('font',      '')
   image_file = kargs.get('image',     '')
   regexes    = kargs.get('matches',   [])
+  formats    = kargs.get('formats',   ['{text}'])
 
   # load image
   img  = Image.open(image_file)
   draw = ImageDraw.Draw(img)
 
   # for each fillable box
-  for text,location in zip(re.split('(\n|\\|)', lines), locations):
+  for text,location,style in zip(re.split('(\n|\\|)',lines),locations,formats):
     # get location variables
     xpos,ypos,maxwidth,maxheight = location
 
@@ -80,7 +81,7 @@ def write_image(lines, out, **kargs):
       matches.append(re.search(pat, text) if pat else None)
 
     # bad idea, I know
-    text  = eval("f'''" + kargs.get('format', '{text}') + "'''")
+    text  = eval("f'''" + style + "'''")
 
     # load font
     font = ImageFont.truetype(font_name, size)
@@ -116,8 +117,10 @@ def write_image(lines, out, **kargs):
 class MemeGenerator:
   pattern = re.compile(r'(\w+)\s+(.*)$')
   def __init__(self, bot):
-    self.bot  = bot
-    self.conf = Config('configs/memes.json')
+    self.bot   = bot
+    self.conf  = Config('configs/memes.json')
+    valid_name = '\n      '.join(self.conf.get('memes', []).keys())
+    self.meme.__func__.__doc__ += valid_names
 
   @commands.command(pass_context=True, aliases=['memes'])
   async def meme(self, ctx, *, text : str):
@@ -126,9 +129,6 @@ class MemeGenerator:
     Usage: .meme <name> <text to add>
 
     Valid names so far:
-      histy
-      what
-      not
     """
 
     match = MemeGenerator.pattern.match(text)

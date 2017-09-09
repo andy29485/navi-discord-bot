@@ -54,13 +54,12 @@ def wrap_text(text, width, font):
 
 def write_image(lines, out, **kargs):
   # get variables
-  print(1)
-  locations  = kargs.get('locations', [])
-  size_const = kargs.get('size',      25)
-  spacing    = kargs.get('spacing',    0)
-  font_name  = kargs.get('font',      '')
-  image_file = kargs.get('image',     '')
-  regexes    = kargs.get('matches',   [])
+  locations  = kargs.get('locations',         [])
+  size_const = kargs.get('size',              25)
+  spacing    = kargs.get('spacing',            0)
+  font_name  = kargs.get('font',              '')
+  image_file = kargs.get('image',             '')
+  regexes    = kargs.get('matches',           [])
   formats    = kargs.get('formats',   ['{text}'])
 
   # load image
@@ -120,7 +119,7 @@ class MemeGenerator:
     self.bot   = bot
     self.conf  = Config('configs/memes.json')
     valid_name = '\n      '.join(self.conf.get('memes', []).keys())
-    self.meme.__func__.__doc__ += valid_names
+    self.meme.__dict__['help'] += valid_names
 
   @commands.command(pass_context=True, aliases=['memes'])
   async def meme(self, ctx, *, text : str):

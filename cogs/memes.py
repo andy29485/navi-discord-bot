@@ -74,9 +74,9 @@ def write_image(lines, out, **kargs):
     # reset size for each box
     size = size_const
 
-    #calculate regex
+    # calculate regex
     matches = []
-    for i, pat in enumerate(regexes):
+    for pat in regexes:
       matches.append(re.search(pat, text) if pat else None)
 
     # bad idea, I know
@@ -100,7 +100,7 @@ def write_image(lines, out, **kargs):
     size += spacing
 
     # calculate offset to center vertically
-    sy += (maxheight-len(lines)*size)/2
+    ypos += (maxheight-len(lines)*size)/2
 
     # draw the lines
     for i,(line_width,msg) in enumerate(lines):
@@ -149,7 +149,7 @@ class MemeGenerator:
     if 'font' not in cfg:
       cfg['font'] = self.conf['font']
 
-    write_image(lines=text, out=temp.name, **cfg)
+    write_image(text, temp.name, **cfg)
 
     await self.bot.send_file(ctx.message.channel, temp.name)
 

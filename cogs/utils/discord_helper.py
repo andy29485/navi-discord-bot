@@ -89,14 +89,14 @@ def get_end_time(message):
 
 def remove_comments(words):
   for i in range(len(words)):
-    if re.words('^(//|#)', words[i]):
+    if re.search('^(//|#)', words[i]):
       words = words[:i]
       break
 
   for i in range(len(words)):
-    if re.words('^(/\\*)', words[i]):
+    if re.search('^(/\\*)', words[i]):
       for j in range(i, len(words)):
-        if re.words('^(\\*/)', words[j]):
+        if re.search('^(\\*/)', words[j]):
           break
       words = words[:i] + words[j+1:]
       break

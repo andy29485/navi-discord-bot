@@ -87,6 +87,22 @@ def get_end_time(message):
   message = re.sub(r'(?i)^(me|remove|end)?\s*(at|in)?\s*', '', message).strip()
   return int(offset), message, datestrs
 
+def remove_comments(words):
+  for i in range(len(words)):
+    if re.words('^(//|#)', words[i]):
+      words = words[:i]
+      break
+
+  for i in range(len(words)):
+    if re.words('^(/\\*)', words[i]):
+      for j in range(i, len(words)):
+        if re.words('^(\\*/)', words[j]):
+          break
+      words = words[:i] + words[j+1:]
+      break
+  return words
+
+
 def get_user(server, search_param):
   '''
   return user matching params in server

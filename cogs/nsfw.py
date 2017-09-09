@@ -8,6 +8,7 @@ from discord import Embed
 from discord.ext import commands
 from cogs.utils.config import Config
 import cogs.utils.format as formatter
+from cogs.utils import discord_helper as dh
 
 class NSFW:
   def __init__(self, bot):
@@ -62,19 +63,8 @@ class NSFW:
       if no tags are given, rating:e is assumed
       will potentially return nsfw images
     """
-    tags  = re.split(',?\\s+', search_tags)
-    for i in range(len(tags)):
-      if re.search('^(//|#)', tags[i]):
-        tags = tags[:i]
-        break
-
-    for i in range(len(tags)):
-      if re.search('^(/\\*)', tags[i]):
-        for j in range(i, len(tags)):
-          if re.search('^(\\*/)', tags[j]):
-            break
-        tags = tags[:i] + tags[j+1:]
-        break
+    tags = re.split(',?\\s+', search_tags)
+    tags = dh.remove_comments(tags)
 
     if len(tags) > 1 and re.match('\\d+$', tags[0]):
       num = min(5, max(1, int(tags[0])))
@@ -127,19 +117,8 @@ class NSFW:
       if no tags are given, rating:e is assumed
       will potentially return nsfw images
     """
-    tags  = re.split(',?\\s+', search_tags)
-    for i in range(len(tags)):
-      if re.search('^(//|#)', tags[i]):
-        tags = tags[:i]
-        break
-
-    for i in range(len(tags)):
-      if re.search('^(/\\*)', tags[i]):
-        for j in range(i, len(tags)):
-          if re.search('^(\\*/)', tags[j]):
-            break
-        tags = tags[:i] + tags[j+1:]
-        break
+    tags = re.split(',?\\s+', search_tags)
+    tags = dh.remove_comments(tags)
 
     if len(tags) > 1 and re.match('\\d+$', tags[0]):
       num = min(5, max(1, int(tags[0])))
@@ -186,19 +165,8 @@ class NSFW:
       if no tags are given, rating:e is assumed
       will potentially return nsfw images
     """
-    tags  = re.split(',?\\s+', search_tags)
-    for i in range(len(tags)):
-      if re.search('^(//|#)', tags[i]):
-        tags = tags[:i]
-        break
-
-    for i in range(len(tags)):
-      if re.search('^(/\\*)', tags[i]):
-        for j in range(i, len(tags)):
-          if re.search('^(\\*/)', tags[j]):
-            break
-        tags = tags[:i] + tags[j+1:]
-        break
+    tags = re.split(',?\\s+', search_tags)
+    tags = dh.remove_comments(tags)
 
     if len(tags) > 1 and re.match('\\d+$', tags[0]):
       num = min(5, max(1, int(tags[0])))
@@ -245,19 +213,8 @@ class NSFW:
       at least 1 tag must be specified
       will potentially return nsfw images
     """
-    tags  = re.split(',?\\s+', search_tags)
-    for i in range(len(tags)):
-      if re.search('^(//|#)', tags[i]):
-        tags = tags[:i]
-        break
-
-    for i in range(len(tags)):
-      if re.search('^(/\\*)', tags[i]):
-        for j in range(i, len(tags)):
-          if re.search('^(\\*/)', tags[j]):
-            break
-        tags = tags[:i] + tags[j+1:]
-        break
+    tags = re.split(',?\\s+', search_tags)
+    tags = dh.remove_comments(tags)
 
     if len(tags) > 1 and re.match('\\d+$', tags[0]):
       num = min(5, max(1, int(tags[0])))

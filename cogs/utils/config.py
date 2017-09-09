@@ -29,7 +29,6 @@ class Config(dict):
       with open(self.name, 'r') as f:        # open associated file
         d = json.load(f, object_hook=as_obj) # and parse it as a json file
     except:                                  #   see `as_obj` function
-      raise
       d = {}                                 # on failure, empty dict is used
     self.update(d)                           # copy temp dict to self
 

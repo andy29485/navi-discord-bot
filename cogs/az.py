@@ -9,7 +9,7 @@ from cogs.utils.format import *
 from cogs.utils import perms
 from cogs.utils import find as azfind
 from cogs.utils.config import Config
-
+from cogs.utils import discord_helper as dh
 
 class AZ:
   def __init__(self, bot):
@@ -120,18 +120,7 @@ class AZ:
       return
 
     search = [re.sub(r'[^\w\./#\*-]+', '', i).lower() for i in search]
-    for i in range(len(search)):
-      if re.search('^(//|#)', search[i]):
-        search = search[:i]
-        break
-
-    for i in range(len(search)):
-      if re.search('^(/\\*)', search[i]):
-        for j in range(i, len(search)):
-          if re.search('^(\\*/)', search[j]):
-            break
-        search = search[:i] + search[j+1:]
-        break
+    search = dh.remove_comments(search)
 
     loop = asyncio.get_event_loop()
     try:

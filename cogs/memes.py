@@ -7,6 +7,7 @@ from discord.ext import commands
 from PIL import Image, ImageFont, ImageDraw
 from cogs.utils.format import error
 from cogs.utils.config import Config
+from cogs.utils import discord_helper as dh
 
 def wrap_text(text, width, font):
   '''
@@ -118,8 +119,7 @@ class MemeGenerator:
   def __init__(self, bot):
     self.bot    = bot
     self.conf   = Config('configs/memes.json')
-    doc  = '.meme <name> <text to add>\n'
-    doc += self.meme.__dict__['help'].partition('\n')[0]
+    doc  = self.meme.__dict__['help']
     doc += '\n  '
     doc += '\n  '.join(self.conf.get('memes', {}).keys())
 
@@ -136,6 +136,7 @@ class MemeGenerator:
     match = MemeGenerator.pattern.match(text)
     name  = match.group(1).lower()
     text  = match.group(2)
+    text  = ' '.join(dh.remove_comments(text.split()))
 
     cfg = self.conf.get('memes', {}).get(name, None)
 

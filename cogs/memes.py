@@ -52,62 +52,63 @@ def wrap_text(text, width, font):
   return text_lines
 
 
-def write_image(text, out, **kargs):
+def write_image(lines, out, **kargs):
   # get variables
   print(1)
-  sx        = kargs.get('sx',         0)
-  sy        = kargs.get('sy',         0)
-  mx        = kargs.get('mx',       100)
-  my        = kargs.get('my',       100)
-  size      = kargs.get('size',      25)
-  spacing   = kargs.get('spacing',    0)
-  font_name = kargs.get('font',      '')
-  image     = kargs.get('image',     '')
-  regexes   = kargs.get('matches',   [])
-  matches   = []
+  locations  = kargs.get('locations', [])
+  size_const = kargs.get('size',      25)
+  spacing    = kargs.get('spacing',    0)
+  font_name  = kargs.get('font',      '')
+  image_file = kargs.get('image',     '')
+  regexes    = kargs.get('matches',   [])
 
-  #calculate regex
-  print(2)
-  for i, pat in enumerate(regexes):
-    print(f'3 - {i}: "{pat}"')
-    matches.append(re.search(pat, text) if pat else None)
+  # load image
+  img  = Image.open(image_file)
+  draw = ImageDraw.Draw(img)
 
-  # bad idea, I know
-  text  = eval("f'''" + kargs.get('format', '{text}') + "'''")
-  print(4)
+  # for each fillable box
+  for text,location in zip(re.split('(\n|\\|)', lines), locations):
+    # get location variables
+    xpos,ypos,maxwidth,maxheight = location
 
-  # load stuff
-  img   = Image.open(image)
-  font  = ImageFont.truetype(font_name, size)
-  draw  = ImageDraw.Draw(img)
-  print(5)
+    # reset size for each box
+    size = size_const
 
-  while True:
-    print(6)
-    lines = wrap_text(text, mx, font) # split into lines to fit in image
-    print(7)
+    #calculate regex
+    matches = []
+    for i, pat in enumerate(regexes):
+      matches.append(re.search(pat, text) if pat else None)
 
-    # if the lines do not fit in the box, resize the text(font)
-    if not lines or len(lines)*(size+spacing) > my:
-      size -= 1
-      font  = ImageFont.truetype(font_name, size)
-    else:
-      break
+    # bad idea, I know
+    text  = eval("f'''" + kargs.get('format', '{text}') + "'''")
 
-  # set spacing between lines
-  print(8)
-  size += spacing
+    # load font
+    font = ImageFont.truetype(font_name, size)
 
-  # calculate offset to center vertically
-  print(9)
-  sy += (my-len(lines)*size)/2
+    while True:
+      # split into lines to fit in image
+      lines = wrap_text(text, maxwidth, font)
 
-  # draw the lines
-  for i,(w,msg) in enumerate(lines):
-    try:
-      draw.text((sx+((mx-w)/2), sy+size*i), msg, (0,0,0), font=font)
-    except: #grey scale images I guess
-      draw.text((sx+((mx-w)/2), sy+size*i), msg, 0, font=font)
+      # if the lines do not fit in the box, resize the text(font)
+      if not lines or len(lines)*(size+spacing) > maxheight:
+        size -= 1
+        font  = ImageFont.truetype(font_name, size)
+      else:
+        break
+
+    # set spacing between lines
+    size += spacing
+
+    # calculate offset to center vertically
+    sy += (maxheight-len(lines)*size)/2
+
+    # draw the lines
+    for i,(line_width,msg) in enumerate(lines):
+      line_pos = (posx+((maxwidth-line_width)/2), posy+size*i)
+      try:
+        draw.text(line_pos, msg, (0,0,0), font=font)
+      except: #grey scale images I guess
+        draw.text(line_pos, msg, 0, font=font)
 
   #save the image
   img.save(out)

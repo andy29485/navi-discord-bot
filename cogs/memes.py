@@ -104,7 +104,7 @@ def write_image(lines, out, **kargs):
 
     # draw the lines
     for i,(line_width,msg) in enumerate(lines):
-      line_pos = (posx+((maxwidth-line_width)/2), posy+size*i)
+      line_pos = (xpos+((maxwidth-line_width)/2), ypos+size*i)
       try:
         draw.text(line_pos, msg, (0,0,0), font=font)
       except: #grey scale images I guess

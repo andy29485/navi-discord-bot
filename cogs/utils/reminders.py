@@ -103,7 +103,7 @@ class Reminder(heap.HeapNode):
       )
       await bot.process_commands(msg)
     else:
-      await bot.send_message(chan, self.get_message(serv))
+      await bot.send_message(chan, self.get_message(user))
     if self.times:
       next_rem = Reminder(
         self.channel_id,

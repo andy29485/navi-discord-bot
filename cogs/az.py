@@ -23,6 +23,7 @@ class AZ:
 
   @commands.command()
   async def lenny(self, first=''):
+    out = None
     try:
       num = int(first)
       if num < 1:
@@ -31,7 +32,8 @@ class AZ:
         num = 10
     except:
       num = 1
-    out = self.conf['lenny'].get(first.lower(), '\n( ͡° ͜ʖ ͡° )')
+      out = self.conf['lenny'].get(first.lower(), None)
+    out = code(out) or '\n( ͡° ͜ʖ ͡° )'
     await self.bot.say(out*num)
 
   @commands.command()

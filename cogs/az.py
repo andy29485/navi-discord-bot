@@ -134,16 +134,17 @@ class AZ:
 
       # check for changed files
       for fname in repo.untracked_files:
-        name = getpwuid(stat(fname).st_uid).pw_name
-        if name in file_dict:
-          file_dict[name].append(fname)
+        fname = os.path.join(self.conf.get('path', ''), fname)
+        uname = getpwuid(stat(fname).st_uid).pw_name
+        if uname in file_dict:
+          file_dict[uname].append(fname)
         else:
-          file_dict[name] = [fname]
+          file_dict[uname] = [fname]
 
       # commit changes
-      for name,files in file_dict.items():
+      for uname,files in file_dict.items():
         await loop.run_in_executor(None,repo.index.add, files)
-        msg = f"navi auto add - {name}: added files"
+        msg = f"navi auto add - {uname}: added files"
         run = lambda: repo.index.commit(msg, author=author, committer=author)
         await loop.run_in_executor(None, run)
 
@@ -152,7 +153,7 @@ class AZ:
       if file_dict:
         await loop.run_in_executor(None,remote.push)
     except:
-      raise
+      pass
 
     search = [re.sub(r'[^\w\./#\*-]+', '', i).lower() for i in search]
     search = dh.remove_comments(search)

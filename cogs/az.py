@@ -142,9 +142,8 @@ class AZ:
       # commit changes
       for name,files in d.items:
         await loop.run_in_executor(None,repo.index.add, files)
-        run = lambda: repo.index.commit(f"navi auto add - {name}: added files",
-                          author=author, committer=author
-        )
+        msg = f"navi auto add - {name}: added files"
+        run = lambda: repo.index.commit(msg, author=author, committer=author)
         await await loop.run_in_executor(None, run)
 
       # sync with remote

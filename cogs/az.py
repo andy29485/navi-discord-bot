@@ -127,6 +127,7 @@ class AZ:
     try:
       # load repo
       repo      = Repo(self.conf.get('path', ''))
+      loop      = self.bot.loop
       author    = Actor('navi', 'navi@andy29485.tk')
       remote    = repo.remotes.origin
       file_dict = {}
@@ -140,7 +141,7 @@ class AZ:
           file_dict[name] = [fname]
 
       # commit changes
-      for name,files in d.items:
+      for name,files in file_dict.items():
         await loop.run_in_executor(None,repo.index.add, files)
         msg = f"navi auto add - {name}: added files"
         run = lambda: repo.index.commit(msg, author=author, committer=author)
@@ -148,10 +149,10 @@ class AZ:
 
       # sync with remote
       await loop.run_in_executor(None,remote.pull)
-      if d:
+      if file_dict:
         await loop.run_in_executor(None,remote.push)
     except:
-      pass
+      raise
 
     search = [re.sub(r'[^\w\./#\*-]+', '', i).lower() for i in search]
     search = dh.remove_comments(search)

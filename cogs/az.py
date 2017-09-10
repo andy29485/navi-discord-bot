@@ -4,6 +4,9 @@ import re
 import asyncio
 import discord
 import os
+from os import stat
+from git import Repo,Actor
+from pwd import getpwuid
 from discord.ext import commands
 from cogs.utils.format import *
 from cogs.utils import perms
@@ -120,6 +123,35 @@ class AZ:
     if not os.path.exists(self.conf.get('path', '')):
       await self.bot.say('{path} does not exist')
       return
+
+    try:
+      # load repo
+      repo      = Repo(self.conf.get('path', ''))
+      author    = Actor('navi', 'navi@andy29485.tk')
+      remote    = repo.remotes.origin
+      file_dict = {}
+
+      # check for changed files
+      for fname in repo.untracked_files:
+        name = getpwuid(stat(fname).st_uid).pw_name
+        if name in file_dict:
+          file_dict[name].append(fname)
+        else:
+          file_dict[name] = [fname]
+
+      # commit changes
+      for name,files in d.items:
+        repo.index.add(files)
+        repo.index.commit(f"navi auto add - {name}: added files",
+                          author=author, committer=author
+        )
+
+      # sync with remote
+      remote.pull()
+      if d:
+        remote.push()
+    except:
+      pass
 
     search = [re.sub(r'[^\w\./#\*-]+', '', i).lower() for i in search]
     search = dh.remove_comments(search)

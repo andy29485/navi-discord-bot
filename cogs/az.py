@@ -148,9 +148,9 @@ class AZ:
         await await loop.run_in_executor(None, run)
 
       # sync with remote
-      await loop.run_in_executor(None,remote.pull
+      await loop.run_in_executor(None,remote.pull)
       if d:
-        await loop.run_in_executor(None,remote.push
+        await loop.run_in_executor(None,remote.push)
     except:
       pass
 

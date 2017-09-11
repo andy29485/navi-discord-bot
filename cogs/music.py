@@ -465,6 +465,56 @@ class Music:
                        state.current, skip_count
         ))
 
+
+  @music.group(pass_context=True, aliases=['list'], no_pm=True)
+  async def playlist(self, ctx):
+    """Manage emby playlists"""
+    if ctx.invoked_subcommand is None:
+      await self.bot.say(error("Please specify valid subcommand"))
+
+  @playlist.commands(pass_context=True, name='new', aliases=['n'], no_pm=True)
+  async def _playlist_new(self, ctx, name, *song_ids):
+    run = lambda: self.conn.playlists
+    playlists = await self.bot.loop.run_in_executor(None, run)
+
+    run   = lambda: search_f(set(name.split()), *playlists)
+    found = await self.bot.loop.run_in_executor(None, run)
+    if found:
+      await self.bot.say(error("Playlist already exists"))
+      return
+
+    run = lambda: self.conn.create_playlist(name, *song_ids)
+    await self.bot.loop.run_in_executor(None, run)
+    await self.bot.say(ok('Playlist created'))
+
+  @playlist.commands(pass_context=True, name='list', aliases=['ls', 'l'])
+  async def _playlist_list(self, ctx, name = ''):
+    run = lambda: self.conn.playlists
+    playlists = await self.bot.loop.run_in_executor(None, run)
+
+    if not name:
+      names = ''
+      for playlist in playlists:
+        names += f'{playlist.id} - {playlist.name}\n'
+      await self.bot.say(code(names))
+      return
+
+    run   = lambda: search_f(set(name.split()), *playlists)
+    found = await self.bot.loop.run_in_executor(None, run)
+
+    if not found:
+      await self.bot.say(error("Could not find playlist"))
+      return
+
+    playlist = found[0]
+    songs = await self.bot.loop.run_in_executor(None,lambda:playlist.songs)
+    song_info = ''
+    for song in songs:
+      song_info += f'{song.id} - {song.name} ({song.album_artist_name})\n'
+    await self.bot.say(code(song_info))
+    return
+
+
 def search_f(terms, *items):
   out = []
   for item in items:

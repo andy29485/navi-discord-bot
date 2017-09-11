@@ -2,6 +2,7 @@
 
 import asyncio
 import discord
+import mutagen
 import random
 import re
 import os
@@ -73,6 +74,15 @@ class VoiceState:
 
   async def emby_player(self, item):
     if os.path.exists(item.path):
+      try:
+        if not item.overview:
+          f = mutagen.File(item.path)
+          comment = ' '.join(f.get('comment', []))
+          if comment:
+            item.overview = comment
+            item.post()
+      except:
+        pass
       url  = item.path
     else:
       url  = item.stream_url

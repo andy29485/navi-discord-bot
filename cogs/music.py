@@ -465,14 +465,13 @@ class Music:
                        state.current, skip_count
         ))
 
-
   @music.group(pass_context=True, name='playlist', aliases=['list'], no_pm=True)
   async def _playlist(self, ctx):
     """Manage emby playlists"""
     if ctx.invoked_subcommand is None:
       await self.bot.say(error("Please specify valid subcommand"))
 
-  @_playlist.commands(pass_context=True, name='new', aliases=['n'], no_pm=True)
+  @_playlist.command(pass_context=True, name='new', aliases=['n'], no_pm=True)
   async def _playlist_new(self, ctx, name, *song_ids):
     '''
     create a new playlist with title `name`
@@ -492,7 +491,7 @@ class Music:
     await self.bot.loop.run_in_executor(None, run)
     await self.bot.say(ok('Playlist created'))
 
-  @_playlist.commands(pass_context=True, name='list', aliases=['ls', 'l'])
+  @_playlist.command(pass_context=True, name='list', aliases=['ls', 'l'])
   async def _playlist_list(self, ctx, name = ''):
     '''
     list songs in specified playlist

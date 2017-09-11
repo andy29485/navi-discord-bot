@@ -467,27 +467,46 @@ class Music:
 
   @music.group(pass_context=True, name='playlist', aliases=['list'], no_pm=True)
   async def _playlist(self, ctx):
-    """Manage emby playlists"""
+    '''Manage emby playlists'''
     if ctx.invoked_subcommand is None:
       await self.bot.say(error("Please specify valid subcommand"))
 
   @_playlist.command(pass_context=True, name='new', aliases=['n'], no_pm=True)
-  async def _playlist_new(self, ctx, name, *song_ids):
+  async def _playlist_new(self, ctx, options : str):
     '''
     create a new playlist with title `name`
 
-    if songs_ids are given, those songs will be added to the playlist
-    '''
-    run = lambda: self.conn.playlists
-    playlists = await self.bot.loop.run_in_executor(None, run)
+    Usage: .music playlist new <name of playlist>
+            <song1 search criteria>
+            <song2 search criteria>
+            ...
 
-    run   = lambda: search_f(set(name.split()), *playlists)
+    Creates a playlist with the name specifed,
+      if more lines are provided, the first song matching the creteria
+      provided by that line will be added to the playlist
+      (creteria works like `.music play <search>`)
+    '''
+    options = options.split('\n')
+    items   = []
+
+    plsts = await self.bot.loop.run_in_executor(None,lambda:self.conn.playlists)
+    songs = await self.bot.loop.run_in_executor(None,lambda:self.conn.songs)
+    albms = await self.bot.loop.run_in_executor(None,lambda:self.conn.albums)
+    artts = await self.bot.loop.run_in_executor(None,lambda:self.conn.artists)
+
+    run   = lambda: search_f(set(options[0].split()), *plsts)
     found = await self.bot.loop.run_in_executor(None, run)
     if found:
       await self.bot.say(error("Playlist already exists"))
       return
 
-    run = lambda: self.conn.create_playlist(name, *song_ids)
+    for search in options[1:]:
+      run   = lambda: search_f(set(search.split()), *songs, *albms, *artts)
+      found = await self.bot.loop.run_in_executor(None, run)
+      if found:
+        items.append(found[0])
+
+    run = lambda: self.conn.create_playlist(name, *items)
     await self.bot.loop.run_in_executor(None, run)
     await self.bot.say(ok('Playlist created'))
 

@@ -466,14 +466,19 @@ class Music:
         ))
 
 
-  @music.group(pass_context=True, aliases=['list'], no_pm=True)
-  async def playlist(self, ctx):
+  @music.group(pass_context=True, name='playlist', aliases=['list'], no_pm=True)
+  async def _playlist(self, ctx):
     """Manage emby playlists"""
     if ctx.invoked_subcommand is None:
       await self.bot.say(error("Please specify valid subcommand"))
 
   @playlist.commands(pass_context=True, name='new', aliases=['n'], no_pm=True)
   async def _playlist_new(self, ctx, name, *song_ids):
+    '''
+    create a new playlist with title `name`
+
+    if songs_ids are given, those songs will be added to the playlist
+    '''
     run = lambda: self.conn.playlists
     playlists = await self.bot.loop.run_in_executor(None, run)
 
@@ -489,6 +494,11 @@ class Music:
 
   @playlist.commands(pass_context=True, name='list', aliases=['ls', 'l'])
   async def _playlist_list(self, ctx, name = ''):
+    '''
+    list songs in specified playlist
+
+    if no playlist is specified, list all playlists
+    '''
     run = lambda: self.conn.playlists
     playlists = await self.bot.loop.run_in_executor(None, run)
 

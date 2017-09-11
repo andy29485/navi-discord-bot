@@ -472,7 +472,7 @@ class Music:
     if ctx.invoked_subcommand is None:
       await self.bot.say(error("Please specify valid subcommand"))
 
-  @playlist.commands(pass_context=True, name='new', aliases=['n'], no_pm=True)
+  @_playlist.commands(pass_context=True, name='new', aliases=['n'], no_pm=True)
   async def _playlist_new(self, ctx, name, *song_ids):
     '''
     create a new playlist with title `name`
@@ -492,7 +492,7 @@ class Music:
     await self.bot.loop.run_in_executor(None, run)
     await self.bot.say(ok('Playlist created'))
 
-  @playlist.commands(pass_context=True, name='list', aliases=['ls', 'l'])
+  @_playlist.commands(pass_context=True, name='list', aliases=['ls', 'l'])
   async def _playlist_list(self, ctx, name = ''):
     '''
     list songs in specified playlist

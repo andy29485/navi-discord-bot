@@ -2,6 +2,7 @@
 
 import re
 import asyncio
+import os.path
 import tempfile
 from discord.ext import commands
 from PIL import Image, ImageFont, ImageDraw
@@ -60,8 +61,17 @@ def write_image(lines, out, **kargs):
   spacing    = kargs.get('spacing',            0)
   font_name  = kargs.get('font',              '')
   image_file = kargs.get('image',             '')
+  path       = kargs.get('path',              '')
   regexes    = kargs.get('matches',           [])
   formats    = kargs.get('formats',   ['{text}'])
+
+  tmp_loc = os.path.join(path, image_file)
+  if os.path.exists(tmp_loc):
+    image_file = tmp_loc
+
+  tmp_loc = os.path.join(path, font_name)
+  if os.path.exists(tmp_loc):
+    font_name = tmp_loc
 
   # load image
   img  = Image.open(image_file)
@@ -150,7 +160,9 @@ class MemeGenerator:
     temp = tempfile.NamedTemporaryFile(suffix=".png")
 
     if 'font' not in cfg:
-      cfg['font'] = self.conf['font']
+      cfg['font'] = self.conf.get('font', '')
+    if 'path' not in cfg:
+      cfg['path'] = self.conf.get('path', '')
 
     write_image(text, temp.name, **cfg)
 

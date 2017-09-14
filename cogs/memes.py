@@ -39,9 +39,9 @@ def wrap_text(text, width, font):
     if w > width:                    # if this word makes the line too long
       text_line.pop()                #   remove word from buffer
       line = ' '.join(text_line)     #   join words into line
-      if not line:                   #   if empty (single word was too long)
-        return None                  #     return none to get a different font
       w, h = font.getsize(line)      #   calculate width
+      if w > width or not line:      #   if empty or single word was too long
+        return None                  #     return none to get a different font
       text_lines.append( (w, line) ) #   add width and line to output list
       text_line = [word]             #   add word to next buffer
 

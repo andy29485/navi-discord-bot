@@ -154,9 +154,8 @@ class Music:
 
   async def update_db(self):
     while self == self.bot.get_cog('Music'):
-      await self.bot.loop.run_in_executor(None, self.conn.update)
       for item in ('playlists', 'songs', 'albums', 'artists'):
-        prop = lambda: getattr(self.conn, item)
+        prop = lambda: getattr(self.conn, item+'_force')
         await self.bot.loop.run_in_executor(None, prop)
       await asyncio.sleep(120)
 
@@ -223,6 +222,7 @@ class Music:
     usage: .play [-rsam] [<number>] <search terms...>
 
     flags:
+      -n will insert the songs next into the queue(not at the end)
       -r and -s will shuffle the songs
       -n will queue next instead of queue last
       -a and -m will enable playing multiple songs
@@ -284,13 +284,20 @@ class Music:
 
 
     try:
-      plsts=await self.bot.loop.run_in_executor(None,lambda:self.conn.playlists)
-      songs=await self.bot.loop.run_in_executor(None,lambda:self.conn.songs)
-      albms=await self.bot.loop.run_in_executor(None,lambda:self.conn.albums)
-      artts=await self.bot.loop.run_in_executor(None,lambda:self.conn.artists)
+      run = [
+        lambda:self.conn.playlists,
+        lambda:self.conn.songs,
+        lambda:self.conn.albums,
+        lambda:self.conn.artists
+      ]
+
+      plsts = await self.bot.loop.run_in_executor(None, run[0])
+      songs = await self.bot.loop.run_in_executor(None, run[1])
+      albms = await self.bot.loop.run_in_executor(None, run[2])
+      artts = await self.bot.loop.run_in_executor(None, run[3])
 
       items = await self.bot.loop.run_in_executor(None, search_f, set(search),
-                                                  *plsts, *songs, *albms, *artts
+                                                 *plsts, *songs, *albms, *artts
       )
 
       if not items:
@@ -461,9 +468,8 @@ class Music:
         em.add_field(name="**Skip Count**", value=str(skip_count))
         await self.bot.say(embed=em)
       else:
-        await self.bot.say('Now playing {} [skips: {}/3]'.format(
-                       state.current, skip_count
-        ))
+        string = str(state.current)
+        await self.bot.say(f'Now playing {string} [skips: {skip_count}/3]'
 
   @music.group(pass_context=True, name='playlist', aliases=['list'], no_pm=True)
   async def _playlist(self, ctx):

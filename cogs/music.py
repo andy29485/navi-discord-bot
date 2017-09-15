@@ -161,6 +161,7 @@ class Music:
 
   @commands.group(pass_context=True, aliases=['u', 'reload'])
   async def update(self, ctx):
+    '''reload database from emby'''
     for item in ('playlists', 'songs', 'albums', 'artists'):
       prop = lambda: getattr(self.conn, item+'_force')
       await self.bot.loop.run_in_executor(None, prop)
@@ -476,7 +477,7 @@ class Music:
         await self.bot.say(embed=em)
       else:
         string = str(state.current)
-        await self.bot.say(f'Now playing {string} [skips: {skip_count}/3]'
+        await self.bot.say(f'Now playing {string} [skips: {skip_count}/3]')
 
   @music.group(pass_context=True, name='playlist', aliases=['list'], no_pm=True)
   async def _playlist(self, ctx):

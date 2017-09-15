@@ -159,19 +159,19 @@ class Music:
         await self.bot.loop.run_in_executor(None, prop)
       await asyncio.sleep(120)
 
-  @commands.group(pass_context=True, aliases=['u', 'reload'])
+  @commands.group(pass_context=True, aliases=['m'])
+  async def music(self, ctx):
+    """Manage music player stuff"""
+    if ctx.invoked_subcommand is None:
+      await self.bot.say(error("Please specify valid subcommand"))
+
+  @music.command(pass_context=True, aliases=['u', 'reload'])
   async def update(self, ctx):
     '''reload database from emby'''
     for item in ('playlists', 'songs', 'albums', 'artists'):
       prop = lambda: getattr(self.conn, item+'_force')
       await self.bot.loop.run_in_executor(None, prop)
     await self.bot.say(ok('database reloaded '))
-
-  @commands.group(pass_context=True, aliases=['m'])
-  async def music(self, ctx):
-    """Manage music player stuff"""
-    if ctx.invoked_subcommand is None:
-      await self.bot.say(error("Please specify valid subcommand"))
 
   def get_voice_state(self, server):
     state = self.voice_states.get(server.id)

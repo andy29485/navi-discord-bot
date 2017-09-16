@@ -17,11 +17,14 @@ from cogs.utils import discord_helper as dh
 class AZ:
   def __init__(self, bot):
     self.bot  = bot
+    self.last = {}
     self.conf = Config('configs/az.json')
     if 'lenny' not in self.conf:
       self.conf['lenny'] = {}
     if 'img-reps' not in self.conf:
       self.conf['img-reps'] = {}
+    if 'repeat_after' not in self.conf:
+      self.conf['repeat_after'] = 3
     self.conf.save()
 
   @commands.command()
@@ -185,5 +188,22 @@ class AZ:
                          'but at least I didn\'t crash :p'
       )
 
+  async def repeat(self, message):
+    chan = message.channel
+    data = self.last.get(chan, ['', 0])
+
+    if data[0] == message.content.lower():
+      data[1] += 1
+    else:
+      data = [message.content.lower(), 1]
+
+    if data[1] == self.conf.get('repeat_after', 3):
+      await self.bot.send_message(chan, message.content)
+      data[1] = 0
+
+    self.last[chan] = data
+
 def setup(bot):
-  bot.add_cog(AZ(bot))
+  az = AZ(bot)
+  bot.add_listener(az.repeat, "on_message")
+  bot.add_cog(az)

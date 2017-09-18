@@ -197,7 +197,7 @@ def get_channel(server, search_param):
 
 
   for chan in chans:
-    if search_param in (str(role.id), role.name.lower()):
+    if search_param in (str(chan.id), chan.name.lower()):
       return chan
 
   return None

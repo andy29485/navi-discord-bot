@@ -9,6 +9,7 @@ import os
 from discord.ext import commands
 from ctypes.util import find_library
 import cogs.utils.emby_helper as emby_helper
+import cogs.utils.discord_helper as dh
 from cogs.utils.format import *
 
 if not discord.opus.is_loaded():

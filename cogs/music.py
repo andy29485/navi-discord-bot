@@ -24,6 +24,11 @@ class VoiceEntry:
     self.player    = player
     self.item      = item
 
+    mchan = dh.get_channel(message.server, 'music')
+    bchan = dh.get_channel(message.server, 'bot')
+
+    self.channel = mchan or bchan or self.channel
+
   def __str__(self):
     fmt = '*{0.title}* by {0.uploader} and requested by {1.display_name}'
     duration = self.player.duration
@@ -289,7 +294,6 @@ class Music:
       if not success:
         await self.bot.say("error joining channel")
         return
-
 
     try:
       run = [

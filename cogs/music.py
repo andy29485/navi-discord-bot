@@ -411,10 +411,12 @@ class Music:
         if 'drama' not in ' '.join(genres).lower():
           genres.append('Drama')
           muten['genre'] = '; '.join(genres)
+          item.genres    = genres
           bpost = True
 
     if bpost:
       item.post()
+      muten.save()
     if bname:
       os.rename(item.path, path)
     await self.bot.say(ok('tags set'))

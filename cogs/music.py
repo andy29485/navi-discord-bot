@@ -108,6 +108,9 @@ class VoiceState:
       player.uploader = ', '.join(item.artist_names)
     except:
       player.uploader = '-'
+    print(music_conf)
+    print(music_conf.get('volume', {}))
+    print(music_conf.get('volume', {}).get(item.id, 0.6))
     player.volume     = music_conf.get('volume', {}).get(item.id, 0.6)
 
     return player
@@ -417,6 +420,7 @@ class Music:
       item.post()
     if bname:
       os.rename(item.path, path)
+    await self.bot.say(ok('tags set'))
 
   @music.command(pass_context=True, aliases=['shuff'], no_pm=True)
   async def shuffle(self, ctx):
@@ -438,8 +442,11 @@ class Music:
       player = state.player
       player.volume = value / 100
       if state.current.item:
+        global music_conf
         music_conf['volume'][state.current.item.id] = value / 100
       await self.bot.say(f'Set the volume to {player.volume:.0%}')
+    else:
+      await self.bot.say(error('Nothing seems to be playing'))
 
   @music.command(pass_context=True, no_pm=True)
   async def pause(self, ctx):

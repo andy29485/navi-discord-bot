@@ -21,7 +21,7 @@ if not discord.opus.is_loaded():
 
 music_conf = Config('configs/music.json')
 if 'volume' not in music_conf:
-  music_conf['volume'] = []
+  music_conf['volume'] = {}
 
 class VoiceEntry:
   def __init__(self, message, player=None, item=None):

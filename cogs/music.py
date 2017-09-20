@@ -371,6 +371,48 @@ class Music:
     else:
       await state.songs.put(entry)
 
+  @music.command(pass_context=True, aliases=['t'], no_pm=True)
+  async def tag(self, ctx, *tags):
+    '''
+    Tag the currently playing song
+
+    currently avalible: instrumental drama
+    eg. .music tag i
+    '''
+    state = self.get_voice_state(ctx.message.server)
+
+    if not state.is_playing():
+      await self.bot.say(error("Not playing anything, can't tag"))
+      return
+    if not state.current.item:
+      await self.bot.say(error("Not an emby item, can't tag"))
+      return
+
+    item   = state.current.item
+    path   = item.path
+    muten  = mutagen.File(item.path)
+    genres = f.get('genre', [])
+    bpost  = False
+    bname  = False
+
+    for t in tags:
+      t = t.lower()
+      if t in ('i', 'instrumental'):
+        if 'instrumental' not in path:
+          path  = path.rpartition('.')
+          path  = f'{path[0]} -instrumental-.{path[2]}'
+          bname = True
+      elif t in ('d', 'drama'):
+        if 'drama' not in ' '.join(genres).lower():
+          genres.append('Drama')
+          muten['genre'] = '; '.join(genres)
+          bpost = True
+
+    if bpost:
+      item.post()
+    if bname:
+      os.rename(item.path, path)
+
   @music.command(pass_context=True, aliases=['shuff'], no_pm=True)
   async def shuffle(self, ctx):
     """Shuffles the queue (excluding the current song)"""

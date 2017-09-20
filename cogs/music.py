@@ -19,10 +19,6 @@ if not discord.opus.is_loaded():
   except:
     discord.opus.load_opus(find_library('opus'))
 
-music_conf = Config('configs/music.json')
-if 'volume' not in music_conf:
-  music_conf['volume'] = {}
-
 class VoiceEntry:
   def __init__(self, message, player=None, item=None):
     self.requester = message.author
@@ -108,10 +104,7 @@ class VoiceState:
       player.uploader = ', '.join(item.artist_names)
     except:
       player.uploader = '-'
-    print(music_conf)
-    print(music_conf.get('volume', {}))
-    print(music_conf.get('volume', {}).get(item.id, 0.6))
-    player.volume     = music_conf.get('volume', {}).get(item.id, 0.6)
+    player.volume     = self.cog.conf.get('volume', {}).get(item.id, 60) / 100
 
     return player
 
@@ -164,6 +157,10 @@ class Music:
     self.bot = bot
     self.voice_states = {}
     self.conn = emby_helper.conn
+    self.conf = Config('configs/music.json')
+    if 'volume' not in self.conf:
+      self.conf['volume'] = {}
+
     self.bot.loop.create_task(self.update_db())
 
   async def update_db(self):
@@ -442,8 +439,11 @@ class Music:
       player = state.player
       player.volume = value / 100
       if state.current.item:
-        global music_conf
-        music_conf['volume'][state.current.item.id] = value / 100
+        if value == 60 and state.current.item.id in self.conf['volume']:
+          del self.conf['volume'][state.current.item.id]
+        elif value != 60:
+          self.conf['volume'][state.current.item.id] = value
+        self.conf.save()
       await self.bot.say(f'Set the volume to {player.volume:.0%}')
     else:
       await self.bot.say(error('Nothing seems to be playing'))

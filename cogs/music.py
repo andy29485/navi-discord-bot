@@ -8,15 +8,20 @@ import re
 import os
 from discord.ext import commands
 from ctypes.util import find_library
+from cogs.utils.format import *
+from cogs.utils.config import Config
 import cogs.utils.emby_helper as emby_helper
 import cogs.utils.discord_helper as dh
-from cogs.utils.format import *
 
 if not discord.opus.is_loaded():
   try:
     discord.opus.load_opus('opus')
   except:
     discord.opus.load_opus(find_library('opus'))
+
+music_conf = Config('configs/music.json')
+if 'volume' not in music_conf:
+  music_conf['volume'] = []
 
 class VoiceEntry:
   def __init__(self, message, player=None, item=None):
@@ -103,7 +108,7 @@ class VoiceState:
       player.uploader = ', '.join(item.artist_names)
     except:
       player.uploader = '-'
-    player.volume     = 0.6
+    player.volume     = music_conf.get('volume', {}).get(item.id, 0.6)
 
     return player
 
@@ -432,6 +437,8 @@ class Music:
     if state.is_playing():
       player = state.player
       player.volume = value / 100
+      if state.current.item:
+        music_conf['volume'][state.current.item.id] = value / 100
       await self.bot.say(f'Set the volume to {player.volume:.0%}')
 
   @music.command(pass_context=True, no_pm=True)

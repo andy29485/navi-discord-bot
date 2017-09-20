@@ -391,7 +391,7 @@ class Music:
     item   = state.current.item
     path   = item.path
     muten  = mutagen.File(item.path)
-    genres = f.get('genre', [])
+    genres = muten.get('genre', [])
     bpost  = False
     bname  = False
 

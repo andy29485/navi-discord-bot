@@ -621,7 +621,9 @@ class Music:
 
 
 def search_f(terms, *items):
-  out = []
+  out   = []
+  terms = set(terms)
+  terms.remove('-')
   for item in items:
     strings = [item.id, item.name]
     for attr in ('artist_names', 'overview', 'path'):

@@ -278,7 +278,7 @@ class Music:
         mult  = True
         num   = int(search[0])
         search = search[1:]
-      elif search[0][0] == '-':
+      elif search[0][0] == '-' and len(search[0]) > 0:
         for flag in search[0][1:]:
           if flag in 'am':
             search = search[1:]

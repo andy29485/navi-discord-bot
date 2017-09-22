@@ -278,7 +278,9 @@ class Music:
         mult  = True
         num   = int(search[0])
         search = search[1:]
-      elif search[0][0] == '-' and len(search[0]) > 0:
+      elif search[0] == '-':
+        search = search[1:]
+      elif search[0][0] == '-':
         for flag in search[0][1:]:
           if flag in 'am':
             search = search[1:]
@@ -317,7 +319,7 @@ class Music:
       albms = await self.bot.loop.run_in_executor(None, run[2])
       artts = await self.bot.loop.run_in_executor(None, run[3])
 
-      items = await self.bot.loop.run_in_executor(None, search_f, set(search),
+      items = await self.bot.loop.run_in_executor(None, search_f, search,
                                                  *plsts, *songs, *albms, *artts
       )
 
@@ -574,14 +576,14 @@ class Music:
     albms = await self.bot.loop.run_in_executor(None,lambda:self.conn.albums)
     artts = await self.bot.loop.run_in_executor(None,lambda:self.conn.artists)
 
-    run   = lambda: search_f(set(options[0].split()), *plsts)
+    run   = lambda: search_f(options[0].split(), *plsts)
     found = await self.bot.loop.run_in_executor(None, run)
     if found:
       await self.bot.say(error("Playlist already exists"))
       return
 
     for search in options[1:]:
-      run   = lambda: search_f(set(search.split()), *songs, *albms, *artts)
+      run   = lambda: search_f(search.split(), *songs, *albms, *artts)
       found = await self.bot.loop.run_in_executor(None, run)
       if found:
         items.append(found[0])
@@ -607,7 +609,7 @@ class Music:
       await self.bot.say(code(names))
       return
 
-    run   = lambda: search_f(set(name.split()), *playlists)
+    run   = lambda: search_f(name.split(), *playlists)
     found = await self.bot.loop.run_in_executor(None, run)
 
     if not found:
@@ -626,7 +628,6 @@ class Music:
 def search_f(terms, *items):
   out   = []
   terms = set(terms)
-  terms.remove('-')
   for item in items:
     strings = [item.id, item.name]
     for attr in ('artist_names', 'overview', 'path'):

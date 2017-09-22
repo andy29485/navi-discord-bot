@@ -92,9 +92,6 @@ async def on_command_error(error, ctx):
     await bot.send_message(ctx.message.channel, formatter.error(
                          'Sorry. This command is disabled and cannot be used.'))
   elif isinstance(error, commands.CommandInvokeError):
-    logger.error('In {0.command.qualified_name}:'.format(ctx))
-    logger.error(error.original.__traceback__)
-    logger.error('{0.__class__.__name__}: {0}'.format(error.original))
     await bot.send_message(ctx.message.channel,formatter.error(
         'Command error: {}'.format(error))
     )
@@ -103,6 +100,7 @@ async def on_command_error(error, ctx):
                 'Sorry you have insufficient permissions to run that command.'))
   else:
     await bot.send_message(ctx.message.channel, formatter.error(str(error)))
+  logger.error(error)
 
 @bot.async_event
 async def on_resumed():

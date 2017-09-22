@@ -6,12 +6,15 @@ import mutagen
 import random
 import re
 import os
+import logging
 from discord.ext import commands
 from ctypes.util import find_library
 from cogs.utils.format import *
 from cogs.utils.config import Config
 import cogs.utils.emby_helper as emby_helper
 import cogs.utils.discord_helper as dh
+
+logger = logging.getLogger('navi')
 
 if not discord.opus.is_loaded():
   try:

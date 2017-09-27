@@ -356,8 +356,8 @@ class Music:
         if qnext:
           songs_str = songs_str.split('\n')
           songs_str = '\n'.join(songs_str[::-1])
-        if len(songs_str) >= 2000:
-          songs_str = songs_str[:2995]+'\n...'
+        if len(songs_str) >= 1900:
+          songs_str = songs_str[:1895]+'\n...'
         em.add_field(name='Items', value=songs_str)
         await self.bot.say(embed=em)
       else:

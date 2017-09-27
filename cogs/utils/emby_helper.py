@@ -34,14 +34,14 @@ async def makeEmbed(item, message=''):
   if hasattr(item, 'index_number'):
     name = '{:02} - {}'.format(item.index_number, item.name)
   else:
-    name = item.name or '<No name>'
+    name = item.name or ''
   em = Embed()
   async with aiohttp.get(item.primary_image_url) as img:
     if img.status == 200:
       em.set_thumbnail(url=img.url)
     elif item.parent:
       em.set_thumbnail(url=item.parent.primary_image_url)
-  em.title  = message+name
+  em.title  = message+name or '<No name>'
   if hasattr(item, 'overview') and item.overview:
     if len(item.overview) > 250:
       des = item.overview[:247] + '...'

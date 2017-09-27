@@ -346,6 +346,7 @@ class Music:
         if num > 0:
           items = items[:num]
         em = await emby_helper.makeEmbed(display_item, 'Queued: ')
+        logger.info('before', str(em.to_dict()))
         songs_str = ''
         for i in items:
           if hasattr(i, 'index_number'):
@@ -360,7 +361,7 @@ class Music:
           songs_str = songs_str[:1895]+'\n...'
         em.add_field(name='Items', value=songs_str)
         await self.bot.say(embed=em)
-        logger.info(str(em.to_dict()))
+        logger.info('after', str(em.to_dict()))
       else:
         await self._play_emby(ctx, state, random.choice(items), qnext=qnext)
 

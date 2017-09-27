@@ -41,16 +41,17 @@ async def makeEmbed(item, message=''):
       em.set_thumbnail(url=img.url)
     elif item.parent:
       em.set_thumbnail(url=item.parent.primary_image_url)
-  em.title  = message+name or '<No name>'
+  em.title  = (message+name or '<No name>').strip()
   if hasattr(item, 'overview') and item.overview:
     if len(item.overview) > 250:
       des = item.overview[:247] + '...'
     else:
       des = item.overview
     em.description = des
-  else:
+  elif item.id:
     em.description = item.media_type
-  em.url           = item.url
+  if item.id:
+    em.url         = item.url
   em.colour        = getColour(item.id)
   if hasattr(item, 'artist_names'):
     if len(item.artist_names) == 1:

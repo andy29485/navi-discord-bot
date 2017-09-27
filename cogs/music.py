@@ -360,6 +360,7 @@ class Music:
           songs_str = songs_str[:1895]+'\n...'
         em.add_field(name='Items', value=songs_str)
         await self.bot.say(embed=em)
+        logger.info(em.to_dict())
       else:
         await self._play_emby(ctx, state, random.choice(items), qnext=qnext)
 

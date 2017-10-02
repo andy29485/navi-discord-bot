@@ -1,6 +1,6 @@
 # Navi Discord Bot
 A simple python bot for my discord channel
-[![Builds](https://travis-ci.org/andy29485/navi-discord-bot.svg?branch=master)](https://travis-ci.org/andy29485/navi-discord-bot/jobs/282238386)
+[![Build Status](https://travis-ci.org/andy29485/navi-discord-bot.svg?branch=master)](https://travis-ci.org/andy29485/navi-discord-bot)
 
 ## Installation
 ```sh

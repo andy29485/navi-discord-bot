@@ -30,9 +30,9 @@ starting_cogs = [
 ]
 
 
-if not path.exists('configs'):
+if not os.path.exists('configs'):
   makedirs('configs')
-if not path.exists('logs'):
+if not os.path.exists('logs'):
   makedirs('logs')
 
 import logging

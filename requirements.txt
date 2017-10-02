@@ -1,0 +1,9 @@
+discord.py[voice]
+puush.py
+GitPython
+html2text
+lxml
+groupyapi
+Pybooru
+asyncjisho
+simplejson

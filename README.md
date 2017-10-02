@@ -4,10 +4,8 @@ A simple python bot for my discord channel
 ## Installation
 ```sh
 sudo apt-get install libffi-dev libxslt-dev libxml2-dev libopus0
-sudo python3 -m pip install -U discord.py[voice] puush.py GitPython html2text \
-  lxml groupyapi Pybooru asyncjisho simplejson
+sudo python3.6 -m pip install --user -r requirements.txt
 ```
-Add token to a file called `.auth`
 
 # Running
 ```

@@ -555,17 +555,18 @@ class Music:
     if ctx.invoked_subcommand is None:
       await self.bot.say(error("Please specify valid subcommand"))
 
-  @_playlist.command(pass_context=True, name='new', aliases=['n'], no_pm=True)
+  @_playlist.command(pass_context=True, name='add',
+                     aliases=['n', 'new', 'add', 'add_songs', 'a'], no_pm=True)
   async def _playlist_new(self, ctx, options : str):
     '''
-    create a new playlist with title `name`
+    create a new playlist - or adds songs to existing playlist
 
-    Usage: .music playlist new <name of playlist>
+    Usage: .music playlist add <name of playlist>
             <song1 search criteria>
             <song2 search criteria>
             ...
 
-    Creates a playlist with the name specifed,
+    Creates a playlist with the name specifed if it does not exist,
       if more lines are provided, the first song matching the creteria
       provided by that line will be added to the playlist
       (creteria works like `.music play <search>`)
@@ -578,11 +579,9 @@ class Music:
     albms = await self.bot.loop.run_in_executor(None,lambda:self.conn.albums)
     artts = await self.bot.loop.run_in_executor(None,lambda:self.conn.artists)
 
-    run   = lambda: search_f(options[0].split(), *plsts)
-    found = await self.bot.loop.run_in_executor(None, run)
-    if found:
-      await self.bot.say(error("Playlist already exists"))
-      return
+    run      = lambda: search_f(options[0].split(), *plsts)
+    found    = await self.bot.loop.run_in_executor(None, run)
+    playlist = found[0] if found else None
 
     for search in options[1:]:
       run   = lambda: search_f(search.split(), *songs, *albms, *artts)
@@ -590,9 +589,31 @@ class Music:
       if found:
         items.append(found[0])
 
-    run = lambda: self.conn.create_playlist(name, *items)
+    if playlist:
+      run = lambda: playlist.add_items(*items)
+      msg = 'Songs added'
+    else:
+      run = lambda: self.conn.create_playlist(name, *items)
+      msg = 'Playlist created'
     await self.bot.loop.run_in_executor(None, run)
-    await self.bot.say(ok('Playlist created'))
+    await self.bot.say(ok(msg))
+
+  @_playlist.command(pass_context=True, name='remove_songs',
+                     aliases=['rm', 'rs', 'rm_songs', 'r'], no_pm=True)
+  async def _playlist_rm_songs(self, ctx, options : str):
+    '''
+    remove songs from an existing playlist
+
+    Usage: .music playlist remove_songs <name of playlist>
+            <song1 search criteria>
+            <song2 search criteria>
+            ...
+
+    First line is the search criteria for the playlist, following lines are
+      per song search criteria. If a song is not in the playlist or the search
+      does not match any song - that line will be ignored
+    '''
+    await self.bot.say(error('this has yet to be implemented')) #TODO
 
   @_playlist.command(pass_context=True, name='list', aliases=['ls', 'l'])
   async def _playlist_list(self, ctx, name = ''):

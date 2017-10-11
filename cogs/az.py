@@ -4,21 +4,32 @@ import re
 import asyncio
 import discord
 import os
+from os import stat
+from git import Repo,Actor
+from pwd import getpwuid
 from discord.ext import commands
 from cogs.utils.format import *
 from cogs.utils import perms
-from cogs.utils import puush
 from cogs.utils import find as azfind
 from cogs.utils.config import Config
-
+from cogs.utils import discord_helper as dh
 
 class AZ:
   def __init__(self, bot):
     self.bot  = bot
+    self.last = {}
     self.conf = Config('configs/az.json')
+    if 'lenny' not in self.conf:
+      self.conf['lenny'] = {}
+    if 'img-reps' not in self.conf:
+      self.conf['img-reps'] = {}
+    if 'repeat_after' not in self.conf:
+      self.conf['repeat_after'] = 3
+    self.conf.save()
 
   @commands.command()
   async def lenny(self, first=''):
+    out = None
     try:
       num = int(first)
       if num < 1:
@@ -27,10 +38,9 @@ class AZ:
         num = 10
     except:
       num = 1
-    if num == 1 and first.lower() in self.conf['lenny']:
-      await self.bot.say(code(self.conf['lenny'][first]))
-    else:
-      await self.bot.say('\n( ͡° ͜ʖ ͡° )'*num)
+      out = self.conf['lenny'].get(first.lower(), None)
+    out = code(out) if out else '\n( ͡° ͜ʖ ͡° )'
+    await self.bot.say(out*num)
 
   @commands.command()
   async def shrug(self):
@@ -39,10 +49,7 @@ class AZ:
   @commands.command(pass_context=True)
   async def me(self, ctx, *, message : str):
     await self.bot.say('*{} {}*'.format(ctx.message.author.name, message))
-    try:
-      await self.bot.delete_message(ctx.message)
-    except:
-      pass
+    await self.bot.delete_message(ctx.message)
 
   @commands.command(pass_context=True,name='set_colour',aliases=['sc'])
   @perms.is_in_servers('168702989324779520')
@@ -116,27 +123,47 @@ class AZ:
   @commands.command(pass_context=True)
   @perms.in_group('img')
   async def img(self, ctx, *search):
-    if 'path' not in puush.conf or not os.path.exists(puush.conf['path']):
+    if not os.path.exists(self.conf.get('path', '')):
       await self.bot.say('{path} does not exist')
       return
 
-    search = [re.sub(r'[^\w\./#\*-]+', '', i).lower() for i in search]
-    for i in range(len(search)):
-      if re.search('^(//|#)', search[i]):
-        search = search[:i]
-        break
+    try:
+      # load repo
+      repo      = Repo(self.conf.get('path', ''))
+      loop      = self.bot.loop
+      author    = Actor('navi', 'navi@andy29485.tk')
+      remote    = repo.remotes.origin
+      file_dict = {}
 
-    for i in range(len(search)):
-      if re.search('^(/\\*)', search[i]):
-        for j in range(i, len(search)):
-          if re.search('^(\\*/)', search[j]):
-            break
-        search = search[:i] + search[j+1:]
-        break
+      # check for changed files
+      for fname in repo.untracked_files:
+        fname = os.path.join(self.conf.get('path', ''), fname)
+        uname = getpwuid(stat(fname).st_uid).pw_name
+        if uname in file_dict:
+          file_dict[uname].append(fname)
+        else:
+          file_dict[uname] = [fname]
+
+      # commit changes
+      for uname,files in file_dict.items():
+        await loop.run_in_executor(None,repo.index.add, files)
+        msg = f"navi auto add - {uname}: added files"
+        run = lambda: repo.index.commit(msg, author=author, committer=author)
+        await loop.run_in_executor(None, run)
+
+      # sync with remote
+      await loop.run_in_executor(None,remote.pull)
+      if file_dict:
+        await loop.run_in_executor(None,remote.push)
+    except:
+      pass
+
+    search = [re.sub(r'[^\w\./#\*-]+', '', i).lower() for i in search]
+    search = dh.remove_comments(search)
 
     loop = asyncio.get_event_loop()
     try:
-      f = loop.run_in_executor(None, azfind.search, puush.conf['path'], search)
+      f = loop.run_in_executor(None, azfind.search, self.conf['path'], search)
       path = await f
     except:
       path = ''
@@ -148,12 +175,35 @@ class AZ:
       return
 
     try:
-      future_url = loop.run_in_executor(None, puush.get_url, path)
-      url = await future_url
+      url  = path.replace(self.conf['path'], self.conf['path-rep'])
+      if url.rpartition('.')[2] in ('gif', 'png', 'jpg', 'jpeg'):
+        em = discord.Embed()
+        em.set_image(url=url)
+        await self.bot.say(embed=em)
+      else:
+        await self.bot.say(url)
     except:
-      url = 'There was an error uploading the image, ' + \
-            'but at least I didn\'t crash :p'
-    await self.bot.say(url)
+      raise
+      await self.bot.say('There was an error uploading the image, ' + \
+                         'but at least I didn\'t crash :p'
+      )
+
+  async def repeat(self, message):
+    chan = message.channel
+    data = self.last.get(chan, ['', 0])
+
+    if data[0] == message.content.lower():
+      data[1] += 1
+    else:
+      data = [message.content.lower(), 1]
+
+    if data[1] == self.conf.get('repeat_after', 3):
+      await self.bot.send_message(chan, message.content)
+      data[1] = 0
+
+    self.last[chan] = data
 
 def setup(bot):
-  bot.add_cog(AZ(bot))
+  az = AZ(bot)
+  bot.add_listener(az.repeat, "on_message")
+  bot.add_cog(az)

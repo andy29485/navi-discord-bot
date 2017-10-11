@@ -2,113 +2,138 @@
 
 import re
 import time
-import cogs.utils.heap as heap
+import logging
 import datetime
+from discord import Message
+import cogs.utils.heap as heap
+from cogs.utils.format import ok
+from cogs.utils import discord_helper as dh
 
-class Reminder:
-  tm = [re.compile(r'[T _-]*(?P<hour>\d\d?):(?P<min>\d\d)'+
-                   r'(:(?P<sec>\d\d))?(\s*(?P<meridiem>[APap]\.?[Mm]\.?))?'
-        )
-       ]
-  dt = [re.compile(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)'),
-        re.compile(r'(?P<month>\d{1,2})[/\.-](?P<day>\d{1,2})'+
-                   r'[/\.-](?P<year>\d\d(\d\d)?)'
-        )
-       ]
-  times = {
-       '(?i)(\\d+)\\s*s(econds?)?'    : 1,
-       '(?i)(\\d+)\\s*m(in(ute)?s?)?' : 60,
-       '(?i)(\\d+)\\s*h(ours?)?'      : 3600,
-       '(?i)(\\d+)\\s*d(ays?)?'       : 86400,
-       '(?i)(\\d+)\\s*w(eeks?)?'      : 604800,
-       '(?i)(\\d+)\\s*months?'        : 2628000
-  }
-  def __init__(self, channel_id, user_id, message, end_time=0):
-    self.channel_id = channel_id
-    self.user_id    = user_id
-    self.message    = message
-    self.end_time   = end_time
+logger = logging.getLogger('navi')
+
+class Reminder(heap.HeapNode):
+  def __init__(self, channel_id, user_id, message, end_time=0, times=[],
+               command=False, reminder_id=0):
+    self.user_id     = getattr(user_id,    'id',    user_id)
+    self.channel_id  = getattr(channel_id, 'id', channel_id)
+    self.message     = message
+    self.end_time    = end_time
+    self.times       = times
+    self.command     = command
+    self.reminder_id = reminder_id
+
     if not end_time:
       self.parse_time()
 
+  @staticmethod
+  def from_dict(dct):
+    chan        = dct.get('channel_id')
+    mesg        = dct.get('message')
+    user        = dct.get('user_id')
+    end_time    = dct.get('end_time')
+    times       = dct.get('times', [])
+    command     = dct.get('command', False)
+    reminder_id = dct.get('reminder_id', 0)
+
+    return Reminder(chan, user, mesg, end_time, times, command, reminder_id)
+
+  def to_dict(self):
+    return {
+      '__reminder__': True,
+      'channel_id'  : self.channel_id,
+      'user_id'     : self.user_id,
+      'message'     : self.message,
+      'end_time'    : self.end_time,
+      'times'       : self.times,
+      'command'     : self.command,
+      'reminder_id' : self.reminder_id
+    }
+
+  # ==
+  def __eq__(self, other):
+    return type(self)       == type(other)       and \
+           self.reminder_id == other.reminder_id
+
+  # <
   def __lt__(self, other):
     return self.end_time < other.end_time
 
+  # >
   def __gt__(self, other):
     return self.end_time > other.end_time
 
-  @property
-  def time_left(self):
-    return self.end_time - time.time()
+  async def begin(self, bot):
+    t = datetime.datetime.fromtimestamp(self.end_time).isoformat()
+    if not self.reminder_id:
+      while True:
+        self.reminder_id = int(time.time()*1000000)%1000000
+        for rem in self.heap:
+          if self is not rem and self == rem:
+            break
+        else:
+          break
+    await bot.say(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
 
-  def get_message(self):
-    return '{}: {}'.format(self.user_id, self.message)
+  async def end(self, bot):
+    chan = bot.get_channel(self.channel_id)
+    serv = chan and chan.server
+    user = chan and dh.get_user(serv, self.user_id)
 
-  def __repr__(self):
-    return str(self.end_time)
+    if not chan:
+      chan = self.channel_id
+      logger.error(f'could not send message \"{self.message}\" to <#{chan}>')
+      return
+
+    if self.command:
+      member = {
+        'id':            user.id,
+        'username':      user.name,
+        'avatar':        user.avatar,
+        'discriminator': user.discriminator
+      }
+      msg = Message(
+        content=self.message,
+        id='',
+        channel=chan,
+        author=member,
+        attachments=[],
+        reactions=[],
+        type=0,
+        channel_id=chan.id,
+      )
+      await bot.process_commands(msg)
+    else:
+      await bot.send_message(chan, self.get_message(user))
+    if self.times:
+      next_rem = Reminder(
+        self.channel_id,
+        self.user_id,
+        self.message,
+        0,
+        self.times,
+        self.command,
+        self.reminder_id
+      )
+      if next_rem.time_left > 600:
+        self.heap.push(next_rem)
+
+  def get_message(self, user):
+    return f'{user.mention}: {self.message} (id: {self.reminder_id})'
 
   def parse_time(self):
-    offset = time.time()
-    m_time = None
-    m_date = None
-    if re.search(r'(?i)^(me)?\s*(at|on)', self.message):
-      date_time = datetime.datetime.today()
-      for t in Reminder.tm:
-        m_time = t.search(self.message)
-        if m_time:
-          if m_time.group('hour'):
-            h = int(m_time.group('hour'))
-            mer = str(m_time.group('meridiem')).lower()
-            if mer[0] == 'p':
-              if h < 12:
-                h += 12
-            elif mer[0] == 'a':
-              if h == 12:
-                h = 0
-            date_time = date_time.replace(hour=h)
-          if m_time.group('min'):
-            m = int(m_time.group('min'))
-            date_time = date_time.replace(minute=m)
-          if m_time.group('sec'):
-            s = int(m_time.group('sec'))
-            date_time = date_time.replace(second=s)
-          self.message = self.message.replace(m_time.group(0), '')
-          break
-      for d in Reminder.dt:
-        m_date = d.search(self.message)
-        if m_date:
-          if m_date.group('year'):
-            y = int(m_date.group('year'))
-            date_time = date_time.replace(year=y)
-          if m_date.group('month'):
-            m = int(m_date.group('month'))
-            date_time = date_time.replace(month=m)
-          if m_date.group('day'):
-            d = int(m_date.group('day'))
-            date_time = date_time.replace(day=d)
-          self.message = self.message.replace(m_date.group(0), '')
-          break
-      if m_time or m_date:
-        offset = date_time.timestamp()
-    if not re.search(r'(?i)^(me)?\s*at',self.message) or not (m_date or m_time):
-      for t in Reminder.times:
-        match = re.search(t, self.message)
-        self.message = re.sub(t, '', self.message).strip()
-        if match:
-          offset += Reminder.times[t]*float(match.group(1))
-    self.message = re.sub(r'(?i)^(me\s+)?(at|in)?\s*', '', self.message).strip()
-    self.end_time = offset
+    times = ' '.join(self.times)
+    self.end_time,message,times = dh.get_end_time(times or self.message)
+    self.message = message or self.message
 
-  def to_dict(self):
-    dct = {'__reminder__':'true'}
-    dct['channel_id'] = self.channel_id
-    dct['user_id']    = self.user_id
-    dct['message']    = self.message
-    dct['end_time']   = self.end_time
-    return dct
-
-  def insertInto(self, values):
-    heap.insertInto(values, self)
-
-  def popFrom(self, values):
-    return heap.popFrom(values)
+    while True:
+      first = self.message.split()[0]
+      if first in ('-c'):
+        self.command = True
+      elif first in ('-r'):
+        self.times = times
+      elif first in ('-cr', '-rc'):
+        self.command = True
+        self.times = times
+      else:
+        break
+      self.message = self.message.replace(first, '', 1).strip()

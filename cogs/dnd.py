@@ -21,7 +21,7 @@ class DnD:
     # example `.echo hello world!`
     #   ctx.message.content           # the full message `.echo hello world`
     #   entire_message                # `hello world!`
-    await self.bot.say('{}: {}'.format(ctx.message.author.name, entire_message))
+    await self.bot.say(f'<{ctx.message.author.name}> {entire_message}')
 
 def setup(bot):
   d = DnD(bot)

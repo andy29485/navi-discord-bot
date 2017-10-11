@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.6
 
 if __name__ == '__main__' and __package__ is None:
   from os import sys, path, makedirs
@@ -15,6 +15,7 @@ from cogs.utils.config import Config
 import cogs.utils.format as formatter
 
 starting_cogs = [
+  'cogs.heap',
   'cogs.general',
   'cogs.az',
   'cogs.admin',
@@ -26,7 +27,9 @@ starting_cogs = [
   'cogs.dnd',
   'cogs.emby',
   'cogs.music',
-  'cogs.nsfw'
+  'cogs.nsfw',
+  'cogs.osu',
+  'cogs.memes'
 ]
 
 
@@ -78,28 +81,27 @@ async def on_ready():
   print('------')
   if not hasattr(bot, 'uptime'):
     bot.uptime = datetime.datetime.utcnow()
-  await bot.change_presence(game=discord.Game(name='{}help'.format(prefix[0])))
+  await bot.change_presence(game=discord.Game(name=f'{prefix[0]}help'))
 
 @bot.async_event
 async def on_command_error(error, ctx):
+  msg = ctx.message
   if isinstance(error, commands.NoPrivateMessage):
-    await bot.send_message(ctx.message.author, formatter.error(
+    await bot.send_message(msg.author, formatter.error(
                             'This command cannot be used in private messages.'))
   elif isinstance(error, commands.DisabledCommand):
-    await bot.send_message(ctx.message.channel, formatter.error(
+    await bot.send_message(msg.channel, formatter.error(
                          'Sorry. This command is disabled and cannot be used.'))
   elif isinstance(error, commands.CommandInvokeError):
-    logger.error('In {0.command.qualified_name}:'.format(ctx))
-    logger.error(error.original.__traceback__)
-    logger.error('{0.__class__.__name__}: {0}'.format(error.original))
-    await bot.send_message(ctx.message.channel,formatter.error(
+    await bot.send_message(msg.channel,formatter.error(
         'Command error: {}'.format(error))
     )
   elif isinstance(error, commands.errors.CheckFailure):
-    await bot.send_message(ctx.message.channel, formatter.error(
+    await bot.send_message(msg.channel, formatter.error(
                 'Sorry you have insufficient permissions to run that command.'))
   else:
-    await bot.send_message(ctx.message.channel, formatter.error(str(error)))
+    await bot.send_message(msg.channel, formatter.error(str(error)))
+  logger.exception(f'<msg.author.name> <msg.content>')
 
 @bot.async_event
 async def on_resumed():
@@ -127,9 +129,9 @@ async def on_message(message):
     await bot.process_commands(message)
 
 auth = Config('configs/auth.json')
-
-while 'token' not in auth or len(auth['token']) < 30:
+while len(auth.get('token', '')) < 30:
   auth['token'] = input('Please enter bot\'s token: ')
+  auth.save()
 
 #start bot
 bot.run(auth['token'])

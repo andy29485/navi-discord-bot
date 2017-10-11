@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
-import asyncio
-import json
-from discord.ext import commands
-import discord
-from cogs.utils import format as formatter
-import aiohttp
-import html2text
-from urllib.parse import parse_qs
-from lxml import etree
 import re
+import json
+import aiohttp
+import asyncio
+import discord
+import html2text
 import asyncjisho
+from lxml import etree
+from discord.ext import commands
+from urllib.parse import parse_qs
+from urllib import parse as urlencode
+from cogs.utils import format as formatter
 
 class Search:
   def __init__(self, bot):
@@ -56,6 +57,13 @@ class Search:
     if result['readings']:
       em.add_field(name='**Readings**', value=', '.join(result['readings']))
     await self.bot.say(embed=em)
+
+  @commands.command()
+  async def lmgtfy(self, *, search_terms : str):
+      """Creates a lmgtfy link"""
+      search_terms = urlencode.urlencode({'q':search_terms})
+      await self.bot.say("http://lmgtfy.com/?{}".format(search_terms))
+
 
   async def get_search_entries(self, query):
     url_d = 'http://api.duckduckgo.com/'

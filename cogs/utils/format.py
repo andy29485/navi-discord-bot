@@ -1,41 +1,53 @@
+#!/usr/bin/env python3
+
+# This file contains "aliases" for discord formats
+#   this way the message for successful commands will be the same
+#   the names of the methods should make it evident whay they do
+
 def error(text):
-  return "\N{NO ENTRY SIGN} {}".format(text)
+  return f"\N{NO ENTRY SIGN} {text}"
 
 def warning(text):
-  return "\N{WARNING SIGN} {}".format(text)
-
+  return f"\N{WARNING SIGN} {text}"
 
 def info(text):
-  return "\N{INFORMATION SOURCE} {}".format(text)
+  return f"\N{INFORMATION SOURCE} {text}"
 
 def ok(text=''):
-  return "\N{OK HAND SIGN} {}".format(text)
+  return f"\N{OK HAND SIGN} {text}"
 
 def question(text):
-  return "\N{BLACK QUESTION MARK ORNAMENT} {}".format(text)
+  return f"\N{BLACK QUESTION MARK ORNAMENT} {text}"
 
 def bold(text):
-  return "**{}**".format(text)
+  return f"**{text}**"
 
 def code(text, lang=""):
-  return "```{}\n{}\n```".format(lang, text)
+  return f"```{lang}\n{text}\n```"
 
 def inline(text):
-  return "`{}`".format(text)
+  return f"`{text}`"
 
 def italics(text):
-  return "*{}*".format(text)
+  return f"*{text}*"
 
 def strikethrough(text):
-  return "~~{}~~".format(text)
+  return f"~~{text}~~"
 
 def underline(text):
-  return "__{}__".format(text)
+  return f"__{text}__"
 
 def escape_mentions(text):
+  '''
+  removes mentiones by adding a zero-width space after the '@'
+  '''
   return text.replace('@', '@\u200b')
 
 def escape(text, mentions=False):
+  '''
+  escapes discord messages by replacing meaningful symbols
+  it will also replace mentions if "mentions" is True
+  '''
   if mentions:
     text = escape_mentions(text)
   text = text.replace("`", "\\`") \
@@ -43,4 +55,3 @@ def escape(text, mentions=False):
              .replace("_", "\\_") \
              .replace("~", "\\~")
   return text
-

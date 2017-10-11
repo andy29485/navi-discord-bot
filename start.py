@@ -88,20 +88,25 @@ async def on_command_error(error, ctx):
   msg = ctx.message
   if isinstance(error, commands.NoPrivateMessage):
     await bot.send_message(msg.author, formatter.error(
-                            'This command cannot be used in private messages.'))
+                          'This command cannot be used in private messages.'))
   elif isinstance(error, commands.DisabledCommand):
     await bot.send_message(msg.channel, formatter.error(
-                         'Sorry. This command is disabled and cannot be used.'))
+                       'Sorry. This command is disabled and cannot be used.'))
   elif isinstance(error, commands.CommandInvokeError):
     await bot.send_message(msg.channel,formatter.error(
         'Command error: {}'.format(error))
     )
   elif isinstance(error, commands.errors.CheckFailure):
     await bot.send_message(msg.channel, formatter.error(
-                'Sorry you have insufficient permissions to run that command.'))
+              'Sorry you have insufficient permissions to run that command.'))
   else:
     await bot.send_message(msg.channel, formatter.error(str(error)))
-  logger.exception(f'<msg.author.name> <msg.content>')
+
+  e = traceback.format_exception(error.__class__, error, error.__traceback__)
+  lines = []
+  for line in e_traceback:
+    lines.extend(line.rstrip('\n').splitlines())
+  logger.error(f'<{msg.author.name}> <{msg.content}>', *lines)
 
 @bot.async_event
 async def on_resumed():

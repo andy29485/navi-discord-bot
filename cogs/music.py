@@ -556,7 +556,7 @@ class Music:
       await self.bot.say(error("Please specify valid subcommand"))
 
   @_playlist.command(pass_context=True, name='add',
-                     aliases=['n', 'new', 'add', 'add_songs', 'a'], no_pm=True)
+                     aliases=['n', 'new', 'add_songs', 'a'], no_pm=True)
   async def _playlist_new(self, ctx, options : str):
     '''
     create a new playlist - or adds songs to existing playlist

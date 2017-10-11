@@ -10,6 +10,8 @@ import asyncio
 import aiohttp
 import datetime
 import re, sys, os
+import traceback
+
 from cogs import *
 from cogs.utils.config import Config
 import cogs.utils.format as formatter

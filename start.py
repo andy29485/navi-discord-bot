@@ -104,9 +104,9 @@ async def on_command_error(error, ctx):
   else:
     await bot.send_message(msg.channel, formatter.error(str(error)))
 
-  e = traceback.format_exception(error.__class__, error, error.__traceback__)
+  e_tb  = traceback.format_exception(error.__class__,error,error.__traceback__)
   lines = []
-  for line in e_traceback:
+  for line in e_tb:
     lines.extend(line.rstrip('\n').splitlines())
   logger.error(f'<{msg.author.name}> <{msg.content}>', *lines)
 

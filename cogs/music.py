@@ -14,7 +14,7 @@ from cogs.utils.config import Config
 import cogs.utils.emby_helper as emby_helper
 import cogs.utils.discord_helper as dh
 
-logger = logging.getLogger('navi')
+logger = logging.getLogger('navi.music')
 
 if not discord.opus.is_loaded():
   try:
@@ -119,16 +119,18 @@ class VoiceState:
       handle = self.bot.loop.call_later(300,
                   lambda: asyncio.ensure_future(self.stop())
       )
+      logger.debug('waiting for music')
       self.current = await self.songs.get()
+      logger.debug('song get')
       try:
         handle.cancel()
       except:
-        #raise #TODO - debugging
+        logger.exception('Error while attempting to start music')
         pass
 
       if self.current.item:
         em = await emby_helper.makeEmbed(self.current.item, 'Now playing: ')
-        logger.debug('sending music np', str(em.to_dict()))
+        logger.info('sending music np', str(em.to_dict()))
         await self.bot.send_message(self.current.channel, embed=em)
       else:
         await self.bot.send_message(self.current.channel,

@@ -45,6 +45,10 @@ from logging.handlers import TimedRotatingFileHandler
 current_path = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger('navi')
 logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+  '%(asctime)s:%(name)s:%(levelname)s(%(pathname)s:%(lineno)s) - %(message)s'
+)
+logger.setFormat(formatter)
 
 #to log errors
 errror_log = logging.FileHandler(os.path.join(current_path, 'logs/error.log'))
@@ -122,9 +126,7 @@ async def on_command(command, ctx):
   else:
     chan = '#{0.channel.name} ({0.server.name})'.format(msg)
 
-  logger.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(
-            msg, chan)
-  )
+  logger.info('{0.author.name} in {1}: {0.content}'.format(msg, chan))
 
 @bot.async_event
 async def on_message(message):

@@ -103,7 +103,7 @@ def remove_comments(words):
   return words
 
 
-def get_user(server, search_param):
+def get_user(server, search_param, function=None):
   '''
   return user matching params in server
   search_param can be:
@@ -122,13 +122,13 @@ def get_user(server, search_param):
 
   if type(search_param) == int or re.match(r'\d+$', search_param):
     user = server.get_member(str(search_param))
-    if user:
+    if user and (not function or function(user)):
       return user
 
   match = id_pattern.match(search_param)
   if match:
     user = server.get_member(match.group(1))
-    if user:
+    if user and (not function or function(user)):
       return user
 
   match = name_pattern.match(search_param)
@@ -137,13 +137,15 @@ def get_user(server, search_param):
 
   for user in server.members:
     if name == user.name and discr in str(user.discriminator):
-      return user
+      if not function or function(user):
+        return user
     if name in (user.name.lower(), (user.nick or '').lower()):
-      return user
+      if not function or function(user):
+        return user
 
   return None
 
-def get_role(server, search_param):
+def get_role(server, search_param, function=None):
   '''
   return role matching params in server
   search_param can be:
@@ -164,11 +166,12 @@ def get_role(server, search_param):
 
   for role in server.roles:
     if search_param in (str(role.id), role.name.lower()):
-      return role
+      if not function or function(role):
+        return role
 
   return None
 
-def get_channel(server, search_param):
+def get_channel(server, search_param, function=None):
   '''
   return channel matching params in server
   search_param can be:
@@ -198,6 +201,7 @@ def get_channel(server, search_param):
 
   for chan in chans:
     if search_param in (str(chan.id), chan.name.lower()):
-      return chan
+      if not function or function(chan):
+        return chan
 
   return None

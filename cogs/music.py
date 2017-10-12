@@ -29,8 +29,9 @@ class VoiceEntry:
     self.player    = player
     self.item      = item
 
-    mchan = dh.get_channel(message.server, 'music')
-    bchan = dh.get_channel(message.server, 'bot')
+    function = lambda chan: chan.type == discord.ChannelType.text
+    mchan = dh.get_channel(message.server, 'music', function)
+    bchan = dh.get_channel(message.server, 'bot', function)
 
     self.channel = mchan or bchan or self.channel
 
@@ -134,7 +135,9 @@ class VoiceState:
       if self.current.item:
         logger.debug('music 4')
         em = await emby_helper.makeEmbed(self.current.item, 'Now playing: ')
-        logger.debug('sending music np', str(em.to_dict()))
+        logger.debug('sending music np to %s - %s', self.current.channel,
+                                                    str(em.to_dict())
+        )
         await self.bot.send_message(self.current.channel, embed=em)
       else:
         logger.debug('music 5')

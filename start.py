@@ -46,20 +46,17 @@ current_path = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger('navi')
 logger.setLevel(logging.DEBUG)
 
-#to log debug messages
-debug_log = logging.FileHandler(os.path.join(current_path, 'logs/navi.log'))
-debug_log.setLevel(logging.DEBUG)
-
 #to log errors
 errror_log = logging.FileHandler(os.path.join(current_path, 'logs/error.log'))
 errror_log.setLevel(logging.ERROR)
 
+#to log debug messages
 fh = TimedRotatingFileHandler(os.path.join(current_path, 'logs/navi'),
                               when='midnight'
 )
+fh.setLevel(logging.DEBUG)
 fh.suffix = '%Y-%m-%d.log'
 
-logger.addHandler(debug_log)
 logger.addHandler(errror_log)
 logger.addHandler(fh)
 

@@ -128,6 +128,7 @@ class VoiceState:
 
       if self.current.item:
         em = await emby_helper.makeEmbed(self.current.item, 'Now playing: ')
+        logger.debug('sending music np', str(em.to_dict()))
         await self.bot.send_message(self.current.channel, embed=em)
       else:
         await self.bot.send_message(self.current.channel,

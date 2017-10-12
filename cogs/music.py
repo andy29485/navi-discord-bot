@@ -123,39 +123,55 @@ class VoiceState:
       self.current = await self.songs.get()
       logger.debug('song get')
       try:
+        logger.debug('music 1')
         handle.cancel()
+        logger.debug('music 2')
       except:
         logger.exception('Error while attempting to start music')
         pass
 
+      logger.debug('music 3')
       if self.current.item:
+        logger.debug('music 4')
         em = await emby_helper.makeEmbed(self.current.item, 'Now playing: ')
-        logger.info('sending music np', str(em.to_dict()))
+        logger.debug('sending music np', str(em.to_dict()))
         await self.bot.send_message(self.current.channel, embed=em)
       else:
+        logger.debug('music 5')
         await self.bot.send_message(self.current.channel,
           'Now playing: ' + str(self.current)
         )
 
+      logger.debug('music 6')
       if not self.player:
+        logger.debug('music 7')
         self.current.player = await self.emby_player(self.current.item)
 
+      logger.debug('music 8')
       self.player.start()
 
+      logger.debug('music 9')
       if hasattr(self.player, 'process'):
+        logger.debug('music 10')
         await asyncio.sleep(3)
 
         for i in range(10):
+          logger.debug('music 11')
           if self.play_next_song.is_set():
+            logger.debug('music 12')
             break
           elif self.player.process.poll():
+            logger.debug('music 13')
             self.current.player = await self.emby_player(self.current.item)
             self.player.start()
           elif self.player.process.poll() is None:
+            logger.debug('music 14')
             await asyncio.sleep(1)
           else:
+            logger.debug('music 15')
             break
 
+      logger.debug('music 16')
       await self.play_next_song.wait()
 
 class Music:

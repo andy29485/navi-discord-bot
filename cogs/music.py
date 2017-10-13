@@ -635,7 +635,32 @@ class Music:
       per song search criteria. If a song is not in the playlist or the search
       does not match any song - that line will be ignored
     '''
-    await self.bot.say(error('this has yet to be implemented')) #TODO
+    options = options.split('\n')
+    items   = []
+
+    plsts = await self.bot.loop.run_in_executor(None,lambda:self.conn.playlists)
+
+    run      = lambda: search_f(options[0].split(), *plsts)
+    found    = await self.bot.loop.run_in_executor(None, run)
+    playlist = found[0] if found else None
+
+    if not playlist:
+      await self.bot.say(error('could not find playlist'))
+      return
+
+    songs = await self.bot.loop.run_in_executor(None,lambda:self.conn.songs)
+    albms = await self.bot.loop.run_in_executor(None,lambda:self.conn.albums)
+    artts = await self.bot.loop.run_in_executor(None,lambda:self.conn.artists)
+
+    for search in options[1:]:
+      run   = lambda: search_f(search.split(), *playlist.items)
+      found = await self.bot.loop.run_in_executor(None, run)
+      if found:
+        items.append(found[0])
+
+    run = lambda: playlist.add_items(*items)
+    await self.bot.loop.run_in_executor(None, run)
+    await self.bot.say(ok('Songs removed'))
 
   @_playlist.command(pass_context=True, name='list', aliases=['ls', 'l'])
   async def _playlist_list(self, ctx, name = ''):

@@ -3,6 +3,7 @@
 import re
 import asyncio
 import discord
+import logging
 import os
 from os import stat
 from git import Repo,Actor
@@ -13,6 +14,8 @@ from cogs.utils import perms
 from cogs.utils import find as azfind
 from cogs.utils.config import Config
 from cogs.utils import discord_helper as dh
+
+logger = logging.getLogger('navi.music')
 
 class AZ:
   def __init__(self, bot):
@@ -175,7 +178,8 @@ class AZ:
       return
 
     try:
-      url  = path.replace(self.conf['path'], self.conf['path-rep'])
+      url = path.replace(self.conf['path'], self.conf['path-rep'])
+      logger.info(url)
       if url.rpartition('.')[2] in ('gif', 'png', 'jpg', 'jpeg'):
         em = discord.Embed()
         em.set_image(url=url)

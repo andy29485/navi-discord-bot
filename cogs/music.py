@@ -342,7 +342,7 @@ class Music:
       artts = await self.bot.loop.run_in_executor(None, run[3])
 
       items = await self.bot.loop.run_in_executor(None, search_f, search,
-                                                 *plsts, *songs, *albms, *artts
+                                                 *plsts, *albms, *artts, *songs
       )
 
       if not items:

@@ -543,6 +543,8 @@ class Music:
     if voter == state.current.requester:
       await self.bot.say('Requester requested skipping song...')
       state.skip()
+    elif voter.id not in (m.id for m in state.vchan.voice_members):
+      await self.bot.say(error("You're not even in the voice channel. No."))
     elif voter.id not in state.skip_votes:
       state.skip_votes.add(voter.id)
       total_votes = len(state.skip_votes)

@@ -45,21 +45,21 @@ from logging.handlers import TimedRotatingFileHandler
 current_path = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger('navi')
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
+logformat = logging.Formatter(
   '%(asctime)s:%(name)s:%(levelname)s(%(pathname)s:%(lineno)s) - %(message)s'
 )
 
 #to log errors
 errror_log = logging.FileHandler(os.path.join(current_path, 'logs/error.log'))
 errror_log.setLevel(logging.ERROR)
-errror_log.setFormatter(formatter)
+errror_log.setFormatter(logformat)
 
 #to log debug messages
 fh = TimedRotatingFileHandler(os.path.join(current_path, 'logs/navi'),
                               when='midnight'
 )
 fh.setLevel(logging.DEBUG)
-fh.setFormatter(formatter)
+fh.setFormatter(logformat)
 fh.suffix = '%Y-%m-%d.log'
 
 logger.addHandler(errror_log)

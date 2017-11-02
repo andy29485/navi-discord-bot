@@ -132,23 +132,23 @@ class VoiceState:
         pass
 
       logger.debug('music 3')
-      if self.current.item:
+      if not self.player:
         logger.debug('music 4')
+        self.current.player = await self.emby_player(self.current.item)
+
+      logger.debug('music 5')
+      if self.current.item:
+        logger.debug('music 6')
         em = await emby_helper.makeEmbed(self.current.item, 'Now playing: ')
         logger.debug('sending music np to %s - %s', self.current.channel,
                                                     str(em.to_dict())
         )
         await self.bot.send_message(self.current.channel, embed=em)
       else:
-        logger.debug('music 5')
+        logger.debug('music 7')
         await self.bot.send_message(self.current.channel,
           'Now playing: ' + str(self.current)
         )
-
-      logger.debug('music 6')
-      if not self.player:
-        logger.debug('music 7')
-        self.current.player = await self.emby_player(self.current.item)
 
       logger.debug('music 8')
       self.player.start()

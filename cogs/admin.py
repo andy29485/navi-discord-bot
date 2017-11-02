@@ -6,12 +6,15 @@ import git
 import sys
 from cogs.utils import perms
 from cogs.utils import format as formatter
+import logging
 
 # to expose to the eval command
 import datetime
 from collections import Counter
 from cogs.utils.config import Config
 from cogs.utils import discord_helper as dh
+
+logger = logging.getLogger('navi')
 
 class Admin:
   def __init__(self, bot):
@@ -66,6 +69,18 @@ class Admin:
     loop.stop()
     #concurrent.futures.ProcessPoolExecutor().shutdown()
     sys.exit()
+
+  @commands.command(hidden=True)
+  @perms.is_owner()
+  async def debug_on(self):
+    logger.setLevel(logging.DEBUG)
+    await self.bot.say(formatter.ok())
+
+  @commands.command(hidden=True)
+  @perms.is_owner()
+  async def debug_off(self):
+    logger.setLevel(logging.INFO)
+    await self.bot.say(formatter.ok())
 
   @commands.command(hidden=True)
   @perms.is_owner()

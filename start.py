@@ -44,7 +44,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 current_path = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger('navi')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logformat = logging.Formatter(
   '%(asctime)s:%(name)s:%(levelname)s(%(pathname)s:%(lineno)s) - %(message)s'
 )

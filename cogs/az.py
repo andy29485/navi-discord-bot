@@ -136,7 +136,7 @@ class AZ:
       loop   = self.bot.loop
       author = Actor('navi', 'navi@andy29485.tk')
       remote = repo.remotes.origin
-      users  = set{}
+      users  = set()
 
       # check for changed files
       for fname in repo.untracked_files:

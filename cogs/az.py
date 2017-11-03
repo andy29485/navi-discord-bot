@@ -132,27 +132,23 @@ class AZ:
 
     try:
       # load repo
-      repo      = Repo(self.conf.get('path', ''))
-      loop      = self.bot.loop
-      author    = Actor('navi', 'navi@andy29485.tk')
-      remote    = repo.remotes.origin
-      file_dict = {}
+      repo   = Repo(self.conf.get('path', ''))
+      loop   = self.bot.loop
+      author = Actor('navi', 'navi@andy29485.tk')
+      remote = repo.remotes.origin
+      users  = set{}
 
       # check for changed files
       for fname in repo.untracked_files:
         fname = os.path.join(self.conf.get('path', ''), fname)
         uname = getpwuid(stat(fname).st_uid).pw_name
-        if uname in file_dict:
-          file_dict[uname].append(fname)
-        else:
-          file_dict[uname] = [fname]
+        users.add(uname)
 
       # commit changes
-      for uname,files in file_dict.items():
-        await loop.run_in_executor(None,repo.index.add, files)
-        msg = f"navi auto add - {uname}: added files"
-        run = lambda: repo.index.commit(msg, author=author, committer=author)
-        await loop.run_in_executor(None, run)
+      await loop.run_in_executor(None,repo.index.add, '.')
+      msg = f"navi auto add - {', '.join(unames)}: added files"
+      run = lambda: repo.index.commit(msg, author=author, committer=author)
+      await loop.run_in_executor(None, run)
 
       # sync with remote
       await loop.run_in_executor(None,remote.pull)

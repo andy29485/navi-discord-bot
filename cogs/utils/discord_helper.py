@@ -18,13 +18,38 @@ dt = [re.compile(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)'),
       )
 ]
 times = {
-   '(?i)(\\d+)\\s*s(econds?)?'    : 1,
-   '(?i)(\\d+)\\s*m(in(ute)?s?)?' : 60,
-   '(?i)(\\d+)\\s*h(ours?)?'      : 3600,
-   '(?i)(\\d+)\\s*d(ays?)?'       : 86400,
-   '(?i)(\\d+)\\s*w(eeks?)?'      : 604800,
-   '(?i)(\\d+)\\s*months?'        : 2628000
+   r'(?i)(\d+)\s*s(econds?)?\b'    : 1,
+   r'(?i)(\d+)\s*m(in(ute)?s?)?\b' : 60,
+   r'(?i)(\d+)\s*h(ours?)\b?'      : 3600,
+   r'(?i)(\d+)\s*d(ays?)?\b'       : 86400,
+   r'(?i)(\d+)\s*w(eeks?)?\b'      : 604800,
+   r'(?i)(\d+)\s*months?\b'        : 2628000
 }
+day_ex  = r'(\s*the)?\s*(?P<day>\d\d?)\s*(th|st|rd|nd)?(\\s*of)?'
+year_ex = r'\s*(,|of|in)?\s*(?P<year>\d{4})'
+dow_names = [ #monday=0,...,sunday=6
+  re.compile(f'(?i)^\\s*mon(day)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*tue(s(day)?)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*wed(nes(day)?)?\({day_ex})?\b'),
+  re.compile(f'(?i)^\\s*thu(r(s(day)?)?)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*fri(day)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*sat(ur(day?))?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*sun(day)?({day_ex})?\\b')
+]
+month_names = [
+  re.compile(f'(?i)({day_ex})?jan(uary)?(?(1)|{day_ex})({year_ex})?'),
+  re.compile(f'(?i)({day_ex})?feb(ruary)?(?(1)|{day_ex})({year_ex})?'),
+  re.compile(f'(?i)({day_ex})?mar(ch)?(?(1)|{day_ex})({year_ex})?'),
+  re.compile(f'(?i)({day_ex})?apr(il?)?(?(1)|{day_ex})({year_ex})?'),
+  re.compile(f'(?i)({day_ex})?may(?(1)|{day_ex})({year_ex})?'),
+  re.compile(f'(?i)({day_ex})?june?(?(1)|{day_ex})({year_ex})?'),
+  re.compile(f'(?i)({day_ex})?july?(?(1)|{day_ex})({year_ex})?'),
+  re.compile(f'(?i)({day_ex})?aug(u(st)?)?(?(1)|{day_ex})({year_ex})?'),
+  re.compile(f'(?i)({day_ex})?sep(t(em(ber)?)?)?(?(1)|{day_ex})({year_ex})?'),
+  re.compile(f'(?i)({day_ex})?oct(o(ber)?)?(?(1)|{day_ex})({year_ex})?'),
+  re.compile(f'(?i)({day_ex})?nov(em(ber)?)?(?(1)|{day_ex})({year_ex})?'),
+  re.compile(f'(?i)({day_ex})?dec(em(ber)?)(?(1)|{day_ex})({year_ex})?')
+]
 
 def get_end_time(message):
   datestrs = []
@@ -32,21 +57,68 @@ def get_end_time(message):
   m_time   = None
   m_date   = None
   date_time = datetime.datetime.today()
-  for d in dt:
-    m_date = d.search(message)
+  message = re.sub(r'(?i)^\s*(me|remove|end)?\s*(at|[oi]n)?\s*',
+                   '', message
+  ).strip()
+  for num, day in enumerate(dow_names):
+    m_date = day.search(message)
     if m_date:
-      if m_date.group('year'):
-        y = int(m_date.group('year'))
-        date_time = date_time.replace(year=y)
-      if m_date.group('month'):
-        m = int(m_date.group('month'))
-        date_time = date_time.replace(month=m)
+      offset=(7+num-date_time.weekday())%7 #offset=(7+want-now)%7
+      date_time += datetime.timedelta(days=offset)
       if m_date.group('day'):
-        d = int(m_date.group('day'))
-        date_time = date_time.replace(day=d)
+        day = int(m_date.group('day'))
+        for i in range(1,53):
+          date_time_tmp = date_time+datetime.timedelta(weeks=1)
+          if date_time_tmp.day == day:
+            date_time = date_time_tmp
+            break
       message = message.replace(m_date.group(0), '')
       datestrs.append(m_date.group(0))
       break
+  if not m_date:
+    for num, month in enumerate(month_names, 1):
+      m_date = month.search(message)
+      if m_date:
+        date_time = date_time.replace(month=num)
+        if m_date.group('day'):
+          day = int(m_date.group('day'))
+          date_time = date_time.replace(day=day)
+        if m_date.group('year'):
+          year = int(m_date.group('year'))
+          date_time = date_time.replace(year=year)
+        while date_time < datetime.datetime.today():
+          if not m_date.group('year'):
+            date_time += datetime.timedelta(years=1)
+          elif not m_date.group('day'):
+            date_time += datetime.timedelta(days=1)
+          else:
+            break
+        message = message.replace(m_date.group(0), '')
+        datestrs.append(m_date.group(0))
+        break
+  if not m_date:
+    for d in dt:
+      m_date = d.search(message)
+      if m_date:
+        if m_date.group('year'):
+          y = int(m_date.group('year'))
+          date_time = date_time.replace(year=y)
+        if m_date.group('month'):
+          m = int(m_date.group('month'))
+          date_time = date_time.replace(month=m)
+        if m_date.group('day'):
+          d = int(m_date.group('day'))
+          date_time = date_time.replace(day=d)
+          while date_time < datetime.datetime.today():
+            if not m_date.group('year'):
+              date_time += datetime.timedelta(years=1)
+            elif not m_date.group('day'):
+              date_time += datetime.timedelta(days=1)
+            else:
+              break
+        message = message.replace(m_date.group(0), '')
+        datestrs.append(m_date.group(0))
+        break
   for t in tm:
     m_time = t.search(message)
     if m_time:
@@ -66,14 +138,19 @@ def get_end_time(message):
       if m_time.group('sec'):
         s = int(m_time.group('sec'))
         date_time = date_time.replace(second=s)
+      while date_time < datetime.datetime.today():
+        if not m_time.group('hour'):
+          date_time += datetime.timedelta(hours=1)
+        elif not m_date or not m_date.group('day'):
+          date_time += datetime.timedelta(days=1)
+        elif not m_date.group('month'):
+          date_time += datetime.timedelta(month=1)
+        elif not m_date.group('year'):
+          date_time += datetime.timedelta(years=1)
+        else:
+          break
       message = message.replace(m_time.group(0), '')
       datestrs.append(m_time.group(0))
-      if offset>date_time.timestamp()and not(m_date and m_date.group('day')):
-        # if user specified time(hour/minute) that has already happened today
-        # (and no date was given)
-        #   for example it is 11:00, but user wants 10:00
-        # then use that time, but increment the day by one
-        date_time += datetime.timedelta(days=1)
       break
   if m_time or m_date:
     offset = date_time.timestamp()
@@ -84,7 +161,6 @@ def get_end_time(message):
         offset += times[t]*float(match.group(1))
         datestrs.append(match.group(0))
         message = message.replace(match.group(0), '')
-  message = re.sub(r'(?i)^(me|remove|end)?\s*(at|in)?\s*', '', message).strip()
   return int(offset), message, datestrs
 
 def remove_comments(words):

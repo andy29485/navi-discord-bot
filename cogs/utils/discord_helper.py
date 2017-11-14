@@ -133,6 +133,7 @@ def get_end_time(message):
         message = message.replace(m_date.group(0), '')
         datestrs.append(m_date.group(0))
         break
+  message = re.sub(r'(?i)^\s*(at|[oi]n)?\s*', '', message).strip()
   for t in tm:
     m_time = t.search(message)
     if m_time:

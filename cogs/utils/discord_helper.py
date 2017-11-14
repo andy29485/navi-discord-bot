@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
+import monthdelta
 import discord
 import time
 import re
@@ -25,30 +26,42 @@ times = {
    r'(?i)(\d+)\s*w(eeks?)?\b'      : 604800,
    r'(?i)(\d+)\s*months?\b'        : 2628000
 }
-day_ex  = r'(\s*the)?\s*(?P<day>\d\d?)\s*(th|st|rd|nd)?(\\s*of)?'
-year_ex = r'\s*(,|of|in)?\s*(?P<year>\d{4})'
+day_ex  = r'(\s*the)?\s*(?P<day>\d\d?)\s*(th|st|rd|nd)?(\s*of)?\b'
+year_ex = r'\s*(,|of|in)?(\s*the\s*year)?(\s*of)?\s*(?P<year>\d{4})\b'
 dow_names = [ #monday=0,...,sunday=6
   re.compile(f'(?i)^\\s*mon(day)?({day_ex})?\\b'),
   re.compile(f'(?i)^\\s*tue(s(day)?)?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*wed(nes(day)?)?\({day_ex})?\b'),
+  re.compile(f'(?i)^\\s*wed(nes(day)?)?({day_ex})?\\b'),
   re.compile(f'(?i)^\\s*thu(r(s(day)?)?)?({day_ex})?\\b'),
   re.compile(f'(?i)^\\s*fri(day)?({day_ex})?\\b'),
   re.compile(f'(?i)^\\s*sat(ur(day?))?({day_ex})?\\b'),
   re.compile(f'(?i)^\\s*sun(day)?({day_ex})?\\b')
 ]
 month_names = [
-  re.compile(f'(?i)({day_ex})?jan(uary)?(?(1)|{day_ex})({year_ex})?'),
-  re.compile(f'(?i)({day_ex})?feb(ruary)?(?(1)|{day_ex})({year_ex})?'),
-  re.compile(f'(?i)({day_ex})?mar(ch)?(?(1)|{day_ex})({year_ex})?'),
-  re.compile(f'(?i)({day_ex})?apr(il?)?(?(1)|{day_ex})({year_ex})?'),
-  re.compile(f'(?i)({day_ex})?may(?(1)|{day_ex})({year_ex})?'),
-  re.compile(f'(?i)({day_ex})?june?(?(1)|{day_ex})({year_ex})?'),
-  re.compile(f'(?i)({day_ex})?july?(?(1)|{day_ex})({year_ex})?'),
-  re.compile(f'(?i)({day_ex})?aug(u(st)?)?(?(1)|{day_ex})({year_ex})?'),
-  re.compile(f'(?i)({day_ex})?sep(t(em(ber)?)?)?(?(1)|{day_ex})({year_ex})?'),
-  re.compile(f'(?i)({day_ex})?oct(o(ber)?)?(?(1)|{day_ex})({year_ex})?'),
-  re.compile(f'(?i)({day_ex})?nov(em(ber)?)?(?(1)|{day_ex})({year_ex})?'),
-  re.compile(f'(?i)({day_ex})?dec(em(ber)?)(?(1)|{day_ex})({year_ex})?')
+  re.compile(f'(?i)({day_ex})\\s*jan(uary)?\\s*({year_ex})?'),
+  re.compile(f'(?i)jan(uary)?\\s*{day_ex}\\s*({year_ex})?'),
+  re.compile(f'(?i)({day_ex})\\s*feb(ruary)?\\s*({year_ex})?'),
+  re.compile(f'(?i)feb(ruary)?\\s*{day_ex}\\s*({year_ex})?'),
+  re.compile(f'(?i)({day_ex})\\s*mar(ch)?\\s*({year_ex})?'),
+  re.compile(f'(?i)mar(ch)?\\s*{day_ex}\\s*({year_ex})?'),
+  re.compile(f'(?i)({day_ex})\\s*apr(il?)\\s*?({year_ex})?'),
+  re.compile(f'(?i)apr(il?)?\\s*{day_ex}\\s*({year_ex})?'),
+  re.compile(f'(?i)({day_ex})\\s*may(\\s*{year_ex})?'),
+  re.compile(f'(?i)may\\s*{day_ex}\\s*({year_ex})?'),
+  re.compile(f'(?i)({day_ex})\\s*june?(\\s*{year_ex})?'),
+  re.compile(f'(?i)june?\\s*{day_ex}\\s*({year_ex})?'),
+  re.compile(f'(?i)({day_ex})\\s*july?(\\s*{year_ex})?'),
+  re.compile(f'(?i)july?\\s*{day_ex}\\s*({year_ex})?'),
+  re.compile(f'(?i)({day_ex})\\s*aug(u(st)?\\s*)?({year_ex})?'),
+  re.compile(f'(?i)aug(u(st)?)?\\s*{day_ex}\\s*({year_ex})?'),
+  re.compile(f'(?i)({day_ex})\\s*sep(t(em(ber)?\\s*)?)?({year_ex})?'),
+  re.compile(f'(?i)sep(t(em(ber)?)?)?\\s*{day_ex}\\s*({year_ex})?'),
+  re.compile(f'(?i)({day_ex})\\s*oct(o(ber)?\\s*)?({year_ex})?'),
+  re.compile(f'(?i)oct(o(ber)?)?\\s*{day_ex}\\s*({year_ex})?'),
+  re.compile(f'(?i)({day_ex})\\s*nov(em(ber)?\\s*)?({year_ex})?'),
+  re.compile(f'(?i)nov(em(ber)?)?\\s*{day_ex}\\s*({year_ex})?'),
+  re.compile(f'(?i)({day_ex})\\s*dec(em(ber)?\\s*)?({year_ex})?'),
+  re.compile(f'(?i)dec(em(ber)?)?\\s*{day_ex}\\s*({year_ex})?')
 ]
 
 def get_end_time(message):
@@ -68,7 +81,7 @@ def get_end_time(message):
       if m_date.group('day'):
         day = int(m_date.group('day'))
         for i in range(1,53):
-          date_time_tmp = date_time+datetime.timedelta(weeks=1)
+          date_time_tmp = date_time+datetime.timedelta(weeks=i)
           if date_time_tmp.day == day:
             date_time = date_time_tmp
             break
@@ -76,7 +89,8 @@ def get_end_time(message):
       datestrs.append(m_date.group(0))
       break
   if not m_date:
-    for num, month in enumerate(month_names, 1):
+    for num, month in enumerate(month_names, 2):
+      num = num//2
       m_date = month.search(message)
       if m_date:
         date_time = date_time.replace(month=num)
@@ -88,7 +102,7 @@ def get_end_time(message):
           date_time = date_time.replace(year=year)
         while date_time < datetime.datetime.today():
           if not m_date.group('year'):
-            date_time += datetime.timedelta(years=1)
+            date_time += monthdelta.monthdelta(12)
           elif not m_date.group('day'):
             date_time += datetime.timedelta(days=1)
           else:
@@ -111,7 +125,7 @@ def get_end_time(message):
           date_time = date_time.replace(day=d)
           while date_time < datetime.datetime.today():
             if not m_date.group('year'):
-              date_time += datetime.timedelta(years=1)
+              date_time += monthdelta.monthdelta(12)
             elif not m_date.group('day'):
               date_time += datetime.timedelta(days=1)
             else:
@@ -144,9 +158,9 @@ def get_end_time(message):
         elif not m_date or not m_date.group('day'):
           date_time += datetime.timedelta(days=1)
         elif not m_date.group('month'):
-          date_time += datetime.timedelta(month=1)
+          date_time += monthdelta.monthdelta(1)
         elif not m_date.group('year'):
-          date_time += datetime.timedelta(years=1)
+          date_time += monthdelta.monthdelta(12)
         else:
           break
       message = message.replace(m_time.group(0), '')

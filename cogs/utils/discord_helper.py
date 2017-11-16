@@ -21,7 +21,7 @@ dt = [re.compile(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)'),
 times = {
    r'(?i)(\d+)\s*s(econds?)?\b'    : 1,
    r'(?i)(\d+)\s*m(in(ute)?s?)?\b' : 60,
-   r'(?i)(\d+)\s*h(ours?)\b?'      : 3600,
+   r'(?i)(\d+)\s*h(ours?)?\b'      : 3600,
    r'(?i)(\d+)\s*d(ays?)?\b'       : 86400,
    r'(?i)(\d+)\s*w(eeks?)?\b'      : 604800,
    r'(?i)(\d+)\s*months?\b'        : 2628000

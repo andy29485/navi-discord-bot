@@ -6,8 +6,11 @@ import itertools
 from discord.ext import commands
 from discord import Embed
 import osuapi
+import logging
 from cogs.utils import format as formatter
 from cogs.utils.config import Config
+
+logger = logging.getLogger('navi')
 
 class Osu:
   breatmap_sets_url_patterns=[re.compile('https?://osu.ppy.sh/s/(\\d+)')]
@@ -174,33 +177,38 @@ class Osu:
     )
 
   async def check_scores(self):
-    while self == self.bot.get_cog('Osu'):
-      for duid in self.conf['watched-users']:
-        ouid  = self.conf['watched-users'][duid]['uid']
-        num   = self.conf['watched-users'][duid]['num']
-        chans = self.conf['watched-users'][duid]['chans']
-        last  = self.conf['watched-users'][duid]['last']
-        name  = await self.api.get_user(ouid)
-        name  = name[0].username
-        best  = await self.api.get_user_best(ouid, limit=num)
+    try:
+      while self == self.bot.get_cog('Osu'):
+        for duid in self.conf['watched-users']:
+          ouid  = self.conf['watched-users'][duid]['uid']
+          num   = self.conf['watched-users'][duid]['num']
+          chans = self.conf['watched-users'][duid]['chans']
+          last  = self.conf['watched-users'][duid]['last']
+          name  = await self.api.get_user(ouid)
+          name  = name[0].username
+          best  = await self.api.get_user_best(ouid, limit=num)
 
-        for i, old, new in itertools.zip_longest(range(num), last, best):
-          if new.beatmap_id != old[0] or new.score > old[1]:
-            em = await self.osu_embed(new)
-            em.title = f'New best #{i+1} for {name} - {em.title}'
-            for chan_id in chans:
-              try:
-                chan = self.bot.get_channel(chan_id)
-                await self.bot.send_message(chan, embed=em)
-              except:
-                pass
-            break
-        else:
-          continue
-        best = [(i.beatmap_id, i.score) for i in best]
-        self.conf['watched-users'][duid]['last'] = best
-        self.conf.save()
-      await asyncio.sleep(30)
+          for i, old, new in itertools.zip_longest(range(num), last, best):
+            if not new:
+              break
+            elif not old or new.beatmap_id != old[0] or new.score > old[1]:
+              em = await self.osu_embed(new)
+              em.title = f'New best #{i+1} for {name} - {em.title}'
+              for chan_id in chans:
+                try:
+                  chan = self.bot.get_channel(chan_id)
+                  await self.bot.send_message(chan, embed=em)
+                except:
+                  logger.exception()
+              break
+          else:
+            continue
+          best = [(i.beatmap_id, i.score) for i in best]
+          self.conf['watched-users'][duid]['last'] = best
+          self.conf.save()
+        await asyncio.sleep(30)
+    except:
+      logger.exception()
 
   async def osu_embed(self, osu_obj):
     em = Embed()

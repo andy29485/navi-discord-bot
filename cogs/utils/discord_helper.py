@@ -220,16 +220,24 @@ def get_user(server, search_param, function=None):
       return user
 
   match = id_pattern.match(search_param)
-  if match:
-    user = server.get_member(match.group(1))
-    if user and (not function or function(user)):
-      return user
+  try:
+    if match:
+      user = server.get_member(match.group(1))
+      if user and (not function or function(user)):
+        return user
+  except:
+    pass
 
   match = name_pattern.match(search_param)
   name  = match.group(1) if match else search_param.lower()
   discr = match.group(2) if match else ''
 
-  for user in server.members:
+  try:
+    members = server.members
+  except:
+    members = server.get_all_members()
+
+  for user in members:
     if name == user.name and discr in str(user.discriminator):
       if not function or function(user):
         return user

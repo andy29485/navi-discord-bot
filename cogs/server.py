@@ -59,9 +59,9 @@ class Server:
     chan = ctx.message.channel
     serv = ctx.message.server
 
-    if num_to_delete > 100:                       # api only allows up to 100
-      await self.bot.say('Sorry, only up to 100') # TODO - copy thing done in
-      return                                      #        self._paste
+    #if num_to_delete > 100:                       # api only allows up to 100
+    #  await self.bot.say('Sorry, only up to 100') # TODO - copy thing done in
+    #  return                                      #        self._paste
     if num_to_delete < 1:                         # delete nothing?
       await self.bot.say('umm... no')             #  answer: no
       return
@@ -69,23 +69,29 @@ class Server:
     # if the first word in the message matches a user,
     #   remove that word from the message, store the user
     try:
-      user = dh.get_user(serv, message[0])
+      user = dh.get_user(serv or self.bot, message[0])
       if user:
         message = message[1:]
     except:
+      logger.exception('did not match a user')
       user = None
+
+    check = None
+    if user: # if a user was matched, delete messages for that user only
+      logger.debug(f'pruning for user {user.name}')
+      check = lambda m: m.author.id == user.id
+    else:
+      logger.debug(f'could not match user for {message[0]}')
 
     message = ' '.join(message) #make the message a string
 
-    if user: # if a user was matched, delete messages from tat user only
-      c  = lambda m: m.author.id == user.id
-
+    logs = []
     async for m in self.bot.logs_from(chan, num_to_delete, reverse=True):
       if not check or check(m):
         logs.append(m)
 
     deleted = len(logs)
-
+    old = False
     while len(logs) > 0:     # while there are messages to delete
       if len(logs) > 1:      #   if more than one left to delete and not old,
         if not old:          #     attempt batch delete [2-100] messages
@@ -95,7 +101,10 @@ class Server:
             old = True       #     then the messages must be old
         if old:              # if old, traverse and delete individually
           for entry in logs[:100]:
-            await self.bot.delete_message(entry)
+            try:
+              await self.bot.delete_message(entry)
+            except:
+              logger.exception('<{0.author.name}> {0.content}'.format(entry))
         logs = logs[100:]
       else:                   # if only one message, delete individually
         await self.bot.delete_message(logs[0])

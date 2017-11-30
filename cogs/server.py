@@ -78,16 +78,34 @@ class Server:
     message = ' '.join(message) #make the message a string
 
     if user: # if a user was matched, delete messages from tat user only
-      c       = lambda m: m.author.id == user.id
-      deleted = await self.bot.purge_from(chan, limit=num_to_delete, check = c)
-    else:    # other wise just delete messages
-      deleted = await self.bot.purge_from(chan, limit=num_to_delete)
+      c  = lambda m: m.author.id == user.id
+
+    async for m in self.bot.logs_from(chan, num_to_delete, reverse=True):
+      if not check or check(m):
+        logs.append(m)
+
+    deleted = len(logs)
+
+    while len(logs) > 0:     # while there are messages to delete
+      if len(logs) > 1:      #   if more than one left to delete and not old,
+        if not old:          #     attempt batch delete [2-100] messages
+          try:
+            await self.bot.delete_messages(logs[:100])
+          except:            #   if problem when batch deleting
+            old = True       #     then the messages must be old
+        if old:              # if old, traverse and delete individually
+          for entry in logs[:100]:
+            await self.bot.delete_message(entry)
+        logs = logs[100:]
+      else:                   # if only one message, delete individually
+        await self.bot.delete_message(logs[0])
+        logs.remove(logs[0])
 
     #report that prume was complete, how many were prunned, and the message
     await self.bot.say(ok('Deleted {} message{} {}'.format(
-                             len(deleted),
-                             '' if len(deleted) == 1    else 's',
-                             '('+message+')' if message else ''
+                             deleted,
+                             ''             if deleted == 1 else 's',
+                             f'({message})' if message      else ''
                            )
                          )
     )

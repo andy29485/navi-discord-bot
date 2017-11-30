@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 import asyncio
+import logging
 from cogs.utils.config import Config
 import cogs.utils.heap as heap
+
+logger = logging.getLogger('navi.heap')
 
 class HeapCog:
   def __init__(self, bot):

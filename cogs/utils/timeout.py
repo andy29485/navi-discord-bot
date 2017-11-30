@@ -3,8 +3,11 @@
 import time
 import asyncio
 import discord
+import logging
 import cogs.utils.heap as heap
 import cogs.utils.discord_helper as dh
+
+logger = logging.getLogger('navi.timeout')
 
 class Timeout(heap.HeapNode):
   def __init__(self, chan, serv, user, end_time, roles=[]):

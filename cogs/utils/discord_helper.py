@@ -3,8 +3,11 @@
 import datetime
 import monthdelta
 import discord
+import logging
 import time
 import re
+
+logger = logging.getLogger('navi.dh')
 
 id_pattern   = re.compile('<?[@#][!&]?([0-9]{15,21})>?')
 name_pattern = re.compile('^<?@?(.+)#(\\d{4})>?$')

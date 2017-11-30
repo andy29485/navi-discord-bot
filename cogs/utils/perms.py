@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+import logging
 from discord.ext import commands
 import discord.utils
 from cogs.utils.config import Config
+
+logger = logging.getLogger('navi.perms')
 
 # Check for perms, used for checking if a user can run a command
 

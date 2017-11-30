@@ -3,6 +3,7 @@
 import re
 import groupy
 import asyncio
+import logging
 import hashlib
 from discord import Embed
 from discord.ext import commands
@@ -14,6 +15,8 @@ colours = [0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
            0x2ecc71, 0xa84300, 0xe74c3c, 0xad1457, 0x11806a]
 
 groupme_objects = {}
+
+logger = logging.getLogger('navi.groupme')
 
 class GroupMe:
   def __init__(self, bot):

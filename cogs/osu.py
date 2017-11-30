@@ -10,7 +10,7 @@ import logging
 from cogs.utils import format as formatter
 from cogs.utils.config import Config
 
-logger = logging.getLogger('navi')
+logger = logging.getLogger('navi.osu')
 
 class Osu:
   breatmap_sets_url_patterns=[re.compile('https?://osu.ppy.sh/s/(\\d+)')]

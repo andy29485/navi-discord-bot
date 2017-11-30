@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 import json
+import logging
+
+logger = logging.getLogger('navi.obj_creater')
 
 def as_obj(dct):
   '''

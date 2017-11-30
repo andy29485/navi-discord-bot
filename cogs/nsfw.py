@@ -3,12 +3,15 @@
 import re
 import random
 import asyncio
+import logging
 import pybooru
 from discord import Embed
 from discord.ext import commands
 from cogs.utils.config import Config
 import cogs.utils.format as formatter
 from cogs.utils import discord_helper as dh
+
+logger = logging.getLogger('navi.nsfw')
 
 class NSFW:
   def __init__(self, bot):

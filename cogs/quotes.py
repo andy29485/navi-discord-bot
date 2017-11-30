@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
 import asyncio
+import logging
 import random
 from datetime import datetime
 from discord.ext import commands
 from cogs.utils import format as formatter
 from cogs.utils import perms
 from cogs.utils.config import Config
+
+logger = logging.getLogger('navi.quotes')
 
 class Quote:
   def __init__(self, bot):

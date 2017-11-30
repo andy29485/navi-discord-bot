@@ -3,6 +3,7 @@
 import re
 import time
 import random
+import logging
 import asyncio
 from discord.ext import commands
 from datetime import datetime, timedelta
@@ -11,6 +12,8 @@ from cogs.utils.config import Config
 from cogs.utils.format import *
 from cogs.utils.reminders import Reminder
 import cogs.utils.heap as heap
+
+logger = logging.getLogger('navi.general')
 
 class General:
   def __init__(self, bot):

@@ -4,6 +4,7 @@ import re
 import time
 import asyncio
 import requests
+import logging
 import discord
 from collections import namedtuple
 from discord.ext import commands
@@ -16,6 +17,8 @@ from cogs.utils.timeout import Timeout
 from cogs.utils import discord_helper as dh
 from cogs.utils.role_removals import RoleRemove
 import cogs.utils.heap as heap
+
+logger = logging.getLogger('navi.server')
 
 # wrapper class for embeds,
 #   just stores a dict, and returns the dict when to_dict is called

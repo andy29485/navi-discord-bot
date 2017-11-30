@@ -15,7 +15,7 @@ from cogs.utils import find as azfind
 from cogs.utils.config import Config
 from cogs.utils import discord_helper as dh
 
-logger = logging.getLogger('navi.music')
+logger = logging.getLogger('navi.az')
 
 class AZ:
   def __init__(self, bot):

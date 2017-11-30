@@ -14,7 +14,7 @@ from collections import Counter
 from cogs.utils.config import Config
 from cogs.utils import discord_helper as dh
 
-logger = logging.getLogger('navi')
+logger = logging.getLogger('navi.admin')
 
 class Admin:
   def __init__(self, bot):
@@ -73,13 +73,13 @@ class Admin:
   @commands.command(hidden=True)
   @perms.is_owner()
   async def debug_on(self):
-    logger.setLevel(logging.DEBUG)
+    logging.getLogger('navi').setLevel(logging.DEBUG)
     await self.bot.say(formatter.ok())
 
   @commands.command(hidden=True)
   @perms.is_owner()
   async def debug_off(self):
-    logger.setLevel(logging.INFO)
+    logging.getLogger('navi').setLevel(logging.INFO)
     await self.bot.say(formatter.ok())
 
   @commands.command(hidden=True)

@@ -3,9 +3,12 @@
 import re
 import discord
 import asyncio
+import logging
 import time
 import cogs.utils.heap as heap
 import cogs.utils.format as formatter
+
+logger = logging.getLogger('navi.poll')
 
 class Poll(heap.HeapNode):
   def __init__(self, question, opts, channel, sleep, timeout=0):

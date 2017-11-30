@@ -4,6 +4,7 @@ import re
 import json
 import aiohttp
 import asyncio
+import logging
 import discord
 import html2text
 import asyncjisho
@@ -12,6 +13,8 @@ from discord.ext import commands
 from urllib.parse import parse_qs
 from urllib import parse as urlencode
 from cogs.utils import format as formatter
+
+logger = logging.getLogger('navi.internet')
 
 class Search:
   def __init__(self, bot):

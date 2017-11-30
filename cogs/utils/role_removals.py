@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 import time
+import logging
 import cogs.utils.heap as heap
 from cogs.utils import discord_helper as dh
+
+logger = logging.getLogger('navi.role_rm')
 
 class RoleRemove(heap.HeapNode):
   def __init__(self, end_time, role_id, auth_id, chan_id, serv_id):

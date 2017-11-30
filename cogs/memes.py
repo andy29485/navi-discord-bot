@@ -2,6 +2,7 @@
 
 import re
 import asyncio
+import logging
 import os.path
 import tempfile
 from discord.ext import commands
@@ -9,6 +10,8 @@ from PIL import Image, ImageFont, ImageDraw
 from cogs.utils.format import error
 from cogs.utils.config import Config
 from cogs.utils import discord_helper as dh
+
+logger = logging.getLogger('navi.memes')
 
 def wrap_text(text, width, font):
   '''

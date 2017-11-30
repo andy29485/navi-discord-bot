@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 import json
+import logging
 from cogs.utils.obj_creator import as_obj, ObjEncoder
+
+logger = logging.getLogger('navi.config')
 
 class Config(dict):
   configs = {}

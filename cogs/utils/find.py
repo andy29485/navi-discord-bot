@@ -2,9 +2,12 @@
 
 import zipfile
 import tempfile
+import logging
 import random
 import os
 from cogs.utils.config import Config
+
+logger = logging.getLogger('navi.find')
 
 # load config, for search term replacements
 conf = Config('configs/az.json')

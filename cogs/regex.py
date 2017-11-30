@@ -2,10 +2,13 @@
 
 import re
 import asyncio
+import logging
 from discord.ext import commands
 from cogs.utils import format as formatter
 from cogs.utils import perms
 from cogs.utils.config import Config
+
+logger = logging.getLogger('navi.regex')
 
 class Regex:
   def __init__(self, bot):

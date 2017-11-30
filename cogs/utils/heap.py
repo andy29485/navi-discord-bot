@@ -2,8 +2,11 @@
 
 import abc
 import time
+import logging
 from cogs.utils.config import Config
 import cogs.utils.obj_creator as obj_creator
+
+logger = logging.getLogger('navi.heapclass')
 
 # a few functions which manipulate a given list as if it was a heap
 # smallest items "float" up to the top of the heap

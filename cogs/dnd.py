@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 import asyncio
+import logging
 from discord.ext import commands
 from cogs.utils.config import Config
+
+logger = logging.getLogger('navi.dnd')
 
 class DnD:
   def __init__(self, bot):

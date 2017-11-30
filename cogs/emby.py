@@ -9,6 +9,8 @@ import logging
 from embypy.objects import EmbyObject
 import re
 
+logger = logging.getLogger('navi.emby')
+
 class Emby:
   def __init__(self, bot):
     self.bot  = bot
@@ -121,7 +123,7 @@ class Emby:
   async def on_socket_message(self, message):
     if message['MessageType'] == 'LibraryChanged':
       for eid in message['ItemsAdded']:
-        logging.info(eid+' has been added to emby')
+        logger.info(eid+' has been added to emby')
         print(eid+' has been added to emby')
 
 def setup(bot):

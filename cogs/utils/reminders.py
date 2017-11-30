@@ -9,7 +9,7 @@ import cogs.utils.heap as heap
 from cogs.utils.format import ok
 from cogs.utils import discord_helper as dh
 
-logger = logging.getLogger('navi')
+logger = logging.getLogger('navi.reminders')
 
 class Reminder(heap.HeapNode):
   def __init__(self, channel_id, user_id, message, end_time=0, times=[],

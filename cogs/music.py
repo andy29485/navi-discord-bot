@@ -231,7 +231,7 @@ class Music:
       except:
         pass
 
-  @music.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, aliases=['j'], no_pm=True)
   async def join(self, ctx, *, channel : discord.Channel):
     """Joins a voice channel."""
     try:
@@ -243,7 +243,7 @@ class Music:
     else:
       await self.bot.say('Ready to play audio in ' + channel.name)
 
-  @music.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, aliases=['su'], no_pm=True)
   async def summon(self, ctx):
     """Summons the bot to join your voice channel."""
     summoned_channel = ctx.message.author.voice_channel
@@ -259,7 +259,7 @@ class Music:
 
     return True
 
-  @music.command(pass_context=True, aliases=['s', 'find'], no_pm=False)
+  @music.command(pass_context=True, aliases=['s', 'sr', 'find'], no_pm=False)
   async def search(self, ctx, *, search : str):
     """Searchs song on emby
 
@@ -477,7 +477,7 @@ class Music:
       os.rename(item.path, path)
     await self.bot.say(ok('tags set'))
 
-  @music.command(pass_context=True, aliases=['shuff'], no_pm=True)
+  @music.command(pass_context=True, aliases=['shuff', 'sh'], no_pm=True)
   async def shuffle(self, ctx):
     """Shuffles the queue (excluding the current song)"""
 
@@ -543,7 +543,7 @@ class Music:
       player = state.player
       player.resume()
 
-  @music.command(pass_context=True, aliases=['s'], no_pm=True)
+  @music.command(pass_context=True, aliases=['st'], no_pm=True)
   async def stop(self, ctx):
     """Stops playing audio and leaves the voice channel.
 
@@ -554,7 +554,7 @@ class Music:
 
     await state.stop()
 
-  @music.command(pass_context=True, no_pm=True)
+  @music.command(pass_context=True, aliases=['sk'], no_pm=True)
   async def skip(self, ctx):
     """Vote to skip a song. The song requester can automatically skip.
 

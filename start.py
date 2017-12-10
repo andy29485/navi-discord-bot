@@ -134,6 +134,10 @@ async def on_message(message):
   if message.author.bot:
     return
 
+  perms = Config('configs/perms.json')
+  if message.author.id in perms.get('ignore', []):
+    return
+
   if not re.search('^[\\.!\\?\\$]{2,}', message.content):
     await bot.process_commands(message)
 

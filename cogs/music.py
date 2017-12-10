@@ -281,6 +281,7 @@ class Music:
     search = search.split(' ')
     albm   = False
 
+    logger.debug('search - parsing options')
     while search:
       if search[0] == '-':
         search = search[1:]
@@ -731,15 +732,18 @@ class Music:
       lambda:self.conn.artists
     ]
 
+    logger.debug('search - getting db')
     plsts = await self.bot.loop.run_in_executor(None, run[0])
     songs = await self.bot.loop.run_in_executor(None, run[1])
     albms = await self.bot.loop.run_in_executor(None, run[2])
     artts = await self.bot.loop.run_in_executor(None, run[3])
 
     if albm:
+      logger.debug('search - searching: album')
       return await self.bot.loop.run_in_executor(None, search_f, search,
                                                  *plsts, *albms, *artts, *songs
       )
+    logger.debug('search - searching: no album')
     return await self.bot.loop.run_in_executor(None, search_f, search,
                                                *plsts, *songs, *albms, *artts
     )

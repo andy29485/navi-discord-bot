@@ -145,10 +145,11 @@ class AZ:
         users.add(uname)
 
       # commit changes
-      await loop.run_in_executor(None,repo.index.add, '.')
-      msg = f"navi auto add - {', '.join(unames)}: added files"
-      run = lambda: repo.index.commit(msg, author=author, committer=author)
-      await loop.run_in_executor(None, run)
+      if users or repo.untracked_files:
+        await loop.run_in_executor(None,repo.index.add, '.')
+        msg = f"navi auto add - {', '.join(unames)}: added files"
+        run = lambda: repo.index.commit(msg, author=author, committer=author)
+        await loop.run_in_executor(None, run)
 
       # sync with remote
       await loop.run_in_executor(None,remote.pull)
@@ -177,9 +178,13 @@ class AZ:
       url = path.replace(self.conf['path'], self.conf['path-rep'])
       logger.info(url)
       if url.rpartition('.')[2] in ('gif', 'png', 'jpg', 'jpeg'):
-        em = discord.Embed()
-        em.set_image(url=url)
-        await self.bot.say(embed=em)
+        try:
+          em = discord.Embed()
+          em.set_image(url=url)
+          logger.debug(f'sending {str(em.to_dict())}')
+          await self.bot.say(embed=em)
+        except:
+          await self.bot.say(url)
       else:
         await self.bot.say(url)
     except:

@@ -288,6 +288,7 @@ class Music:
       elif search[0][0] == '-':
         for flag in search[0][1:]:
           if flag == 'a':
+            search = search[1:]
             albm = True
           else:
             break

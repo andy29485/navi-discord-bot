@@ -110,9 +110,7 @@ async def on_command_error(error, ctx):
   lines = []
   for line in e_tb:
     lines.extend(line.rstrip('\n').splitlines())
-  logger.error(f'<{msg.author.name}> {msg.content}', error.args,
-               '\n'.join(lines)
-  )
+  logger.error(f'<{msg.author.name}> {msg.content}: %s', '\n'.join(lines))
 
 @bot.async_event
 async def on_resumed():

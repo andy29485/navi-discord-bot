@@ -61,6 +61,7 @@ def wrap_text(text, width, font):
 
 def write_image(lines, out, **kargs):
   # get variables
+  logger.debug('kargs: '+ str(kargs))
   locations  = kargs.get('locations',         [])
   size_const = kargs.get('size',              25)
   spacing    = kargs.get('spacing',            0)
@@ -78,6 +79,7 @@ def write_image(lines, out, **kargs):
   if os.path.exists(tmp_loc):
     font_name = tmp_loc
 
+  logger.debug('opening: '+ image_file)
   # load image
   img  = Image.open(image_file)
   draw = ImageDraw.Draw(img)

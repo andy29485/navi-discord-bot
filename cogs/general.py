@@ -42,6 +42,15 @@ class General:
     """Pong."""
     await self.bot.say("Pong.")
 
+  @commands.command(pass_context=True)
+  async def invite(self, ctx):
+    '''reply with a link that allows this bot to be invited'''
+    await self.bot.send_message(
+      ctx.message.channel,
+      'https://discordapp.com/oauth2/authorize?client_id={self.bot.id}'+
+      '&permissions=305260592&scope=bot'
+    )
+
   async def tally(self, message):
     chan = message.channel
     user = message.author

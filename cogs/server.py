@@ -73,21 +73,19 @@ class Server:
       if user:
         message = message[1:]
     except:
-      logger.exception('did not match a user')
+      logger.debug('did not match a user')
       user = None
 
-    check = None
+    check = lambda m: True
     if user: # if a user was matched, delete messages for that user only
       logger.debug(f'pruning for user {user.name}')
       check = lambda m: m.author.id == user.id
-    else:
-      logger.debug(f'could not match user for {message[0]}')
 
     message = ' '.join(message) #make the message a string
 
     logs = []
     async for m in self.bot.logs_from(chan, num_to_delete, reverse=True):
-      if not check or check(m):
+      if check(m):
         logs.append(m)
 
     deleted = len(logs)

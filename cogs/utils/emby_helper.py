@@ -84,7 +84,7 @@ async def makeEmbed(item, message=''):
     logger.debug('setting run time')
     d = int(float(item.object_dict.get('RunTimeTicks') / (10**7)))
     if d > 1:
-      d = '{:02}:{:02}:{:02}'.format(d//3600, d//60, d%60)
+      d = '{:02}:{:02}:{:02}'.format(d//3600, (d//60)%60, d%60)
       em.add_field(name='Duration', value=d)
 
   logger.debug('done making embed')

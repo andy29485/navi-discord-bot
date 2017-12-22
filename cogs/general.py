@@ -43,6 +43,11 @@ class General:
     await self.bot.say("Pong.")
 
   @commands.command(pass_context=True)
+  async def time(self, ctx):
+    '''remind people to hurry up'''
+    await self.bot.send_message(datetime.datetime.now().isoformat())
+
+  @commands.command(pass_context=True)
   async def invite(self, ctx):
     '''reply with a link that allows this bot to be invited'''
     await self.bot.send_message(

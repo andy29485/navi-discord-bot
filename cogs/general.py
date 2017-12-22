@@ -5,7 +5,6 @@ import time
 import random
 import logging
 import asyncio
-import datetime
 from discord.ext import commands
 from datetime import datetime, timedelta
 from cogs.utils.poll import Poll
@@ -46,7 +45,7 @@ class General:
   @commands.command(pass_context=True)
   async def time(self, ctx):
     '''remind people to hurry up'''
-    await self.bot.send_message(datetime.datetime.now().isoformat())
+    await self.bot.send_message(datetime.now().isoformat())
 
   @commands.command(pass_context=True)
   async def invite(self, ctx):

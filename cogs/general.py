@@ -45,7 +45,7 @@ class General:
   @commands.command(pass_context=True)
   async def time(self, ctx):
     '''remind people to hurry up'''
-    await self.bot.send_message(datetime.now().isoformat())
+    await self.bot.send_message(ctx.message.channel,datetime.now().isoformat())
 
   @commands.command(pass_context=True)
   async def invite(self, ctx):

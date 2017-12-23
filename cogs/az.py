@@ -197,6 +197,9 @@ class AZ:
     chan = message.channel
     data = self.last.get(chan, ['', 0])
 
+    if not message.content:
+      return
+
     if data[0] == message.content.lower():
       data[1] += 1
     else:

@@ -177,8 +177,8 @@ class Osu:
     )
 
   async def check_scores(self):
-    try:
-      while self == self.bot.get_cog('Osu'):
+    while self == self.bot.get_cog('Osu'):
+      try:
         for duid in self.conf['watched-users']:
           ouid  = self.conf['watched-users'][duid]['uid']
           num   = self.conf['watched-users'][duid]['num']
@@ -207,8 +207,8 @@ class Osu:
           self.conf['watched-users'][duid]['last'] = best
           self.conf.save()
         await asyncio.sleep(30)
-    except:
-      logger.exception()
+      except:
+        logger.exception("osu cog couldn't connect it seems")
 
   async def osu_embed(self, osu_obj):
     em = Embed()

@@ -78,10 +78,11 @@ class VoiceState:
 
     try:
       self.audio_player.cancel()
+    except:
+      raise
+    finally:
       await self.vchan.disconnect()
       del self.cog.voice_states[self.sid]
-    except:
-      pass
 
   async def emby_player(self, item):
     if os.path.exists(item.path):

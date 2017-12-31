@@ -25,7 +25,7 @@ class Games:
     conf   = self.conf.get('fake_artist', {})
     themes = conf.get('themes', [])
     themes = random.sample(themes, len(themes)-len(themes)%number)
-    output = [[]]*number
+    output = [[] for i in range(number)]
     fakes  = list(range(number))*(len(themes)//number)
     random.shuffle(fakes)
     say = 'here are the links:'

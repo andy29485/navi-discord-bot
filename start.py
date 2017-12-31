@@ -26,7 +26,8 @@ starting_cogs = [
   'cogs.dnd',
   'cogs.emby',
   'cogs.music',
-  'cogs.nsfw'
+  'cogs.nsfw',
+  'cogs.games'
 ]
 
 

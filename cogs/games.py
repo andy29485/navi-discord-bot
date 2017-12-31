@@ -40,8 +40,8 @@ class Games:
     with open(os.path.join(conf.get('path',''), 'master.html'), 'w') as f:
       f.write(conf.get('rules'))
       for i,theme in enumerate(themes):
-        f.write(f'''<li><input type="button" value="show"'''+ \
-                f'''onclick="this.value=this.value=='show'''+ \
+        f.write(f'''<li><input class="spoilerbutton" type="button"'''+ \
+                f'''value="show" onclick="this.value=this.value=='show'''+ \
                 f'''\'?'{html.escape(theme)}':'show';"></li>''')
       f.write(conf.get('out'))
 

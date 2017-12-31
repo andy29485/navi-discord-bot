@@ -6,6 +6,7 @@ import os
 from cogs.utils import perms
 from discord.ext import commands
 from cogs.utils.config import Config
+from cogs.utils import format as formatter
 
 class Games:
   def __init__(self, bot):
@@ -17,6 +18,7 @@ class Games:
   async def fake_artist_add(self, ctx, themes):
     self.conf['fake_artist']['themes'].extend(themes.strip().split('\n'))
     self.conf.save()
+    await self.bot.say(formatter.ok())
 
   @commands.command(pass_context=True, aliases=['fa'])
   async def fake_artist(self, ctx, number):
@@ -26,6 +28,7 @@ class Games:
     output = [[]]*number
     fakes  = list(range(number))*(len(themes)//number)
     random.shuffle(fakes)
+    say = 'here are the links:'
 
     # generate
     for theme,fake in zip(themes, fakes):
@@ -43,11 +46,15 @@ class Games:
 
     # generate player files
     for i in range(len(output)):
-      with open(os.path.join(conf.get('path',''), f'{i}.html'), 'w') as f:
+      filename = os.path.join(conf.get('path',''), f'{i}.html')
+      with open(filename, 'w') as f:
         f.write(conf.get('rules'))
         for theme in output[i]:
           f.write(f'<li>{theme}</li>')
         f.write(conf.get('out'))
+      say += f'\nhttps://andy29485.tk/files/{i}.html'
+
+    await self.bot.say(formatter.ok(say))
 
 
 def setup(bot):

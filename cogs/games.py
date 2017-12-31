@@ -16,7 +16,7 @@ class Games:
   @commands.command(pass_context=True, aliases=['faa'])
   async def fake_artist_add(self, ctx, themes):
     self.conf['fake_artist']['themes'].extend(themes.strip().split('\n'))
-    self.conf['fake_artist'].save()
+    self.conf.save()
 
   @commands.command(pass_context=True, aliases=['fa'])
   async def fake_artist(self, ctx, number):

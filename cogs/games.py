@@ -15,7 +15,7 @@ class Games:
 
   @perms.is_owner()
   @commands.command(pass_context=True, aliases=['faa'])
-  async def fake_artist_add(self, ctx, themes):
+  async def fake_artist_add(self, ctx, *, themes):
     self.conf['fake_artist']['themes'].extend(themes.strip().split('\n'))
     self.conf.save()
     await self.bot.say(formatter.ok())

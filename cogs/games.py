@@ -21,7 +21,7 @@ class Games:
     await self.bot.say(formatter.ok())
 
   @commands.command(pass_context=True, aliases=['fa'])
-  async def fake_artist(self, ctx, number):
+  async def fake_artist(self, ctx, number : int):
     conf   = self.conf.get('fake_artist', {})
     themes = conf.get('themes', [])
     themes = random.sample(themes, len(themes)-len(themes)%number)

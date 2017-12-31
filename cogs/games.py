@@ -48,3 +48,7 @@ class Games:
         for theme in output[i]:
           f.write(f'<li>{theme}</li>')
         f.write(conf.get('out'))
+
+
+def setup(bot):
+  bot.add_cog(Games(bot))

@@ -3,6 +3,7 @@
 import asyncio
 import random
 import os
+from cogs.utils import perms
 from discord.ext import commands
 from cogs.utils.config import Config
 

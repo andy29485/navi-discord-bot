@@ -11,6 +11,12 @@ class Games:
     self.bot  = bot
     self.conf = Config('configs/games.json')
 
+  @perms.is_owner()
+  @commands.command(pass_context=True, aliases=['faa'])
+  async def fake_artist_add(self, ctx, themes):
+    self.conf['fake_artist']['themes'].extend(themes.strip().split('\n'))
+    self.conf['fake_artist'].save()
+
   @commands.command(pass_context=True, aliases=['fa'])
   async def fake_artist(self, ctx, number):
     conf   = self.conf.get('fake_artist', {})
@@ -27,10 +33,12 @@ class Games:
 
     # generate master file
     with open(os.path.join(conf.get('path',''), 'master.html'), 'w') as f:
-      for i,theme in enumerate(themes): # add hidden stuff here
-        f.write(f'''<input type="button" value="{i}"'''+ \
-                f'''onclick="this.value=this.value=='{i}'''+ \
-                f'''\'?'{theme}':'{i}';">''')
+      f.write(conf.get('rules'))
+      for i,theme in enumerate(themes):
+        f.write(f'''<li><input type="button" value="show"'''+ \
+                f'''onclick="this.value=this.value=='show'''+ \
+                f'''\'?'{theme}':'show';"></li>''')
+      f.write(conf.get('out'))
 
     # generate player files
     for i in range(len(output)):

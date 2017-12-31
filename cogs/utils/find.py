@@ -4,39 +4,59 @@ import zipfile
 import tempfile
 import random
 import os
+from cogs.utils.config import Config
+
+# load config, for search term replacements
+conf = Config('configs/az.json')
 
 def search(directory, pattern, single=True):
-  pattern = set(filter(None, pattern))
+  '''
+  searches all file in a directory for a set of patterns
+
+  if a pattern starts with a hyphen("-") it will be negatively matched
+
+  if "single" is false, all matched are returned
+  otherwise only one will be returned at random(default behaviour)
+
+  Note: if a ".git" dir is present, it will not be searched
+  '''
+  # remove duplicates from pattern,
+  # convert all strings to lowercase,
+  # and remove empty strings
+  pattern = set([x.lower() for x in pattern if x])
+
+  # replaces each of the search terms so that more things get found)
+  for word,rep in conf.get('img-reps', {}).items(): # for each rep-able word
+    if word in pattern:                             #   if it's being searched
+      pattern.add(rep)                              #     remove it
+      pattern.remove(word)                          #     add replacement
+
+  # create an empty list of matches(nothing matched yet)
   matches = []
 
+  # traverse all files in location to search
   for root, directories, filenames in os.walk(directory):
+    # ignore the git directory
+    directories[:] = [d for d in directories if d not in ['.git']]
     for filename in filenames:
-      filename = os.path.join(root,filename)
-      filename = os.path.realpath(filename)
-      if match(filename, pattern):
-        matches.append(filename)
+      filename = os.path.realpath(os.path.join(root, filename)) # get full path
+      if match(filename.lower(), pattern): # if file matches pattern,
+        matches.append(filename)           #   add it to the list of matches
 
+  # if user wants only one file, choose and return at random
+  # otherwise return all matches
   if single:
     return random.choice(matches)
   return matches
 
 def match(filename, pattern):
-  pattern.add('-.git')
-  for i in pattern:
-    if i[0] == '-':
-      if i[1:].lower() in filename.lower():
+  '''
+  checks if a filename matches a specified pattern
+  '''
+  for i in pattern:         # for each pattern
+    if i[0] == '-':         # if it's a negative match pattern,
+      if i[1:] in filename: #   return false it it's found in the filename
         return False
-    elif i not in filename.lower():
+    elif i not in filename: # otherwise return false if it's NOT found
       return False
-  return True
-
-def extract(filename):
-  files = []
-  tmp_file = tempfile.mkdtemp()
-  with zipfile.ZipFile(filename, 'r') as zip_ref:
-    for i in zip_ref.namelist():
-      ext = '.' + i.rpartition('.')[2].lower()
-      if ext in ['.png', '.jpg', '.gif']:
-        zip_ref.extract(i, tmp_file)
-        files.append(os.path.join(tmp_file, i))
-  return files
+  return True               # return true at the end, since all test succeeded

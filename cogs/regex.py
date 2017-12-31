@@ -132,7 +132,7 @@ class Regex:
 
     #check if they have correct permissions
     if ctx.message.author.id != self.replacements[pattern][1] \
-       and not perms.check_permissions(ctx.message, {'manage_messages':True}):
+       and not perms.is_owner_check(ctx.message):
         raise commands.errors.CheckFailure('Cannot delete')
 
     self.replacements.pop(pattern)

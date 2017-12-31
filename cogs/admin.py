@@ -1,15 +1,17 @@
 from discord.ext import commands
-from cogs.utils import perms
-from cogs.utils import format as formatter
 import discord
 import inspect
 import asyncio
 import git
 import sys
+from cogs.utils import perms
+from cogs.utils import format as formatter
 
 # to expose to the eval command
 import datetime
 from collections import Counter
+from cogs.utils.config import Config
+from cogs.utils import discord_helper as dh
 
 class Admin:
   def __init__(self, bot):
@@ -57,8 +59,8 @@ class Admin:
   async def update(self):
     loop = asyncio.get_event_loop()
     g = git.cmd.Git('.')
-    loop.run_in_executor(None, g.execute, ['git', 'reset', 'HEAD~1', '--hard'])
-    loop.run_in_executor(None, g.pull)
+    await loop.run_in_executor(None,g.execute,['git','reset','HEAD~1','--hard'])
+    await loop.run_in_executor(None,g.pull)
     await self.bot.say(formatter.ok('restarting'))
     await self.bot.logout()
     loop.stop()

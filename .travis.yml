@@ -1,0 +1,9 @@
+  language: python
+  install:
+    - sudo apt-get install libffi-dev libxslt-dev libxml2-dev libopus0
+    - pip install -r requirements.txt
+  python:
+    - 3.6
+    - nightly
+  script:
+    - make test

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-from cogs.utils import puush
 from discord import Embed
 import hashlib
 import asyncio
+import requests
+import aiohttp
 from cogs.utils.config import Config
 from embypy import Emby as EmbyPy
 
@@ -33,28 +34,36 @@ async def makeEmbed(item, message=''):
   if hasattr(item, 'index_number'):
     name = '{:02} - {}'.format(item.index_number, item.name)
   else:
-    name = item.name or '<No name>'
+    name = item.name or ''
   em = Embed()
-  img_url          = item.primary_image_url
-  if 'https' in img_url:
-    img_url        = await loop.run_in_executor(None, puush.get_url, img_url)
-  em.title         = message+name
+  async with aiohttp.get(item.primary_image_url) as img:
+    if img.status == 200:
+      em.set_thumbnail(url=img.url)
+    elif item.parent:
+      em.set_thumbnail(url=item.parent.primary_image_url)
+  em.title  = (message+name or '<No name>').strip()
   if hasattr(item, 'overview') and item.overview:
     if len(item.overview) > 250:
       des = item.overview[:247] + '...'
     else:
       des = item.overview
     em.description = des
-  else:
+  elif item.id:
     em.description = item.media_type
-  em.url           = item.url
+  if item.id:
+    em.url         = item.url
   em.colour        = getColour(item.id)
-  em.set_thumbnail(url=img_url)
   if hasattr(item, 'artist_names'):
     if len(item.artist_names) == 1:
-      em.add_field(name='Artist: ', item.artist_names[0])
-    else:
-      em.add_field(name='Artists: ', value=', '.join(item.artist_names))
+      em.add_field(name='Artist', value=item.artist_names[0])
+    elif len(item.artist_names) > 1:
+      em.add_field(name='Artists', value=', '.join(item.artist_names))
+  if hasattr(item, 'album'):
+    a = item.album
+    if a and a.name:
+      em.add_field(name='Album', value=a.name)
+  if hasattr(item, 'genres') and item.genres:
+    em.add_field(name='Tags', value=', '.join(item.genres))
   if hasattr(item, 'genres') and item.genres:
     em.add_field(name='Tags', value=', '.join(item.genres))
   if item.object_dict.get('RunTimeTicks', None):

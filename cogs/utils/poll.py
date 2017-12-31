@@ -3,43 +3,69 @@
 import re
 import discord
 import asyncio
+import time
+import cogs.utils.heap as heap
 import cogs.utils.format as formatter
 
-class Poll:
-  def __init__(self, bot, channel:discord.Channel, question, options, sleep, p):
-    self.options  = {}
-    self.question = question
-    self.ongoing  = False
-    self.bot      = bot
-    self.channel  = channel
-    self.sleep    = sleep
-    self.polls    = p
+class Poll(heap.HeapNode):
+  def __init__(self, question, opts, channel, sleep, timeout=0):
+    self.options    = {}
+    self.question   = question
+    self.channel_id = getattr(channel, 'id', channel)
+    self.end_time   = timeout if timeout else sleep + time.time()
 
-    for opt in options:
+    for opt in opts:
       self.options[opt] = set()
+
+  @staticmethod
+  def from_dict(dct):
+    question   = dct.get('question')
+    options    = dct.get('options')
+    channel_id = dct.get('channel_id')
+    end_time   = dct.get('end_time')
+
+    return Poll(question, options, channel_id, 0, end_time)
+
+  def to_dict(self):
+    return {
+      '__poll__'   : True,
+      'question'   : self.question,
+      'options'    : self.options,
+      'channel_id' : self.channel_id,
+      'end_time'   : self.end_time
+    }
+
+  # ==
+  def __eq__(self, other):
+    return type(self)      == type(other)   and \
+           self.channel_id == other.channel_id
+
+  # <
+  def __lt__(self, other):
+    return self.end_time < other.end_time
+
+  # >
+  def __gt__(self, other):
+    return self.end_time > other.end_time
+
+  async def begin(self, bot):
+    message = 'Poll stated: \"{}\"\n{}'.format(self.question,
+                                               '\n'.join(self.options)
+    )
+    await bot.say(formatter.escape_mentions(message))
+
+  async def end(self, bot):
+    chan = bot.get_channel(self.channel_id)
+    await bot.send_message(chan, formatter.escape_mentions(self.results()))
 
   def vote(self, user : discord.User, message):
     v = False
     for i in self.options:
       if not v and re.search(r'(?i)\b{}\b'.format(i), message):
-        self.options[i].add(user)
+        self.options[i].add(user.id)
         v = True
-      elif user in self.options[i]:
-        self.options[i].remove(user)
-
-  async def start(self):
-    message = 'Poll stated: \"{}\"\n{}'.format(self.question,
-                                               '\n'.join(self.options))
-    await self.bot.say(formatter.escape_mentions(message))
-    self.ongoing = True
-    await asyncio.sleep(self.sleep)
-    if self.ongoing:
-      await self.stop()
-
-  async def stop(self):
-    self.ongoing = False
-    await self.bot.say(formatter.escape_mentions(self.results()))
-    self.polls.pop(self.channel)
+      elif user.id in self.options[i]:
+        self.options[i].remove(user.id)
 
   def results(self):
     out = ''

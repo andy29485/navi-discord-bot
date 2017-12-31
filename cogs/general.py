@@ -1,41 +1,38 @@
 #!/usr/bin/env python3
 
-import random
 import re
 import time
+import random
 import asyncio
-from urllib import parse as urlencode
 from discord.ext import commands
-from cogs.utils import format as formatter
+from datetime import datetime, timedelta
 from cogs.utils.poll import Poll
 from cogs.utils.config import Config
+from cogs.utils.format import *
 from cogs.utils.reminders import Reminder
-from datetime import datetime, timedelta
+import cogs.utils.heap as heap
 
 class General:
   def __init__(self, bot):
-    self.bot           = bot
-    self.loop          = bot.loop
-    self.stopwatches   = {}
-    self.polls         = {}
-    self.conf          = Config('configs/general.json')
-    self.poll_sessions = []
+    self.bot         = bot
+    self.loop        = bot.loop
+    self.stopwatches = {}
+    self.conf        = Config('configs/general.json')
+    self.heap        = Config('configs/heap.json')
 
-    if 'reminders' not in self.conf:
-      self.conf['reminders'] = []
     if 'responses' not in self.conf:
       self.conf['responses'] = {}
     if 'todo' not in self.conf:
       self.conf['todo'] = {}
     if 'situations' not in self.conf:
       self.conf['situations'] = []
-    if 'polls' not in self.conf:
-      self.conf['polls'] = []
     if '8-ball' not in self.conf:
       self.conf['8-ball'] = []
+    for rem in self.conf.pop('reminders', []):
+      self.heap['heap'].push(rem)
+    self.heap.save()
     self.conf.save()
 
-    self.loop.create_task(self.check_reminders())
 
   @commands.command(hidden=True)
   async def ping(self):
@@ -53,18 +50,21 @@ class General:
       return
 
     if len(mess.strip()) < 2 or \
-       mess.strip()[0] in self.bot.command_prefix + ['$','?']:
+        mess.strip()[0] in self.bot.command_prefix + ['$','?','!']:
       return
 
-    if chan in self.polls:
-      await loop.run_in_executor(None, self.polls[chan].vote, user, mess)
+    test_poll = Poll('', [], chan, 0, 1)
+
+    for poll in self.heap['heap']:
+      if test_poll == poll:
+        await loop.run_in_executor(None, poll.vote, user, mess)
 
   async def respond(self, message):
     if message.author.bot:
       return
 
     if len(message.content.strip()) < 2 or \
-       message.content.strip()[0] in self.bot.command_prefix + ['$','?']:
+        message.content.strip()[0] in self.bot.command_prefix + ['$','?','!']:
       return
 
     loop = asyncio.get_event_loop()
@@ -99,9 +99,9 @@ class General:
     roll = '\n'.join(await loop.run_in_executor(None, self.rolls, dice))
     message = ctx.message.author.mention + ':\n'
     if '\n' in roll:
-      message += formatter.code(roll)
+      message += code(roll)
     else:
-      message += formatter.inline(roll)
+      message += inline(roll)
     await self.bot.say(message)
 
   @commands.command(name="8ball", aliases=["8"])
@@ -140,7 +140,7 @@ class General:
     todos.append([False, task])
     self.conf['todo'][ctx.message.author.id] = todos
     self.conf.save()
-    await self.bot.say(formatter.ok())
+    await self.bot.say(ok())
 
   @todo.command(name='done', aliases=['d', 'complete', 'c'], pass_context=True)
   async def _td_done(self, ctx, *, index : int):
@@ -150,13 +150,13 @@ class General:
     '''
     todos = self.conf['todo'].get(ctx.message.author.id, [])
     if len(todos) < index or index <= 0:
-      await self.bot.say(formatter.error('Invalid index'))
+      await self.bot.say(error('Invalid index'))
     else:
       index -= 1
       todos[index][0] = not todos[index][0]
       self.conf['todo'][ctx.message.author.id] = todos
       self.conf.save()
-      await self.bot.say(formatter.ok())
+      await self.bot.say(ok())
 
   @todo.command(name='remove', aliases=['rem', 'rm', 'r'], pass_context=True)
   async def _td_remove(self, ctx, *, index : int):
@@ -166,12 +166,12 @@ class General:
     '''
     todos = self.conf['todo'].get(ctx.message.author.id, [])
     if len(todos) < index or index <= 0:
-      await self.bot.say(formatter.error('Invalid index'))
+      await self.bot.say(error('Invalid index'))
     else:
       task = todos.pop(index - 1)
       self.conf['todo'][ctx.message.author.id] = todos
       self.conf.save()
-      await self.bot.say(formatter.ok('Removed task #{}'.format(index)))
+      await self.bot.say(ok('Removed task #{}'.format(index)))
 
   async def _td_list(self, ctx):
     todos = self.conf['todo'].get(ctx.message.author.id, [])
@@ -321,12 +321,6 @@ class General:
     else:
       await self.bot.say('No stop watches started, cannot pause.')
 
-  @commands.command()
-  async def lmgtfy(self, *, search_terms : str):
-    """Creates a lmgtfy link"""
-    search_terms = urlencode.urlencode({'q':search_terms})
-    await self.bot.say("http://lmgtfy.com/?{}".format(search_terms))
-
   def rolls(self, dice):
     out = []
 
@@ -356,9 +350,14 @@ class General:
         elif sides < 2:
           message = 'No  '
         else:
+          total = 0
           for i in range(times):
-            message += '{}, '.format(random.randint(1, sides)+add)
+            num      = random.randint(1, sides)+add
+            total   += num
+            message += '{}, '.format(num)
         message = message[:-2]
+        if times > 1:
+          message += '(sum = {})'.format(total)
       out.append('{}: {}'.format(roll, message))
     return out
 
@@ -379,15 +378,15 @@ class General:
       choice = re.sub(r, choice_reps[r], choice)
 
     message  = ctx.message.author.mention + ':\n'
-    message += formatter.inline(choice)
+    message += inline(choice)
     await self.bot.say(message)
 
   @commands.command(name='remindme', pass_context=True, aliases=['remind'])
   async def _add_reminder(self, ctx, *, message : str):
-    """
+    '''
     adds a reminder
 
-    'at' must be used when specifing exact time
+    'at' can be used when specifing exact time
     'in' is optional for offsets
     'me' can be seperate or part of the command name (also optinal)
     cannot mix offsets and exact times
@@ -404,39 +403,54 @@ class General:
     .remindme at 10/23/2017 5:11 PM message
     .remind at 7:11 message
     .remind at 7:11:15 message
-"""
-    author  = ctx.message.author.mention
+    .remind [me] remove <id>
+    .remind [me] end <id>
+    '''
+    author  = ctx.message.author.id
     channel = ctx.message.channel.id
-    r = Reminder(channel, author, message)
-    r.insertInto(self.conf['reminders'])
-    self.conf.save()
-    t = datetime.fromtimestamp(r.end_time).isoformat()
-    await self.bot.say(formatter.ok('Will remind you at {}'.format(t)))
+    match   = re.match(r'(?i)^(me\s+)?(remove|end|stop)\s+(\d+)', message)
+    if match:
+      rid = int(match.group(3))
+      for index,item in enumerate(self.heap['heap']):
+        if type(item) == Reminder \
+            and item.reminder_id == rid \
+            and item.user_id == author:
+          self.heap['heap'].pop(index)
+          await self.bot.say(ok(f'Message with id {rid} has been removed'))
+          return
+      else:
+        await self.bot.say(ok(f'Could not find message with id {rid}'))
+    else:
+      r = Reminder(channel, author, message)
+      self.heap['heap'].push(r)
+      await r.begin(self.bot)
+    self.heap.save()
 
   @commands.command(pass_context=True, aliases=['a', 'ask'])
   async def question(self, ctx):
-    """Answers a question with yes/no"""
+    '''Answers a question with yes/no'''
     message = ctx.message.author.mention + ':\n'
-    message += formatter.inline(random.choice(['yes', 'no']))
+    message += inline(random.choice(['yes', 'no']))
     await self.bot.say(message)
 
   @commands.command(pass_context=True)
   async def poll(self, ctx, *, question):
-    """Starts a poll
+    '''
+    Starts a poll
     format:
     poll question? opt1, opt2, opt3 or opt4...
     poll stop|end
-    """
+    '''
 
     if question.lower().strip() in ['end', 'stop']:
-      if ctx.message.channel in self.polls:
-        await self.polls[ctx.message.channel].stop()
+      for index,poll in enumerate(self.heap['heap']):
+        if isinstance(poll, Poll) and poll.channel_id == ctx.message.channel.id:
+          self.heap['heap'].pop(index)
+          await poll.end(self.bot)
+          self.heap.save()
+          break
       else:
         await self.bot.say('There is no poll active in this channel')
-      return
-
-    if ctx.message.channel in self.polls:
-      await self.bot.say('There\'s already an active poll in this channel')
       return
 
     match = re.search(r'^(.*?\?)\s*(.*?)$', question)
@@ -445,34 +459,17 @@ class General:
       return
 
     options  = split(match.group(2))
-    question = formatter.escape_mentions(match.group(1))
+    question = escape_mentions(match.group(1))
 
-    poll = Poll(self.bot, ctx.message.channel, question, options,
-                self.conf['polls']['duration'], self.polls)
+    poll = Poll(question, options, ctx.message.channel, 600)
 
-    self.polls[ctx.message.channel] = poll
-    await poll.start()
-
-  async def check_reminders(self):
-    while self == self.bot.get_cog('General'):
-      reminders_removed = False
-      # if there are valid reminders, process them
-      while self.conf['reminders'] and self.conf['reminders'][0].time_left < 1:
-        r = self.conf['reminders'][0].popFrom(self.conf['reminders'])
-        c = self.bot.get_channel(r.channel_id)
-        await self.bot.send_message(c, r.get_message())
-        reminders_removed = True
-
-      if reminders_removed:
-        self.conf.save()
-
-      # wait a bit and check again
-      if self.conf['reminders']:
-        delay = min(self.conf['reminders'][0].time_left, 15)
-      else:
-        delay = 15
-      await asyncio.sleep(delay-0.5)
-
+    for item in self.heap['heap']:
+      if poll == item:
+        await self.bot.say('There is a poll active in this channel already')
+        return
+    self.heap['heap'].push(poll)
+    self.heap.save()
+    await poll.begin(self.bot)
 
 def split(choices):
   choices = re.split(r'(?i)\s*(?:,|\bor\b)\s*', choices)

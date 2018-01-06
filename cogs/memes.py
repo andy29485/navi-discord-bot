@@ -62,12 +62,13 @@ def wrap_text(text, width, font):
 def write_image(lines, out, **kargs):
   # get variables
   logger.debug('kargs: '+ str(kargs))
-  locations  = kargs.get('locations',         [])
+  locs       = kargs.get('locations',         [])
   size_const = kargs.get('size',              25)
   spacing    = kargs.get('spacing',            0)
   font_name  = kargs.get('font',              '')
-  image_file = kargs.get('image',             '')
+  image_file  = kargs.get('image',             '')
   path       = kargs.get('path',              '')
+  flags       = kargs.get('flags',              [])
   regexes    = kargs.get('matches',           [])
   formats    = kargs.get('formats',   ['{text}'])
 
@@ -85,9 +86,9 @@ def write_image(lines, out, **kargs):
   draw = ImageDraw.Draw(img)
 
   # for each fillable box
-  for text,location,style in zip(re.split('(\n|\\|)',lines),locations,formats):
+  for text,loc,style,flag in zip(re.split('(\n|\\|)',lines),locs,formats,flags):
     # get location variables
-    xpos,ypos,maxwidth,maxheight = location
+    xpos, ypos, maxwidth, maxheight = loc
 
     # reset size for each box
     size = size_const
@@ -122,7 +123,12 @@ def write_image(lines, out, **kargs):
 
     # draw the lines
     for i,(line_width,msg) in enumerate(lines):
-      line_pos = (xpos+((maxwidth-line_width)/2), ypos+size*i)
+      if 'l' in flag:
+        line_pos = (xpos, ypos+size*i)
+      elif 'r' in flag:
+        line_pos = (xpos+maxwidth-line_width, ypos+size*i)
+      else:
+        line_pos = (xpos+((maxwidth-line_width)/2), ypos+size*i)
       try:
         draw.text(line_pos, msg, (0,0,0), font=font)
       except: #grey scale images I guess

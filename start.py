@@ -30,7 +30,7 @@ starting_cogs = [
   'cogs.emby',
   'cogs.music',
   'cogs.nsfw',
-  'cogs.games'
+  'cogs.games',
   'cogs.osu',
   'cogs.memes'
 ]

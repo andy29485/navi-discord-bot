@@ -74,7 +74,8 @@ class Search:
     params_d = {
       'q'      : query,
       'format' :'json',
-      'pretty' : 0
+      'pretty' : 0,
+      'skip_disambig':1
     }
     params_g = {
       'q': query,
@@ -88,12 +89,14 @@ class Search:
     entries = []
 
     async with aiohttp.ClientSession() as session:
+      '''
       async with session.get(url_d, params=params_d, headers=headers) as resp:
         if resp.status != 200:
           raise RuntimeError('DuckDuckGo somehow failed to respond.')
         results = json.loads(await resp.text())
         if results['Answer']:
           entries.append(results['Answer'].strip()+'\n')
+      '''
 
       async with session.get(url_g, params=params_g, headers=headers) as resp:
         if resp.status != 200:

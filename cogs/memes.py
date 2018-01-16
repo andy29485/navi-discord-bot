@@ -5,6 +5,7 @@ import asyncio
 import logging
 import os.path
 import tempfile
+import itertools
 from discord.ext import commands
 from PIL import Image, ImageFont, ImageDraw
 from cogs.utils.format import error
@@ -12,6 +13,7 @@ from cogs.utils.config import Config
 from cogs.utils import discord_helper as dh
 
 logger = logging.getLogger('navi.memes')
+zp = itertools.zip_longest
 
 def wrap_text(text, width, font):
   '''
@@ -86,7 +88,11 @@ def write_image(lines, out, **kargs):
   draw = ImageDraw.Draw(img)
 
   # for each fillable box
-  for text,loc,style,flag in zip(re.split('(\n|\\|)',lines),locs,formats,flags):
+  for text,loc,style,flag in zp(re.split('(\n|\\|)',lines),locs,formats,flags):
+    #just in case
+    flag   = flag or ''
+    style = style or '{text}'
+
     # get location variables
     xpos, ypos, maxwidth, maxheight = loc
 
@@ -122,6 +128,7 @@ def write_image(lines, out, **kargs):
     ypos += (maxheight-len(lines)*size)/2
 
     # draw the lines
+    logger.debug(f'drawing {lines}')
     for i,(line_width,msg) in enumerate(lines):
       if 'l' in flag:
         line_pos = (xpos, ypos+size*i)
@@ -129,9 +136,10 @@ def write_image(lines, out, **kargs):
         line_pos = (xpos+maxwidth-line_width, ypos+size*i)
       else:
         line_pos = (xpos+((maxwidth-line_width)/2), ypos+size*i)
+      logger.debug(f'drawing at {line_pos}')
       try:
         draw.text(line_pos, msg, (0,0,0), font=font)
-      except: #grey scale images I guess
+      except: # not grey scale images I guess
         draw.text(line_pos, msg, 0, font=font)
 
   #save the image

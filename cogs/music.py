@@ -79,7 +79,8 @@ class VoiceState:
     try:
       await self.vchan.disconnect()
       self.audio_player.cancel()
-      del self.cog.voice_states[self.sid]
+      if self.sid in self.cog.voice_states:
+        del self.cog.voice_states[self.sid]
     except:
       raise
 
@@ -192,7 +193,10 @@ class Music:
     while self == self.bot.get_cog('Music'):
       for item in ('playlists', 'songs', 'albums', 'artists'):
         prop = lambda: getattr(self.conn, item+'_force')
-        await self.bot.loop.run_in_executor(None, prop)
+        try:
+          await self.bot.loop.run_in_executor(None, prop)
+        except:
+          pass
       await asyncio.sleep(120)
 
   @commands.group(pass_context=True, aliases=['m'])

@@ -199,7 +199,7 @@ class Osu:
                   chan = self.bot.get_channel(chan_id)
                   await self.bot.send_message(chan, embed=em)
                 except:
-                  logger.exception()
+                  logger.exception('issue with send %s', str(em.to_dict()))
               break
           else:
             continue
@@ -208,7 +208,8 @@ class Osu:
           self.conf.save()
         await asyncio.sleep(30)
       except:
-        logger.exception("osu cog couldn't connect it seems")
+        #logger.exception("osu cog couldn't connect it seems")
+        pass
 
   async def osu_embed(self, osu_obj):
     em = Embed()

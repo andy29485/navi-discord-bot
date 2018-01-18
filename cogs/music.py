@@ -73,6 +73,7 @@ class VoiceState:
     self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
   async def stop(self):
+    self.play_next_song.set()
     if self.is_playing():
       self.player.stop()
 
@@ -176,6 +177,8 @@ class VoiceState:
             break
 
       logger.debug('music 16')
+      if self.audio_player.cancelled():
+        return
       await self.play_next_song.wait()
 
 class Music:
@@ -576,7 +579,7 @@ class Music:
     if voter == state.current.requester:
       await self.bot.say('Requester requested skipping song...')
       state.skip()
-    elif voter.id not in (m.id for m in state.vchan.voice_members):
+    elif voter.id not in (m.id for m in state.vchan.channel.voice_members):
       await self.bot.say(error("You're not even in the voice channel. No."))
     elif voter.id not in state.skip_votes:
       state.skip_votes.add(voter.id)

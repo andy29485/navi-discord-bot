@@ -151,10 +151,10 @@ class AZ:
       # commit changes
       if users or repo.untracked_files:
         logger.debug('adding files')
-        await loop.run_in_executor(None, repo.index.add, '.')
+        await loop.run_in_executor(None, repo.index.add, repo.untracked_files)
         msg = f"navi auto add - {', '.join(unames)}: added files"
-        run = lambda: repo.index.commit(msg, author=author, committer=author)
         logger.debug('commiting')
+        run = lambda: repo.index.commit(msg, author=author, committer=author)
         await loop.run_in_executor(None, run)
         users = True # just in case
 

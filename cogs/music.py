@@ -73,13 +73,15 @@ class VoiceState:
     self.bot.loop.call_soon_threadsafe(self.play_next_song.set)
 
   async def stop(self):
+    self.play_next_song.set()
     if self.is_playing():
       self.player.stop()
 
     try:
       await self.vchan.disconnect()
       self.audio_player.cancel()
-      del self.cog.voice_states[self.sid]
+      if self.sid in self.cog.voice_states:
+        del self.cog.voice_states[self.sid]
     except:
       raise
 
@@ -175,6 +177,8 @@ class VoiceState:
             break
 
       logger.debug('music 16')
+      if self.audio_player.cancelled():
+        return
       await self.play_next_song.wait()
 
 class Music:
@@ -192,7 +196,10 @@ class Music:
     while self == self.bot.get_cog('Music'):
       for item in ('playlists', 'songs', 'albums', 'artists'):
         prop = lambda: getattr(self.conn, item+'_force')
-        await self.bot.loop.run_in_executor(None, prop)
+        try:
+          await self.bot.loop.run_in_executor(None, prop)
+        except:
+          pass
       await asyncio.sleep(120)
 
   @commands.group(pass_context=True, aliases=['m'])
@@ -572,7 +579,7 @@ class Music:
     if voter == state.current.requester:
       await self.bot.say('Requester requested skipping song...')
       state.skip()
-    elif voter.id not in (m.id for m in state.vchan.voice_members):
+    elif voter.id not in (m.id for m in state.vchan.channel.voice_members):
       await self.bot.say(error("You're not even in the voice channel. No."))
     elif voter.id not in state.skip_votes:
       state.skip_votes.add(voter.id)

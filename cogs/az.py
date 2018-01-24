@@ -127,6 +127,7 @@ class AZ:
   @perms.in_group('img')
   async def img(self, ctx, *search):
     if not os.path.exists(self.conf.get('path', '')):
+      logger.debug('could not find images')
       await self.bot.say('{path} does not exist')
       return
 
@@ -137,24 +138,32 @@ class AZ:
       author = Actor('navi', 'navi@andy29485.tk')
       remote = repo.remotes.origin
       users  = set()
+      logger.debug('loaded git info in image repo')
 
       # check for changed files
+      logger.debug('getting users')
       for fname in repo.untracked_files:
         fname = os.path.join(self.conf.get('path', ''), fname)
         uname = getpwuid(stat(fname).st_uid).pw_name
         users.add(uname)
+      logger.debug('found users: %s', ', '.join(users))
 
       # commit changes
       if users or repo.untracked_files:
-        await loop.run_in_executor(None,repo.index.add, '.')
+        logger.debug('adding files')
+        await loop.run_in_executor(None, repo.index.add, '.')
         msg = f"navi auto add - {', '.join(unames)}: added files"
         run = lambda: repo.index.commit(msg, author=author, committer=author)
+        logger.debug('commiting')
         await loop.run_in_executor(None, run)
+        users = True # just in case
 
       # sync with remote
-      await loop.run_in_executor(None,remote.pull)
-      if file_dict:
-        await loop.run_in_executor(None,remote.push)
+      logger.debug('pull')
+      await loop.run_in_executor(None, remote.pull)
+      if users:
+        logger.debug('push')
+        await loop.run_in_executor(None, remote.push)
     except:
       pass
 

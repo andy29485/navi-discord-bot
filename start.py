@@ -81,7 +81,7 @@ async def on_ready():
       print('Failed to load cog {}\n{}: {}'.format(cog, type(e).__name__, e))
   print('Logged in as:')
   print('Username: ' + bot.user.name + '#' +bot.user.discriminator)
-  print('ID: ' + bot.user.id)
+  print(f'ID: {bot.user.id}')
   print('------')
   if not hasattr(bot, 'uptime'):
     bot.uptime = datetime.datetime.utcnow()

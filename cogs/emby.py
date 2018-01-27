@@ -23,24 +23,31 @@ class Emby:
   async def poll(self):
     while self == self.bot.get_cog('Emby'):
       logger.debug('polling (l = %s)', self.conf['watching']['last'])
-      latest = await self.loop.run_in_executor(None, self.conn.latest)
+
+      run = lambda: self.conn.latest(itemTypes='Movie,Video,Episode')
+      latest = await self.loop.run_in_executor(None, run)
       logger.debug('  got list (size = %d)', len(latest))
+
       for l in latest:
-        logger.debug('  found - %s (%s)', l.name, l.id)
+        logger.debug('  found - %s (%s) [%s]', l.name, l.id, l.parent_id)
+
         if self.conf['watching']['last'] == l.id:
+          logger.debug('    last - breaking')
           break
+
         item = t = await self.loop.run_in_executor(None, l.update)
         while t.parent_id:
-          logger.debug('    parent: ', t.parent_id)
           t = t.parent
+          logger.debug('    parent: %s', t.id)
           try:
             chans = self.conf['watching'].get(t.id, [])
             for chan_id in chans:
+              logger.debug('      sending to chan: %s', chan_id)
               chan = self.bot.get_channel(chan_id)
               em   = await emby_helper.makeEmbed(item, 'New item added: ')
               await self.bot.send_message(chan, embed=em)
           except:
-            logger.exception('Issue with sending')
+            logger.exception('Issue with sending latest item(s)')
             break
       self.conf['watching']['last'] = latest[0].id
       self.conf.save()

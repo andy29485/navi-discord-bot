@@ -24,12 +24,12 @@ class Emby:
     while self == self.bot.get_cog('Emby'):
       logger.debug('polling (l = %s)', self.conf['watching']['last'])
       latest = await self.loop.run_in_executor(None, self.conn.latest)
+      logger.debug('  got list (size = %d)', len(latest))
       for l in latest:
-        logger.debug(' found - %s (%s)', item.name, item.id)
+        logger.debug('  found - %s (%s)', l.name, l.id)
         if self.conf['watching']['last'] == l.id:
           break
         item = t = await self.loop.run_in_executor(None, l.update)
-        logger.debug('  found - %s (%s)', item.name, item.id)
         while t.parent_id:
           logger.debug('    parent: ', t.parent_id)
           t = t.parent

@@ -238,8 +238,9 @@ class Music:
       except:
         pass
 
+  #TODO discord.TextChannel
   @music.command(pass_context=True, aliases=['j'], no_pm=True)
-  async def join(self, ctx, *, channel : discord.TextChannel):
+  async def join(self, ctx, *, channel : discord.Channel):
     """Joins a voice channel."""
     try:
       await self.create_voice_client(channel)

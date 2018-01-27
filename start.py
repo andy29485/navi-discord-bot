@@ -51,9 +51,9 @@ logformat = logging.Formatter(
 )
 
 #to log errors
-errror_log = logging.FileHandler(os.path.join(current_path, 'logs/error.log'))
-errror_log.setLevel(logging.ERROR)
-errror_log.setFormatter(logformat)
+error_log = logging.FileHandler(os.path.join(current_path, 'logs/error.log'))
+error_log.setLevel(logging.ERROR)
+error_log.setFormatter(logformat)
 
 #to log debug messages
 fh = TimedRotatingFileHandler(os.path.join(current_path, 'logs/navi'),
@@ -63,7 +63,7 @@ fh.setLevel(logging.DEBUG)
 fh.setFormatter(logformat)
 fh.suffix = '%Y-%m-%d.log'
 
-logger.addHandler(errror_log)
+logger.addHandler(error_log)
 logger.addHandler(fh)
 
 prefix = ['.']

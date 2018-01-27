@@ -22,12 +22,16 @@ class Emby:
 
   async def poll(self):
     while self == self.bot.get_cog('Emby'):
+      logger.debug('polling (l = %s)', self.conf['watching']['last'])
       latest = await self.loop.run_in_executor(None, self.conn.latest)
       for l in latest:
+        logger.debug(' found - %s (%s)', item.name, item.id)
         if self.conf['watching']['last'] == l.id:
           break
         item = t = await self.loop.run_in_executor(None, l.update)
+        logger.debug('  found - %s (%s)', item.name, item.id)
         while t.parent_id:
+          logger.debug('    parent: ', t.parent_id)
           t = t.parent
           try:
             chans = self.conf['watching'].get(t.id, [])
@@ -36,6 +40,7 @@ class Emby:
               em   = await emby_helper.makeEmbed(item, 'New item added: ')
               await self.bot.send_message(chan, embed=em)
           except:
+            logger.exception('Issue with sending')
             break
       self.conf['watching']['last'] = latest[0].id
       self.conf.save()
@@ -79,7 +84,7 @@ class Emby:
   @emby.command(name='unwatch', aliases=['uwatch', 'uw'], pass_context=True)
   async def _uwatch(self, ctx, *, item_ids = ''):
     """
-    Remove show id from this channel;s follow list
+    Remove show id from this channel's follow list
 
     Usage: .emby unwatch <show id>
     see ".emby watch" for more details

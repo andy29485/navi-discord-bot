@@ -763,7 +763,7 @@ def search_f(terms, *items):
   terms = set(terms)
   for item in items:
     strings = [item.id, item.name]
-    for attr in ('artist_names', 'overview', 'path'):
+    for attr in ('artist_names', 'overview', 'path', 'genres', 'tags'):
       if hasattr(item, attr):
         attribute = getattr(item, attr, '')
         if type(attribute) == list:

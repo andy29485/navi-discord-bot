@@ -42,14 +42,15 @@ async def makeEmbed(item, message=''):
     logger.debug('setting title w/o index')
     name = item.name or ''
   em = Embed()
-  async with aiohttp.get(item.primary_image_url) as img:
-    logger.debug('checking image url')
-    if img.status == 200:
-      logger.debug('url ok')
-      em.set_thumbnail(url=img.url)
-    elif item.parent:
-      logger.debug('using parent url')
-      em.set_thumbnail(url=item.parent.primary_image_url)
+  async with aiohttp.ClientSession() as session:
+    async with session.get(item.primary_image_url) as img:
+      logger.debug('checking image url')
+      if img.status == 200:
+        logger.debug('url ok')
+        em.set_thumbnail(url=img.url)
+      elif item.parent:
+        logger.debug('using parent url')
+        em.set_thumbnail(url=item.parent.primary_image_url)
   em.title  = (message+name or '<No name>').strip()
   if hasattr(item, 'overview') and item.overview:
     logger.debug('setting description as overview')

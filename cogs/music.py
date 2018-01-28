@@ -776,6 +776,8 @@ def search_f(terms, *items):
 
 def match(pattern, *strings):
   for patt in pattern:
+    if not patt:
+      continue
     lowered = patt.lower()
     if strings[0].lower() == patt: # ID matched
       return True

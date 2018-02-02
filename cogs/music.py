@@ -585,7 +585,7 @@ class Music:
     elif voter.id not in state.skip_votes:
       state.skip_votes.add(voter.id)
       total_votes = len(state.skip_votes)
-      if total_votes >= 3:
+      if total_votes >= (len(state.vchan.channel.voice_members)-1)//2:
         await self.bot.say('Skip vote passed, skipping song...')
         state.skip()
       else:

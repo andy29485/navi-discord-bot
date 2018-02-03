@@ -748,33 +748,36 @@ class Music:
     artts = await self.bot.loop.run_in_executor(None, run[3])
 
     if albm:
-      logger.debug('search - searching: album')
+      logger.debug('search - with album')
       return await self.bot.loop.run_in_executor(None, search_f, search,
                                                  *plsts, *albms, *artts, *songs
       )
-    logger.debug('search - searching: no album')
+    logger.debug('search - no album')
     return await self.bot.loop.run_in_executor(None, search_f, search,
                                                *plsts, *songs, *albms, *artts
     )
 
 
 def search_f(terms, *items):
+  logger.debug('search - starting search_f')
   out   = []
   terms = set(terms)
   for item in items:
-    strings = [item.id, item.name]
+    strings = {item.id, item.name}
     for attr in ('artist_names', 'overview', 'path', 'genres', 'tags'):
-      if hasattr(item, attr):
-        attribute = getattr(item, attr, '')
-        if type(attribute) == list:
-          attribute = ', '.join(attribute)
-        if attribute:
-          strings.append(attribute)
+      attribute = getattr(item, attr, '')
+      if type(attribute) == list:
+        attribute = ', '.join(attribute)
+      if attribute:
+        strings.add(attribute)
     if match(terms, *strings):
       out.append(item)
+    logger.debug('  match end')
+  logger.debug('search - found %d', len(out))
   return out
 
 def match(pattern, *strings):
+  logger.debug('match - "%s" "%s"', '; '.join(pattern), '; '.join(strings))
   for patt in pattern:
     if not patt:
       continue

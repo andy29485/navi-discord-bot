@@ -56,7 +56,7 @@ async def makeEmbed(item, message=''):
 
   em.title  = (message+name or '<No name>').strip()
 
-  if hasattr(item, 'overview') and item.series_name:
+  if hasattr(item, 'overview') and item.overview:
     logger.debug('setting overview as description')
     if len(item.overview) > 250:
       des = item.overview[:247] + '...'

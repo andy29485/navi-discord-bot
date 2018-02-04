@@ -14,6 +14,7 @@ from cogs.utils import perms
 from cogs.utils import find as azfind
 from cogs.utils.config import Config
 from cogs.utils import discord_helper as dh
+from zipfile import ZipFile as zipfile
 
 logger = logging.getLogger('navi.az')
 
@@ -194,6 +195,13 @@ class AZ:
           await self.bot.say(embed=em)
         except:
           await self.bot.say(url)
+      elif url.rpartition('.')[2] in ('zip', 'cbz'):
+        zf = zipfile(path, 'r')
+        for fl in zf.filelist:
+          f = zf.open(fl.filename)
+          await self.bot.send_file(ctx.message.channel, f, filename=fl.filename)
+          f.close()
+        zf.close()
       else:
         await self.bot.say(url)
     except:

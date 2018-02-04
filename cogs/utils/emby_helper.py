@@ -35,13 +35,15 @@ conn = EmbyPy(conf['address'], **conf['auth'], ws=False)
 async def makeEmbed(item, message=''):
   logger.debug('making embed - ' + str(item))
   loop = asyncio.get_event_loop()
+  em = Embed()
+
   if hasattr(item, 'index_number'):
     logger.debug('setting title w/ index')
     name = '{:02} - {}'.format(item.index_number, item.name)
   else:
     logger.debug('setting title w/o index')
     name = item.name or ''
-  em = Embed()
+
   async with aiohttp.ClientSession() as session:
     async with session.get(item.primary_image_url) as img:
       logger.debug('checking image url')
@@ -51,17 +53,23 @@ async def makeEmbed(item, message=''):
       elif item.parent:
         logger.debug('using parent url')
         em.set_thumbnail(url=item.parent.primary_image_url)
+
   em.title  = (message+name or '<No name>').strip()
-  if hasattr(item, 'overview') and item.overview:
-    logger.debug('setting description as overview')
+
+  if hasattr(item, 'overview') and item.series_name:
+    logger.debug('setting overview as description')
     if len(item.overview) > 250:
       des = item.overview[:247] + '...'
     else:
       des = item.overview
     em.description = des
+  elif hasattr(item, 'series_name') and item.series_name:
+    logger.debug('setting show name as description')
+    em.description = item.series_name
   elif item.id:
     logger.debug('using type for description')
     em.description = item.media_type
+
   if item.id:
     logger.debug('setting url')
     em.url         = item.url

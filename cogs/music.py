@@ -447,7 +447,7 @@ class Music:
     '''
     Tag the currently playing song
 
-    currently avalible: instrumental drama
+    currently avalible: instrumental drama comment
     eg. .music tag i
     '''
     state = self.get_voice_state(ctx.message.server)
@@ -466,7 +466,7 @@ class Music:
     bpost  = False
     bname  = False
 
-    for t in tags:
+    for i,t in enumerate(tags):
       t = t.lower()
       if t in ('i', 'instrumental'):
         if 'instrumental' not in path:
@@ -479,6 +479,10 @@ class Music:
           muten['genre'] = '; '.join(genres)
           item.genres    = genres
           bpost = True
+      elif t in ('c', 'comment'):
+        comment = ' '.join(tags[(i+1):])
+        item.overview = comment
+        muten['comment'] = comment
 
     if bpost:
       item.post()
@@ -585,11 +589,13 @@ class Music:
     elif voter.id not in state.skip_votes:
       state.skip_votes.add(voter.id)
       total_votes = len(state.skip_votes)
-      if total_votes >= (len(state.vchan.channel.voice_members)-1)//2:
+      needed      = (len(state.vchan.channel.voice_members)-1)/2
+      logger.debug('needed = (len-1)/2 = (%d-1)/2 = %d', len(state.vchan.channel.voice_members), needed)
+      if total_votes >= needed:
         await self.bot.say('Skip vote passed, skipping song...')
         state.skip()
       else:
-        await self.bot.say(f'Skip vote added, currently at [{total_votes}/3]')
+        await self.bot.say(f'Skip vote added, currently at [{total_votes}/{needed}]')
     else:
       await self.bot.say('You have already voted to skip this song.')
 
@@ -763,26 +769,26 @@ def search_f(terms, *items):
   out   = []
   terms = set(terms)
   for item in items:
-    strings = {item.id, item.name}
+    strings = set()
     for attr in ('artist_names', 'overview', 'path', 'genres', 'tags'):
       attribute = getattr(item, attr, '')
       if type(attribute) == list:
         attribute = ', '.join(attribute)
       if attribute:
         strings.add(attribute)
-    if match(terms, *strings):
+    if match(terms, item.id, item.name, *strings):
       out.append(item)
     logger.debug('  match end')
   logger.debug('search - found %d', len(out))
   return out
 
-def match(pattern, *strings):
-  logger.debug('match - "%s" "%s"', '; '.join(pattern), '; '.join(strings))
-  for patt in pattern:
+def match(patterns, *strings):
+  logger.debug('match - "%s" "%s"', '; '.join(patterns), '; '.join(strings))
+  for patt in patterns:
     if not patt:
       continue
     lowered = patt.lower()
-    if strings[0].lower() == patt: # ID matched
+    if strings[0].lower() == lowered: # ID matched
       return True
     nonNegative = False
     for string in strings[1:]:

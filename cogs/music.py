@@ -483,6 +483,7 @@ class Music:
         comment = ' '.join(tags[(i+1):])
         item.overview = comment
         muten['comment'] = comment
+        bpost = True
 
     if bpost:
       item.post()

@@ -3,6 +3,8 @@
 import asyncio
 import discord
 import mutagen
+from mutagen.id3 import ID3
+from mutagen.easyid3 import EasyID3
 import random
 import re
 import os
@@ -90,10 +92,16 @@ class VoiceState:
       try:
         if not item.overview:
           f = mutagen.File(item.path)
-          comment = ' '.join(f.get('comment', []))
+          if type(f) == EasyID3:
+            f = f._EasyID3__id3
+          if type(f) == ID3
+            comment = [f.get(k).text[0] for k in f.keys() if 'COMM' in k]
+          else:
+            comment = f.get('comment', [''])
+          comment = ' '.join(comment)
           if comment:
             item.overview = comment
-            item.post()
+            await item.post()
       except:
         pass
       url  = item.path
@@ -195,9 +203,8 @@ class Music:
   async def update_db(self):
     while self == self.bot.get_cog('Music'):
       for item in ('playlists', 'songs', 'albums', 'artists'):
-        prop = lambda: getattr(self.conn, item+'_force')
         try:
-          await self.bot.loop.run_in_executor(None, prop)
+          await getattr(self.conn, item+'_force')
         except:
           pass
       await asyncio.sleep(120)
@@ -212,8 +219,8 @@ class Music:
   async def update(self, ctx):
     '''reload database from emby'''
     for item in ('playlists', 'songs', 'albums', 'artists'):
-      prop = lambda: getattr(self.conn, item+'_force')
-      await self.bot.loop.run_in_executor(None, prop)
+      await getattr(self.conn, item+'_force')
+
     await self.bot.say(ok('database reloaded '))
 
   def get_voice_state(self, server):
@@ -393,9 +400,9 @@ class Music:
       await self.bot.say(error('could not find song'))
       return
 
-    if hasattr(items[0], 'songs') and items[0].songs:
+    if hasattr(items[0], 'songs') and await items[0].songs:
       display_item = items[0]
-      items        = items[0].songs
+      items        = await items[0].songs
     else:
       display_item = self.conn
 
@@ -484,9 +491,10 @@ class Music:
         item.overview = comment
         muten['comment'] = comment
         bpost = True
+        break
 
     if bpost:
-      item.post()
+      await item.post()
       muten.save()
     if bname:
       os.rename(item.path, path)
@@ -642,10 +650,10 @@ class Music:
     options = options.split('\n')
     items   = []
 
-    plsts = await self.bot.loop.run_in_executor(None,lambda:self.conn.playlists)
-    songs = await self.bot.loop.run_in_executor(None,lambda:self.conn.songs)
-    albms = await self.bot.loop.run_in_executor(None,lambda:self.conn.albums)
-    artts = await self.bot.loop.run_in_executor(None,lambda:self.conn.artists)
+    plsts = await self.conn.playlists
+    songs = await self.conn.songs
+    albms = await self.conn.albums
+    artts = await self.conn.artists
 
     run      = lambda: search_f(options[0].split(), *plsts)
     found    = await self.bot.loop.run_in_executor(None, run)
@@ -658,13 +666,11 @@ class Music:
         items.append(found[0])
 
     if playlist:
-      run = lambda: playlist.add_items(*items)
-      msg = 'Songs added'
+      await remove_items.add_items(*items)
+      await self.bot.say(ok('Songs added'))
     else:
-      run = lambda: self.conn.create_playlist(name, *items)
-      msg = 'Playlist created'
-    await self.bot.loop.run_in_executor(None, run)
-    await self.bot.say(ok(msg))
+      await self.conn.create_playlist(name, *items)
+      await self.bot.say(ok('Playlist created'))
 
   @_playlist.command(pass_context=True, name='remove_songs',
                      aliases=['rm', 'rs', 'rm_songs', 'r'], no_pm=True)
@@ -684,7 +690,7 @@ class Music:
     options = options.split('\n')
     items   = []
 
-    plsts = await self.bot.loop.run_in_executor(None,lambda:self.conn.playlists)
+    plsts = await self.conn.playlists
 
     run      = lambda: search_f(options[0].split(), *plsts)
     found    = await self.bot.loop.run_in_executor(None, run)
@@ -694,9 +700,9 @@ class Music:
       await self.bot.say(error('could not find playlist'))
       return
 
-    songs = await self.bot.loop.run_in_executor(None,lambda:self.conn.songs)
-    albms = await self.bot.loop.run_in_executor(None,lambda:self.conn.albums)
-    artts = await self.bot.loop.run_in_executor(None,lambda:self.conn.artists)
+    songs = await self.conn.songs
+    albms = await self.conn.albums
+    artts = await self.conn.artists
 
     for search in options[1:]:
       run   = lambda: search_f(search.split(), *playlist.items)
@@ -704,8 +710,7 @@ class Music:
       if found:
         items.append(found[0])
 
-    run = lambda: playlist.add_items(*items)
-    await self.bot.loop.run_in_executor(None, run)
+    await playlist.remove_items(*items)
     await self.bot.say(ok('Songs removed'))
 
   @_playlist.command(pass_context=True, name='list', aliases=['ls', 'l'])
@@ -733,7 +738,7 @@ class Music:
       return
 
     playlist = found[0]
-    songs = await self.bot.loop.run_in_executor(None,lambda:playlist.songs)
+    songs = await playlist.songs
     song_info = ''
     for song in songs:
       song_info += f'{song.id} - {song.name} ({song.album_artist_name})\n'
@@ -741,18 +746,11 @@ class Music:
     return
 
   async def _search(self, search, albm=False):
-    run = [
-      lambda:self.conn.playlists,
-      lambda:self.conn.songs,
-      lambda:self.conn.albums,
-      lambda:self.conn.artists
-    ]
-
     logger.debug('search - getting db')
-    plsts = await self.bot.loop.run_in_executor(None, run[0])
-    songs = await self.bot.loop.run_in_executor(None, run[1])
-    albms = await self.bot.loop.run_in_executor(None, run[2])
-    artts = await self.bot.loop.run_in_executor(None, run[3])
+    plsts = await self.conn.playlists
+    songs = await self.conn.songs
+    albms = await self.conn.albums
+    artts = await self.conn.artists
 
     if albm:
       logger.debug('search - with album')

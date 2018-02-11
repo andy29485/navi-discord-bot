@@ -45,14 +45,18 @@ async def makeEmbed(item, message=''):
     name = item.name or ''
 
   async with aiohttp.ClientSession() as session:
-    async with session.get(item.primary_image_url) as img:
+    if item.type == 'Audio':
+      url = item.album.primary_image_url
+    else:
+      url = item.primary_image_url
+    async with session.get(url) as img:
       logger.debug('checking image url')
       if img.status == 200:
         logger.debug('url ok')
         em.set_thumbnail(url=img.url)
-      elif item.parent:
+      elif item.parent_id:
         logger.debug('using parent url')
-        em.set_thumbnail(url=item.parent.primary_image_url)
+        em.set_thumbnail(url=(await item.parent).primary_image_url)
 
   em.title  = (message+name or '<No name>').strip()
 
@@ -83,7 +87,7 @@ async def makeEmbed(item, message=''):
       em.add_field(name='Artists', value=', '.join(item.artist_names))
   if hasattr(item, 'album'):
     logger.debug('setting album name')
-    a = item.album
+    a = await item.album
     if a and a.name:
       em.add_field(name='Album', value=a.name)
   if hasattr(item, 'genres') and item.genres:

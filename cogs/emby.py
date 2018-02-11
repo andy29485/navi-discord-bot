@@ -24,8 +24,7 @@ class Emby:
     while self == self.bot.get_cog('Emby'):
       logger.debug('polling (l = %s)', self.conf['watching']['last'])
 
-      run = lambda: self.conn.latest(itemTypes='Movie,Video,Episode')
-      latest = await self.loop.run_in_executor(None, run)
+      latest = await self.conn.latest(itemTypes='Movie,Video,Episode')
       logger.debug('  got list (size = %d)', len(latest))
 
       for l in latest:
@@ -63,11 +62,11 @@ class Emby:
   async def _info(self, ctx, *, item_ids = ''):
     """print emby server info, or an embed for each item id"""
     for item_id in item_ids.split():
-      item = await self.loop.run_in_executor(None, self.conn.info, item_id)
+      item = await self.conn.info(item_id)
       em   = await emby_helper.makeEmbed(item)
       await self.bot.send_message(ctx.message.channel, embed=em)
     if not item_ids:
-      info = await self.loop.run_in_executor(None, self.conn.info)
+      info = await self.conn.info())
       await self.bot.say(info)
 
   @emby.command(name='watch', aliases=['w'], pass_context=True)
@@ -121,7 +120,7 @@ class Emby:
     else:
       num   = 1
 
-    results = await self.loop.run_in_executor(None, self.conn.search, query)
+    results = await self.conn.search(query)
     results = [i for i in results if issubclass(type(i), EmbyObject)]
     if not results:
       await self.bot.say('No results found')

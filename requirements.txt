@@ -8,4 +8,4 @@ Pybooru
 asyncjisho
 simplejson
 monthdelta
-embypy>=0.2.8.2
+embypy>=0.2.8.3

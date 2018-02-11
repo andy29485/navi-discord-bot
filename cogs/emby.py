@@ -66,7 +66,7 @@ class Emby:
       em   = await emby_helper.makeEmbed(item)
       await self.bot.send_message(ctx.message.channel, embed=em)
     if not item_ids:
-      info = await self.conn.info())
+      info = await self.conn.info()
       await self.bot.say(info)
 
   @emby.command(name='watch', aliases=['w'], pass_context=True)

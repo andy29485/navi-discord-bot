@@ -94,7 +94,7 @@ class VoiceState:
           f = mutagen.File(item.path)
           if type(f) == EasyID3:
             f = f._EasyID3__id3
-          if type(f) == ID3
+          if type(f) == ID3:
             comment = [f.get(k).text[0] for k in f.keys() if 'COMM' in k]
           else:
             comment = f.get('comment', [''])

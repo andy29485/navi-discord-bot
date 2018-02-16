@@ -5,6 +5,7 @@ import discord
 import mutagen
 from mutagen.id3 import ID3
 from mutagen.easyid3 import EasyID3
+from mutagen.id3 import APIC, TIT2, COMM
 import random
 import re
 import os
@@ -489,6 +490,8 @@ class Music:
       elif t in ('c', 'comment'):
         comment = ' '.join(tags[(i+1):])
         item.overview = comment
+        if type(muten) == ID3:
+          comment = COMM(encoding=3, lang=u'eng', desc='desc', text=comment)
         muten['comment'] = comment
         bpost = True
         break

@@ -338,7 +338,7 @@ class Music:
           if at least that many songs were found
 
       search terms:
-        - search terms are space seperated and case insensitive
+        - search terms are space separated and case insensitive
         - if a term is an itemid, that item will be included
         - will search playlists, songs, albums, and album artists FOR:
           - name/title
@@ -350,7 +350,7 @@ class Music:
     If there is a song currently in the queue, then it is
     queued until the next song is done playing.
 
-    This command searchs emby for a song
+    This command searches emby for a song
     """
     search = search.split(' ')
     qnext  = False

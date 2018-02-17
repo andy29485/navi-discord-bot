@@ -89,17 +89,6 @@ async def makeEmbed(item, message=''):
     elif len(item.artist_names) > 1:
       em.add_field(name='Artists', value=', '.join(item.artist_names))
 
-  if hasattr(item, 'songs'):
-    songs = ''
-    for s in await item.songs:
-      song = f'{s.index_number} - {s.name}\n'
-      if len(songs)+len(song) > 247:
-        songs += '...'
-        break
-      songs += song
-    em.add_field(name='Songs', value=songs)
-
-
   if hasattr(item, 'album'):
     logger.debug('setting album name')
     a = await item.album
@@ -116,6 +105,16 @@ async def makeEmbed(item, message=''):
     if d > 1:
       d = f'{d//3600:02}:{(d//60)%60:02}:{d%60:02}'
       em.add_field(name='Duration', value=d)
+
+  if hasattr(item, 'songs'):
+    songs = ''
+    for s in await item.songs:
+      song = f'{s.index_number} - {s.name}\n'
+      if len(songs)+len(song) > 247:
+        songs += '...'
+        break
+      songs += song
+    em.add_field(name='Songs', value=songs)
 
   logger.debug('done making embed')
   return em

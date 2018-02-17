@@ -420,6 +420,11 @@ class Music:
       if num > 0:
         items = items[:num]
       em = await emby_helper.makeEmbed(display_item, 'Queued: ')
+
+      index = [i for i,f in enumerate(em.fields) if f.name == 'Songs']
+      if index:
+        em.remove_field(index[0])
+
       songs_str = ''
       for i in items:
         if hasattr(i, 'index_number'):
@@ -551,6 +556,9 @@ class Music:
 
     songs = state.songs._queue
     em = await emby_helper.makeEmbed(self.conn, 'Queued: ')
+    index = [i for i,f in enumerate(em.fields) if f.name == 'Songs']
+    if index:
+      em.remove_field(index[0])
     songs_str = ''
     for index,song in zip(range(1,31),songs):
       item = getattr(song, 'item', None)

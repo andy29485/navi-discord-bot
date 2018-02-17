@@ -82,12 +82,10 @@ async def makeEmbed(item, message=''):
   logger.debug('setting colour')
   em.colour        = getColour(item.id)
 
-  if hasattr(item, 'artist_names'):
+  if hasattr(item, 'artists'):
     logger.debug('setting artists')
-    if len(item.artist_names) == 1:
-      em.add_field(name='Artist', value=item.artist_names[0])
-    elif len(item.artist_names) > 1:
-      em.add_field(name='Artists', value=', '.join(item.artist_names))
+    names = ', '.join(i.name for i in await item.artists)
+    em.add_field(name='Artists', value=names)
 
   if hasattr(item, 'album'):
     logger.debug('setting album name')

@@ -32,7 +32,7 @@ if 'auth' not in conf or not conf['auth']:
 
 conn = EmbyPy(conf['address'], **conf['auth'], ws=False)
 
-async def makeEmbed(item, message=''):
+async def makeEmbed(item, message='', ignore=()):
   logger.debug('making embed - ' + str(item))
   loop = asyncio.get_event_loop()
   em = Embed()
@@ -62,7 +62,7 @@ async def makeEmbed(item, message=''):
 
   em.title  = (message+name or '<No name>').strip()
 
-  if hasattr(item, 'overview') and item.overview:
+  if getattr(item, 'overview') and 'Overview' not in ignore:
     logger.debug('setting overview as description')
     if len(item.overview) > 250:
       des = item.overview[:247] + '...'
@@ -82,18 +82,18 @@ async def makeEmbed(item, message=''):
   logger.debug('setting colour')
   em.colour        = getColour(item.id)
 
-  if hasattr(item, 'artists'):
+  if hasattr(item, 'artists') and 'Artists' not in ignore:
     logger.debug('setting artists')
     names = ', '.join(i.name for i in await item.artists)
     em.add_field(name='Artists', value=names)
 
-  if hasattr(item, 'album'):
+  if hasattr(item, 'album') and 'Album' not in ignore:
     logger.debug('setting album name')
     a = await item.album
     if a and a.name:
       em.add_field(name='Album', value=a.name)
 
-  if hasattr(item, 'genres') and item.genres:
+  if getattr(item, 'genres') and 'Tags' not in ignore:
     logger.debug('setting genres')
     em.add_field(name='Tags', value=', '.join(item.genres))
 
@@ -104,10 +104,10 @@ async def makeEmbed(item, message=''):
       d = f'{d//3600:02}:{(d//60)%60:02}:{d%60:02}'
       em.add_field(name='Duration', value=d)
 
-  if hasattr(item, 'songs'):
+  if hasattr(item, 'songs') and 'Songs' not in ignore:
     songs = ''
     for s in await item.songs:
-      song = f'{s.index_number} - {s.name}\n'
+      song = f'{s.index_number:02} - {s.name}\n'
       if len(songs)+len(song) > 247:
         songs += '...'
         break

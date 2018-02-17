@@ -37,6 +37,8 @@ async def makeEmbed(item, message=''):
   loop = asyncio.get_event_loop()
   em = Embed()
 
+  await item.update() # just in case
+
   if hasattr(item, 'index_number'):
     logger.debug('setting title w/ index')
     name = '{:02} - {}'.format(item.index_number, item.name)
@@ -79,25 +81,40 @@ async def makeEmbed(item, message=''):
     em.url         = item.url
   logger.debug('setting colour')
   em.colour        = getColour(item.id)
+
   if hasattr(item, 'artist_names'):
     logger.debug('setting artists')
     if len(item.artist_names) == 1:
       em.add_field(name='Artist', value=item.artist_names[0])
     elif len(item.artist_names) > 1:
       em.add_field(name='Artists', value=', '.join(item.artist_names))
+
+  if hasattr(item, 'songs'):
+    songs = ''
+    for s in await item.songs:
+      song = f'{s.index_number} - {s.name}\n'
+      if len(songs)+len(song) > 247:
+        songs += '...'
+        break
+      songs += song
+    em.add_field(name='Songs', value=songs)
+
+
   if hasattr(item, 'album'):
     logger.debug('setting album name')
     a = await item.album
     if a and a.name:
       em.add_field(name='Album', value=a.name)
+
   if hasattr(item, 'genres') and item.genres:
     logger.debug('setting genres')
     em.add_field(name='Tags', value=', '.join(item.genres))
+
   if item.object_dict.get('RunTimeTicks', None):
     logger.debug('setting run time')
     d = int(float(item.object_dict.get('RunTimeTicks') / (10**7)))
     if d > 1:
-      d = '{:02}:{:02}:{:02}'.format(d//3600, (d//60)%60, d%60)
+      d = f'{d//3600:02}:{(d//60)%60:02}:{d%60:02}'
       em.add_field(name='Duration', value=d)
 
   logger.debug('done making embed')

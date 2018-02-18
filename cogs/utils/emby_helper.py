@@ -48,7 +48,7 @@ async def makeEmbed(item, message='', ignore=()):
 
   async with aiohttp.ClientSession() as session:
     if item.type == 'Audio':
-      url = item.album_primary_image_tag
+      url = item.album_primary_image_url
     else:
       url = item.primary_image_url
     async with session.get(url) as img:

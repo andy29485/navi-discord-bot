@@ -419,7 +419,8 @@ class Music:
     if mult:
       if num > 0:
         items = items[:num]
-      em = await emby_helper.makeEmbed(display_item,'Queued: ','SongsArtists')
+      ignore = 'Songs,Artists' if display_item is self.conn else 'Songs'
+      em = await emby_helper.makeEmbed(display_item, 'Queued: ', ignore)
 
       songs_str = ''
       for i in items:
@@ -441,7 +442,7 @@ class Music:
   async def _play_emby(self, ctx, state, item, display=True, qnext=False):
     entry = VoiceEntry(ctx.message, item=item)
     if display:
-      em = await emby_helper.makeEmbed(item, 'Queued: ', 'SongsArtists')
+      em = await emby_helper.makeEmbed(item, 'Queued: ', 'Songs')
       await self.bot.say(embed=em)
     if qnext:
       state.songs._queue.appendleft(entry)
@@ -551,7 +552,7 @@ class Music:
       return
 
     songs = state.songs._queue
-    em = await emby_helper.makeEmbed(self.conn,'Queued: ','SongsArtists')
+    em = await emby_helper.makeEmbed(self.conn, 'Queued: ', 'Songs,Artists')
     index = [i for i,f in enumerate(em.fields) if f.name == 'Songs']
     if index:
       em.remove_field(index[0])

@@ -441,7 +441,7 @@ class Music:
   async def _play_emby(self, ctx, state, item, display=True, qnext=False):
     entry = VoiceEntry(ctx.message, item=item)
     if display:
-      em = await emby_helper.makeEmbed(display_item,'Queued: ','SongsArtists')
+      em = await emby_helper.makeEmbed(item, 'Queued: ', 'SongsArtists')
       await self.bot.say(embed=em)
     if qnext:
       state.songs._queue.appendleft(entry)

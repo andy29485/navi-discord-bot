@@ -48,7 +48,7 @@ async def makeEmbed(item, message='', ignore=()):
 
   async with aiohttp.ClientSession() as session:
     if item.type == 'Audio':
-      url = (await item.album).primary_image_url
+      url = item.album_primary_image_tag
     else:
       url = item.primary_image_url
     async with session.get(url) as img:
@@ -74,13 +74,15 @@ async def makeEmbed(item, message='', ignore=()):
     em.description = item.series_name
   elif item.id:
     logger.debug('using type for description')
-    em.description = item.media_type
+    em.description = item.type
 
-  if item.id:
+  if item.id and 'Url' not in ignore:
     logger.debug('setting url')
-    em.url         = item.url
-  logger.debug('setting colour')
-  em.colour        = getColour(item.id)
+    em.url = item.url
+
+  if 'Colour' not in ignore:
+    logger.debug('setting colour')
+    em.colour = getColour(item.id)
 
   if hasattr(item, 'artists') and 'Artists' not in ignore:
     logger.debug('setting artists')
@@ -97,7 +99,7 @@ async def makeEmbed(item, message='', ignore=()):
     logger.debug('setting genres')
     em.add_field(name='Tags', value=', '.join(item.genres))
 
-  if item.object_dict.get('RunTimeTicks', None):
+  if item.object_dict.get('RunTimeTicks', None) and 'Duration' not in ignore:
     logger.debug('setting run time')
     d = int(float(item.object_dict.get('RunTimeTicks') / (10**7)))
     if d > 1:

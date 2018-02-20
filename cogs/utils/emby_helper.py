@@ -116,7 +116,7 @@ async def makeEmbed(item, message='', ignore=()):
       songs += song
     em.add_field(name='Songs', value=songs)
 
-  logger.debug('done making embed')
+  logger.debug('done making embed - %s', str(em.to_dict()))
   return em
 
 def getColour(string : str):

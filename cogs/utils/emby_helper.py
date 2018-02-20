@@ -87,6 +87,8 @@ async def makeEmbed(item, message='', ignore=()):
   if hasattr(item, 'artists') and 'Artists' not in ignore:
     logger.debug('setting artists')
     names = ', '.join(i.name for i in await item.artists)
+    if len(names) > 250:
+      names = names[:247]+'...'
     em.add_field(name='Artists', value=names)
 
   if hasattr(item, 'album') and 'Album' not in ignore:
@@ -110,7 +112,7 @@ async def makeEmbed(item, message='', ignore=()):
     songs = ''
     for s in await item.songs:
       song = f'{s.index_number:02} - {s.name}\n'
-      if len(songs)+len(song) > 247:
+      if len(songs)+len(song) > 800:
         songs += '...'
         break
       songs += song

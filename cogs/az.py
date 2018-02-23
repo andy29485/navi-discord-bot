@@ -229,7 +229,6 @@ class AZ:
     logger.debug(tag)
     #probably want to parse tag for valid format
     
-    updatedTaggedPath = path.rpartition('.')
     updatedPath = '{0}_{3}{1}{2}'.format(*path.rpartition('.'), tag)
     logger.debug(updatedPath)
     os.rename(path, updatedPath)

@@ -215,7 +215,7 @@ class AZ:
 
   @commands.command(pass_context=True)
   @perms.in_group('img')
-  async def imgt(self, ctx, first=''):
+  async def imgt(self, ctx, tag):
     if not os.path.exists(self.conf.get('path', '')):
       await self.bot.say('{path} does not exist')
       return
@@ -223,17 +223,15 @@ class AZ:
     if path == None:
       await self.bot.say('Previous image not detected.')
       return
-
-    tag = first
+    
     #debugging purposes
-    await self.bot.say(path)
-    await self.bot.say(tag)
+    logger.debug(path)
+    logger.debug(tag)
     #probably want to parse tag for valid format
     
     updatedTaggedPath = path.rpartition('.')
-    updatedPath = updatedTaggedPath[0] + '_' + tag + 
-                  updatedTaggedPath[1] + updatedTaggedPath[2]
-    await self.bot.say(updatedPath)
+    updatedPath = '{0}_{3}{1}{2}'.format(*path.rpartition('.'), tag)
+    logger.debug(updatedPath)
     os.rename(path, updatedPath)
     try:
       # load repo

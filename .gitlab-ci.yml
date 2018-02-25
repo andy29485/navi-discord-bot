@@ -1,0 +1,6 @@
+  test:
+    script:
+    - sudo pacman -S libffi libxslt libxml2 opus
+  # - sudo apt-get install libffi-dev libxslt-dev libxml2-dev libopus0
+    - pip install -r requirements.txt
+    - make test

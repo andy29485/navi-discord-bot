@@ -1,7 +1,7 @@
   image: frolvlad/alpine-python3
   test:
     script:
-    - apk --update add git openssh libffi libxslt libxml2 opus
+    - apk --update add git openssh libffi libxslt libxml2 opus make
   # - sudo apt-get install libffi-dev libxslt-dev libxml2-dev libopus0
     - pip install -r requirements.txt
     - make test

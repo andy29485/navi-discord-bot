@@ -51,7 +51,7 @@ async def makeEmbed(item, message='', ignore=()):
       url = item.album_primary_image_url
     else:
       url = item.primary_image_url
-    async with session.get(url) as img:
+    async with session.get(url,timeout=5) as img:
       logger.debug('checking image url')
       if img.status == 200:
         logger.debug('url ok')

@@ -23,6 +23,7 @@ class AZ:
     self.bot  = bot
     self.last = {}
     self.conf = Config('configs/az.json')
+    self.prev_img = {}
     if 'lenny' not in self.conf:
       self.conf['lenny'] = {}
     if 'img-reps' not in self.conf:
@@ -178,6 +179,8 @@ class AZ:
     except:
       path = ''
 
+    self.prev_img[ctx.message.channel.id] = path
+    
     if not path or not path.strip():
       await self.bot.send_message(ctx.message.channel,
                           "couldn't find anything matching: `{}`".format(search)
@@ -210,6 +213,57 @@ class AZ:
                          'but at least I didn\'t crash :p'
       )
 
+  @commands.command(pass_context=True)
+  @perms.in_group('img')
+  async def imgt(self, ctx, tag):
+    if not os.path.exists(self.conf.get('path', '')):
+      await self.bot.say('{path} does not exist')
+      return
+    path = self.prev_img.get(ctx.message.channel.id, default=None)
+    if path == None:
+      await self.bot.say('Previous image not detected.')
+      return
+    
+    #debugging purposes
+    logger.debug(path)
+    logger.debug(tag)
+    #probably want to parse tag for valid format
+    
+    updatedPath = '{0}_{3}{1}{2}'.format(*path.rpartition('.'), tag)
+    logger.debug(updatedPath)
+    os.rename(path, updatedPath)
+    try:
+      # load repo
+      repo      = Repo(self.conf.get('path', ''))
+      loop      = self.bot.loop
+      author    = Actor('navi', 'navi@andy29485.tk')
+      remote    = repo.remotes.origin
+      file_dict = {}
+
+      # check for changed files
+      for fname in repo.untracked_files:
+        fname = os.path.join(self.conf.get('path', ''), fname)
+        uname = getpwuid(stat(fname).st_uid).pw_name
+        if uname in file_dict:
+          file_dict[uname].append(fname)
+        else:
+          file_dict[uname] = [fname]
+
+      # commit changes
+      for uname,files in file_dict.items():
+        await loop.run_in_executor(None,repo.index.add, files)
+        msg = f"navi auto add - {uname}: added files"
+        run = lambda: repo.index.commit(msg, author=author, committer=author)
+        await loop.run_in_executor(None, run)
+
+      # sync with remote
+      await loop.run_in_executor(None,remote.pull)
+      if file_dict:
+        await loop.run_in_executor(None,remote.push)
+    except:
+      pass
+  
+      
   async def repeat(self, message):
     chan = message.channel
     data = self.last.get(chan, ['', 0])

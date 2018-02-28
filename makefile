@@ -1,3 +1,17 @@
+PYTHON36 := $(shell python3.6 --version 2> /dev/null)
+
+ifdef PYTHON36
+	PYTHON=python3.6
+else
+	PYTHON3 := $(shell python3 --version 2> /dev/null)
+	ifdef PYTHON3
+		PYTHON=python3.6
+	else
+		PYTHON=python
+	endif
+endif
+
 test:
-	python -t -m py_compile ./start.py
-	python -t -m py_compile cogs/*py
+	$(PYTHON) -t -m py_compile ./start.py
+	$(PYTHON) -t -m py_compile cogs/*py
+	$(PYTHON) -m unittest discover -s tests/

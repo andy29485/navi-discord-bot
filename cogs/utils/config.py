@@ -16,12 +16,13 @@ class Config(dict):
       cls.configs[name] = super(Config, cls).__new__(cls)
     return cls.configs[name]
 
-  def __init__(self, name, *args, **kwargs):
+  def __init__(self, name, save=True, *args, **kwargs):
     '''
     load config from file, also test save just in case
     '''
     super(Config, self).__init__(*args, **kwargs)
-    self.name = name
+    self.name  = name
+    self._save = save
     self.load()
     self.save()
 
@@ -37,6 +38,11 @@ class Config(dict):
 
   # save config to file
   def save(self):
+    if self._save:       # If object should be saved
+      self._save_force() #   save it
+
+  # force a save even if config says not to
+  def _save_force(self):
     with open(self.name, 'w') as f:             # open associated file
       json.dump(self.copy(), f, cls=ObjEncoder) # and save as json
                                                 #   see `ObjEncoder` class

@@ -1,7 +1,13 @@
-  image: frolvlad/alpine-python3
-  test:
-    script:
-    - apk --update add git openssh libffi-dev libxslt-dev libxml2-dev opus-dev make gcc python3-dev musl-dev linux-headers
-  # - sudo apt-get install libffi-dev libxslt-dev libxml2-dev libopus0
-    - pip install -r requirements.txt
-    - make test
+image: frolvlad/alpine-python3
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/pip-cache"
+cache:
+  paths:
+    - "$CI_PROJECT_DIR/pip-cache"
+  key: "$CI_PROJECT_ID"
+test:
+  script:
+  - apk --update add git openssh libffi-dev libxslt-dev libxml2-dev opus-dev make gcc python3-dev musl-dev linux-headers
+  - pip install -r requirements.txt
+  - make test
+

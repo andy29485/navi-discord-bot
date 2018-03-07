@@ -4,7 +4,7 @@ import asyncio
 import discord
 from discord.ext import commands
 
-import lib.internet as internet
+import includes.internet as internet
 
 class Search:
   def __init__(self, bot):

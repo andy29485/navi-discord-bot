@@ -15,3 +15,6 @@ test:
 	$(PYTHON) -t -m py_compile ./start.py
 	$(PYTHON) -t -m py_compile cogs/*py
 	$(PYTHON) -W ignore -m unittest discover -s tests/
+
+clean:
+	rm -rf __pycache__/

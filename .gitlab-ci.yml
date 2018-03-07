@@ -4,10 +4,16 @@ variables:
 cache:
   paths:
     - "$CI_PROJECT_DIR/pip-cache"
+    - venv/
   key: "$CI_PROJECT_ID"
+before_script:
+  - pip install -U pip setuptools
+  - pip install virtualenv 
 test:
   script:
   - apk --update add git openssh libffi-dev libxslt-dev libxml2-dev opus-dev make gcc python3-dev musl-dev linux-headers
+  - virtualenv venv -ppython3
+  - . venv/bin/activate
   - pip install -r requirements.txt
   - make test
 

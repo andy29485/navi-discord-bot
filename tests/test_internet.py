@@ -5,7 +5,7 @@ import asyncio
 import os.path
 import sys
 
-import lib.internet as internet
+import includes.internet as internet
 
 class TestInternet(unittest.TestCase):
   def setUp(self):

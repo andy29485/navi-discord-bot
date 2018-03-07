@@ -33,6 +33,8 @@ def has_role_check(check, **perms):
   return commands.check(lambda ctx: role_or_permissions(ctx, check, **perms))
 
 def is_owner_check(message):
+  if type(message) == str:
+    return message == config['owner']
   return message.author.id == config['owner']
 
 def in_group_check(msg, group):
@@ -40,7 +42,7 @@ def in_group_check(msg, group):
     return True
 
   for num in config[group]:
-    if num == msg.author.id:
+    if num == msg.author.id or num == msg:
       return True
   return False
 

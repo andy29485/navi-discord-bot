@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import json
 import logging
 from cogs.utils.obj_creator import as_obj, ObjEncoder
@@ -43,6 +44,9 @@ class Config(dict):
 
   # force a save even if config says not to
   def _save_force(self):
+    dirname = os.path.dirname(self.name)
+    if not os.path.exists(dirname):
+      os.makedirs(dirname)
     with open(self.name, 'w') as f:             # open associated file
       json.dump(self.copy(), f, cls=ObjEncoder) # and save as json
                                                 #   see `ObjEncoder` class

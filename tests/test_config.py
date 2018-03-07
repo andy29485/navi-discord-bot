@@ -2,7 +2,6 @@
 
 import unittest
 import os.path
-import sys
 
 from cogs.utils.config import Config
 

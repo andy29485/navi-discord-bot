@@ -12,9 +12,10 @@ class Config(dict):
 
   # object creation override,
   #   if another config with the same name(file) is open, return that instead
-  def __new__(cls, name, *args, **kwargs):
+  def __new__(cls, name, save=True, *args, **kwargs):
     if name not in cls.configs:
       cls.configs[name] = super(Config, cls).__new__(cls)
+    cls.configs[name]._save = save
     return cls.configs[name]
 
   def __init__(self, name, save=True, *args, **kwargs):

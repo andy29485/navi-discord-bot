@@ -15,5 +15,6 @@ test:
   - virtualenv venv -ppython3
   - . venv/bin/activate
   - pip install -r requirements.txt
+	- cp tests/configs ./
   - make test
 

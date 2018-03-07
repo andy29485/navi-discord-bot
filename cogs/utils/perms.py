@@ -15,9 +15,11 @@ config = Config('configs/perms.json')
 if 'owner' not in config:
   import re
   owner = ''
-  while not owner or not re.search('^\\d{15,}$', owner):
+  match = None
+  while not match:
     owner = input('please enter YOUR id(use `\\@NAME` to find yours): ')
-  config['owner'] = owner
+    match = re.search('^\s*<?@?(\\d{15,})>?\s*$', owner)
+  config['owner'] = match.group(1) if match else owner
   config.save()
 
 def is_owner():

@@ -67,6 +67,29 @@ month_names = [
   re.compile(f'(?i)dec(em(ber)?)?\\s*{day_ex}\\s*({year_ex})?')
 ]
 
+colours = {
+  'teal' : discord.Colour.teal(),
+  'dark_teal' : discord.Colour.dark_teal(),
+  'green' : discord.Colour.green(),
+  'dark_green' : discord.Colour.dark_green(),
+  'blue' : discord.Colour.blue(),
+  'dark_blue' : discord.Colour.dark_blue(),
+  'purple' : discord.Colour.purple(),
+  'dark_purple' : discord.Colour.dark_purple(),
+  'magenta' : discord.Colour.magenta(),
+  'dark_magenta' : discord.Colour.dark_magenta(),
+  'gold' : discord.Colour.gold(),
+  'dark_gold' : discord.Colour.dark_gold(),
+  'orange' : discord.Colour.orange(),
+  'dark_orange' : discord.Colour.dark_orange(),
+  'red' : discord.Colour.red(),
+  'dark_red' : discord.Colour.dark_red(),
+  'lighter_grey' : discord.Colour.lighter_grey(),
+  'dark_grey' : discord.Colour.dark_grey(),
+  'light_grey' : discord.Colour.light_grey(),
+  'darker_grey' : discord.Colour.darker_grey()
+}
+
 def get_end_time(message):
   datestrs = []
   offset   = time.time()

@@ -36,7 +36,7 @@ class Emby:
 
         item = t = await self.loop.run_in_executor(None, l.update)
         while t.parent_id:
-          t = t.parent
+          t = await t.parent
           logger.debug('    parent: %s', t.id)
           try:
             chans = self.conf['watching'].get(t.id, [])

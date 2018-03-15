@@ -68,7 +68,7 @@ class AzCog:
   @commands.command(pass_context=True)
   @perms.in_group('img')
   async def img(self, ctx, *search):
-    url = self.bot.loop.run_in_executor(None, self.az.img, *search)
+    url = await self.bot.loop.run_in_executor(None, self.az.img, *search)
     if not url:
       await self.bot.say(error(f'Could not find image matching: {search}'))
     elif type(url) == str and url.rpartition('.')[2] in ('zip', 'cbz'):

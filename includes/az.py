@@ -97,8 +97,9 @@ class AZ:
 def git_sync(path):
   # load repo
   repo   = Repo(path)
+  git    = repo.git
   author = Actor('navi', 'navi@andy29485.tk')
-  remote = repo.remotes.origin
+  remote = repo.remotes[0]
   users  = set()
   logger.debug('sync - loaded git info')
 
@@ -113,12 +114,15 @@ def git_sync(path):
   # commit changes
   if users or repo.untracked_files:
     logger.debug('sync - adding files')
-    repo.index.add(repo.untracked_files)
-    msg = f"navi auto add - {', '.join(unames)}: added files"
+    git.add('-A')
+    msg = f"navi auto add - {', '.join(unames or ['none'])}: added files"
 
     logger.debug('commiting')
-    repo.index.commit(msg, author=author, committer=author)
-    users = True # just in case
+    try:
+      git.commit('-m', msg, f'--author="{author.name} <{author.email}>"')
+      users = True # just in case
+    except:
+      users = False
 
   # sync with remote
   logger.debug('sync - pulling')

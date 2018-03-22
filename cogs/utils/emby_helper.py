@@ -97,7 +97,7 @@ async def makeEmbed(item, message='', ignore=()):
     if a and a.name:
       em.add_field(name='Album', value=a.name)
 
-  if getattr(item, 'genres'm) and 'Tags' not in ignore:
+  if getattr(item, 'genres') and 'Tags' not in ignore:
     logger.debug('setting genres')
     em.add_field(name='Tags', value=', '.join(item.genres))
 

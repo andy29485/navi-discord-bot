@@ -84,20 +84,20 @@ async def makeEmbed(item, message='', ignore=()):
     logger.debug('setting colour')
     em.colour = getColour(item.id)
 
-  if hasattr(item, 'artists_sync')  and 'Artists' not in ignore:
+  if 'artistsc' in dir(item) and 'Artists' not in ignore:
     logger.debug('setting artists')
     names = ', '.join(i.name for i in await item.artists)
     if len(names) > 250:
       names = names[:247]+'...'
     em.add_field(name='Artists', value=names)
 
-  if hasattr(item, 'album_sync') and 'Album' not in ignore:
+  if 'album' in dir(item) and 'Album' not in ignore:
     logger.debug('setting album name')
     a = await item.album
     if a and a.name:
       em.add_field(name='Album', value=a.name)
 
-  if getattr(item, 'genres') and 'Tags' not in ignore:
+  if getattr(item, 'genres'm) and 'Tags' not in ignore:
     logger.debug('setting genres')
     em.add_field(name='Tags', value=', '.join(item.genres))
 
@@ -108,7 +108,7 @@ async def makeEmbed(item, message='', ignore=()):
       d = f'{d//3600:02}:{(d//60)%60:02}:{d%60:02}'
       em.add_field(name='Duration', value=d)
 
-  if hasattr(item, 'songs_sync') and 'Songs' not in ignore:
+  if 'songs' in dir(item) and 'Songs' not in ignore:
     songs = ''
     for s in await item.songs:
       song = f'{s.index_number:02} - {s.name}\n'

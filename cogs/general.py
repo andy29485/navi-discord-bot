@@ -43,9 +43,22 @@ class General:
     await self.bot.say("Pong.")
 
   @commands.command(pass_context=True)
-  async def time(self, ctx):
+  async def time(self, ctx, first=''):
     '''remind people to hurry up'''
-    await self.bot.send_message(ctx.message.channel,datetime.now().isoformat())
+    say = lambda msg: await self.bot.send_message(ctx.message.channel, msg)
+    if random.randrange(700):
+      now = datetime.now().replace(microsecond=0)
+      say(now.isoformat().replace('T', ' '))
+    else:
+      await self.bot.send_typing(ctx.message.channel)
+      await asyncio.sleep(1.2)
+      say('ゲネラルリベラル')
+      await asyncio.sleep(0.4)
+      say('デフレイスパイラル')
+      await asyncio.sleep(0.5)
+      say('ナチュラルミネラル')
+      await asyncio.sleep(0.2)
+      say('さあお出で' + (': '+first if first else ''))
 
   @commands.command(pass_context=True)
   async def invite(self, ctx):

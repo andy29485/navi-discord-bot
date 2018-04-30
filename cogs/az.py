@@ -86,7 +86,7 @@ class AzCog:
 
   async def repeat(self, message):
     chan = message.channel
-    data = self.last.get(chan, ['', 0])
+    data = self.az.last.get(chan, ['', 0])
 
     if not message.content:
       return
@@ -96,11 +96,11 @@ class AzCog:
     else:
       data = [message.content.lower(), 1]
 
-    if data[1] == self.conf.get('repeat_after', 3):
+    if data[1] == self.az.conf.get('repeat_after', 3):
       await self.bot.send_message(chan, message.content)
       data[1] = 0
 
-    self.last[chan] = data
+    self.az.last[chan] = data
 
 def setup(bot):
   az = AzCog(bot)

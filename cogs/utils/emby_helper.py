@@ -62,6 +62,11 @@ async def makeEmbed(item, message='', ignore=()):
 
   em.title  = (message+name or '<No name>').strip()
 
+  if hasattr(item, 'series_name') and item.series_name:
+    logger.debug('setting show name as description')
+    str_ep=f'{item.series_name} - {item.season_id:02}x{item.episode_number:02}'
+    em.set_footer(ep_str)
+
   if getattr(item, 'overview') and 'Overview' not in ignore:
     logger.debug('setting overview as description')
     if len(item.overview) > 250:
@@ -69,10 +74,7 @@ async def makeEmbed(item, message='', ignore=()):
     else:
       des = item.overview
     em.description = des
-  elif hasattr(item, 'series_name') and item.series_name:
-    logger.debug('setting show name as description')
-    em.description = item.series_name
-  elif item.id:
+  elif item.type:
     logger.debug('using type for description')
     em.description = item.type
 
@@ -84,7 +86,7 @@ async def makeEmbed(item, message='', ignore=()):
     logger.debug('setting colour')
     em.colour = getColour(item.id)
 
-  if 'artistsc' in dir(item) and 'Artists' not in ignore:
+  if 'artists' in dir(item) and 'Artists' not in ignore:
     logger.debug('setting artists')
     names = ', '.join(i.name for i in await item.artists)
     if len(names) > 250:

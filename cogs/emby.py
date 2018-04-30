@@ -34,7 +34,7 @@ class Emby:
           logger.debug('    last - breaking')
           break
 
-        item = t = await self.loop.run_in_executor(None, l.update)
+        item = t = await l.update()
         while t.parent_id:
           t = await t.parent
           logger.debug('    parent: %s', t.id)

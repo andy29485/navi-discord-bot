@@ -99,7 +99,7 @@ async def on_ready():
   await bot.change_presence(game=discord.Game(name=f'{prefix[0]}help'))
 
 @bot.async_event
-async def on_command_error(ctx, error):
+async def on_command_error(error, ctx):
   msg = ctx.message
   if isinstance(error, commands.NoPrivateMessage):
     await bot.send_message(msg.author, formatter.error(

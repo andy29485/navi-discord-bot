@@ -64,7 +64,7 @@ async def makeEmbed(item, message='', ignore=()):
 
   if hasattr(item, 'series_name') and item.series_name:
     logger.debug('setting show name as description')
-    str_ep=f'{item.series_name} - {item.season_id:02}x{item.episode_number:02}'
+    str_ep= f'{item.series_name} - {item.season_id:02}x{item.episode_number:02}'
     em.set_footer(ep_str)
 
   if getattr(item, 'overview') and 'Overview' not in ignore:

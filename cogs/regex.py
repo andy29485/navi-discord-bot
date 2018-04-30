@@ -9,7 +9,7 @@ from cogs.utils import format as formatter
 class RegexCog:
   def __init__(self, bot):
     self.bot   = bot
-    self.regex = Regex()
+    self.regex = RegexRes()
 
   @commands.group(pass_context=True)
   async def rep(self, ctx):

@@ -127,7 +127,7 @@ class Emby:
       return
 
     for result in results[:num]:
-      await self.loop.run_in_executor(None, result.update)
+      await result.update()
       em = await emby_helper.makeEmbed(result)
       await self.bot.send_message(ctx.message.channel, embed=em)
 

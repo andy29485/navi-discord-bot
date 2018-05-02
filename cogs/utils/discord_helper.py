@@ -32,13 +32,13 @@ times = {
 day_ex  = r'(\s*the)?\s*(?P<day>\d\d?)\s*(th|st|rd|nd)?(\s*of)?(?=[^a-z0-9:])'
 year_ex = r'\s*(-|,|of|in)?(\s*the\s*year)?(\s*of)?\s*(?P<year>\d{4})\b'
 dow_names = [ #monday=0,...,sunday=6
-  re.compile(f'(?i)^\\s*mon(day)?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*tue(s(day)?)?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*wed(nes(day)?)?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*thu(r(s(day)?)?)?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*fri(day)?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*sat(ur(day?))?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*sun(day)?({day_ex})?\\b')
+  re.compile(f'(?i)^\\s*mon(dow)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*tue(s(dow)?)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*wed(nes(dow)?)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*thu(r(s(dow)?)?)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*fri(dow)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*sat(ur(dow?))?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*sun(dow)?({day_ex})?\\b')
 ]
 month_names = [
   re.compile(f'(?i)({day_ex})\\s*jan(uary)?\\s*({year_ex})?'),
@@ -99,13 +99,14 @@ def get_end_time(message):
   message = re.sub(r'(?i)^\s*(me|remove|end)?\s*(at|[oi]n)?\s*',
                    '', message
   ).strip()
+
   for num, day in enumerate(dow_names):
     m_date = day.search(message)
     if m_date:
       offset=(7+num-date_time.weekday())%7 #offset=(7+want-now)%7
       date_time += datetime.timedelta(days=offset)
-      if m_date.group('day'):
-        day = int(m_date.group('day'))
+      if m_date.group('dow'):
+        day = int(m_date.group('dow'))
         for i in range(1,53):
           date_time_tmp = date_time+datetime.timedelta(weeks=i)
           if date_time_tmp.day == day:
@@ -159,7 +160,9 @@ def get_end_time(message):
         message = message.replace(m_date.group(0), '')
         datestrs.append(m_date.group(0))
         break
+
   message = re.sub(r'(?i)^\s*(at|[oi]n)?\s*', '', message).strip()
+
   for t in tm:
     m_time = t.search(message)
     if m_time:
@@ -176,23 +179,31 @@ def get_end_time(message):
       if m_time.group('min'):
         m = int(m_time.group('min'))
         date_time = date_time.replace(minute=m)
+      else:
+        date_time = date_time.replace(minute=0)
       if m_time.group('sec'):
         s = int(m_time.group('sec'))
         date_time = date_time.replace(second=s)
-      while date_time < datetime.datetime.today():
-        if not m_time.group('hour'):
-          date_time += datetime.timedelta(hours=1)
-        elif not m_date or not m_date.group('day'):
-          date_time += datetime.timedelta(days=1)
-        elif not m_date.group('month'):
-          date_time += monthdelta.monthdelta(1)
-        elif not m_date.group('year'):
-          date_time += monthdelta.monthdelta(12)
-        else:
-          break
+      else:
+        date_time = date_time.replace(second=0)
+
       message = message.replace(m_time.group(0), '')
       datestrs.append(m_time.group(0))
       break
+
+  while date_time < datetime.datetime.today():
+    if not m_date or not m_date.group('day'):
+      if m_date and m_date.group('dow'):
+        date_time += datetime.timedelta(days=7)
+      else:
+        date_time += datetime.timedelta(days=1)
+    elif not m_date.group('month'):
+      date_time += monthdelta.monthdelta(1)
+    elif not m_date.group('year'):
+      date_time += monthdelta.monthdelta(12)
+    else:
+      break
+
   if m_time or m_date:
     offset = date_time.timestamp()
   else:

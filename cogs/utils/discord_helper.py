@@ -32,13 +32,13 @@ times = {
 day_ex  = r'(\s*the)?\s*(?P<day>\d\d?)\s*(th|st|rd|nd)?(\s*of)?(?=[^a-z0-9:])'
 year_ex = r'\s*(-|,|of|in)?(\s*the\s*year)?(\s*of)?\s*(?P<year>\d{4})\b'
 dow_names = [ #monday=0,...,sunday=6
-  re.compile(f'(?i)^\\s*mon(dow)?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*tue(s(dow)?)?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*wed(nes(dow)?)?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*thu(r(s(dow)?)?)?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*fri(dow)?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*sat(ur(dow?))?({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*sun(dow)?({day_ex})?\\b')
+  re.compile(f'(?i)^\\s*mon(day)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*tue(s(day)?)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*wed(nes(day)?)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*thu(r(s(day)?)?)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*fri(day)?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*sat(ur(day?))?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*sun(day)?({day_ex})?\\b')
 ]
 month_names = [
   re.compile(f'(?i)({day_ex})\\s*jan(uary)?\\s*({year_ex})?'),
@@ -93,6 +93,7 @@ colours = {
 def get_end_time(message):
   datestrs = []
   offset   = time.time()
+  dow      = False
   m_time   = None
   m_date   = None
   date_time = datetime.datetime.today()
@@ -103,10 +104,11 @@ def get_end_time(message):
   for num, day in enumerate(dow_names):
     m_date = day.search(message)
     if m_date:
+      dow = True
       offset=(7+num-date_time.weekday())%7 #offset=(7+want-now)%7
       date_time += datetime.timedelta(days=offset)
-      if m_date.group('dow'):
-        day = int(m_date.group('dow'))
+      if m_date.group('day'):
+        day = int(m_date.group('day'))
         for i in range(1,53):
           date_time_tmp = date_time+datetime.timedelta(weeks=i)
           if date_time_tmp.day == day:
@@ -193,10 +195,7 @@ def get_end_time(message):
 
   while date_time < datetime.datetime.today():
     if not m_date or not m_date.group('day'):
-      if m_date and m_date.group('dow'):
-        date_time += datetime.timedelta(days=7)
-      else:
-        date_time += datetime.timedelta(days=1)
+      date_time += datetime.timedelta(days=(7 if dow else 1))
     elif not m_date.group('month'):
       date_time += monthdelta.monthdelta(1)
     elif not m_date.group('year'):

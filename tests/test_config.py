@@ -3,7 +3,7 @@
 import unittest
 import os.path
 
-from cogs.utils.config import Config
+from includes.utils.config import Config
 
 class TestConfig(unittest.TestCase):
   config_name     = 'tests/test_config.json'

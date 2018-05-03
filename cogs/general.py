@@ -46,7 +46,7 @@ class General:
   async def time(self, ctx, first=''):
     '''remind people to hurry up'''
     say = lambda msg: self.bot.send_message(ctx.message.channel, msg)
-    if random.randrange(700):
+    if random.randrange(50) or not first.startswith('@'):
       now = datetime.now().replace(microsecond=0)
       await say(now.isoformat().replace('T', ' '))
     else:

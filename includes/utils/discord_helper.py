@@ -100,7 +100,6 @@ def get_end_time(message):
   message = re.sub(r'(?i)^\s*(me|remove|end)?\s*(at|[oi]n)?\s*',
                    '', message
   ).strip()
-
   for num, day in enumerate(dow_names):
     m_date = day.search(message)
     if m_date:
@@ -162,9 +161,7 @@ def get_end_time(message):
         message = message.replace(m_date.group(0), '')
         datestrs.append(m_date.group(0))
         break
-
   message = re.sub(r'(?i)^\s*(at|[oi]n)?\s*', '', message).strip()
-
   for t in tm:
     m_time = t.search(message)
     if m_time:
@@ -188,11 +185,9 @@ def get_end_time(message):
         date_time = date_time.replace(second=s)
       else:
         date_time = date_time.replace(second=0)
-
       message = message.replace(m_time.group(0), '')
       datestrs.append(m_time.group(0))
       break
-
   while date_time < datetime.datetime.today():
     if not m_date or not m_date.group('day'):
       date_time += datetime.timedelta(days=(7 if dow else 1))
@@ -202,7 +197,6 @@ def get_end_time(message):
       date_time += monthdelta.monthdelta(12)
     else:
       break
-
   if m_time or m_date:
     offset = date_time.timestamp()
   else:
@@ -212,7 +206,7 @@ def get_end_time(message):
         offset += times[t]*float(match.group(1))
         datestrs.append(match.group(0))
         message = message.replace(match.group(0), '')
-  return int(offset), message, datestrs
+  return int(offset), message.strip(), datestrs
 
 def remove_comments(words):
   for i in range(len(words)):

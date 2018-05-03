@@ -13,8 +13,8 @@ import re, sys, os
 import traceback
 
 from cogs import *
-from cogs.utils.config import Config
-import cogs.utils.format as formatter
+from includes.utils.config import Config
+import includes.utils.format as formatter
 
 starting_cogs = [
   'cogs.heap',

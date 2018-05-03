@@ -10,13 +10,13 @@ from collections import namedtuple
 from discord.ext import commands
 from discord.ext.commands.errors import CheckFailure
 from discord.ext.commands.converter import MemberConverter
-from cogs.utils import perms
-from cogs.utils.format import *
-from cogs.utils.config import Config
-from cogs.utils.timeout import Timeout
-from cogs.utils import discord_helper as dh
-from cogs.utils.role_removals import RoleRemove
-import cogs.utils.heap as heap
+from includes.utils import perms
+from includes.utils.format import *
+from includes.utils.config import Config
+from includes.utils.timeout import Timeout
+from includes.utils import discord_helper as dh
+from includes.utils.role_removals import RoleRemove
+import includes.utils.heap as heap
 
 logger = logging.getLogger('navi.server')
 

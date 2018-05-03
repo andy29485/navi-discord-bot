@@ -7,8 +7,8 @@ from discord.ext import commands
 from discord import Embed
 import osuapi
 import logging
-from cogs.utils import format as formatter
-from cogs.utils.config import Config
+from includes.utils import format as formatter
+from includes.utils.config import Config
 
 logger = logging.getLogger('navi.osu')
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+import os
 import json
 import logging
-from cogs.utils.obj_creator import as_obj, ObjEncoder
+from includes.utils.obj_creator import as_obj, ObjEncoder
 
 logger = logging.getLogger('navi.config')
 
@@ -11,9 +12,10 @@ class Config(dict):
 
   # object creation override,
   #   if another config with the same name(file) is open, return that instead
-  def __new__(cls, name, *args, **kwargs):
+  def __new__(cls, name, save=True, *args, **kwargs):
     if name not in cls.configs:
       cls.configs[name] = super(Config, cls).__new__(cls)
+    cls.configs[name]._save = save
     return cls.configs[name]
 
   def __init__(self, name, save=True, *args, **kwargs):
@@ -43,6 +45,9 @@ class Config(dict):
 
   # force a save even if config says not to
   def _save_force(self):
+    dirname = os.path.dirname(self.name)
+    if not os.path.exists(dirname):
+      os.makedirs(dirname)
     with open(self.name, 'w') as f:             # open associated file
       json.dump(self.copy(), f, cls=ObjEncoder) # and save as json
                                                 #   see `ObjEncoder` class

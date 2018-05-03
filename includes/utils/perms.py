@@ -3,7 +3,7 @@
 import logging
 from discord.ext import commands
 import discord.utils
-from cogs.utils.config import Config
+from includes.utils.config import Config
 
 logger = logging.getLogger('navi.perms')
 
@@ -15,9 +15,11 @@ config = Config('configs/perms.json')
 if 'owner' not in config:
   import re
   owner = ''
-  while not owner or not re.search('^\\d{15,}$', owner):
+  match = None
+  while not match:
     owner = input('please enter YOUR id(use `\\@NAME` to find yours): ')
-  config['owner'] = owner
+    match = re.search('^\s*<?@?(\\d{15,})>?\s*$', owner)
+  config['owner'] = match.group(1) if match else owner
   config.save()
 
 def is_owner():
@@ -33,6 +35,8 @@ def has_role_check(check, **perms):
   return commands.check(lambda ctx: role_or_permissions(ctx, check, **perms))
 
 def is_owner_check(message):
+  if type(message) == str:
+    return message == config['owner']
   return message.author.id == config['owner']
 
 def in_group_check(msg, group):
@@ -40,7 +44,7 @@ def in_group_check(msg, group):
     return True
 
   for num in config[group]:
-    if num == msg.author.id:
+    if num == msg.author.id or num == msg:
       return True
   return False
 

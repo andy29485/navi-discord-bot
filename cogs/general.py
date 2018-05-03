@@ -7,11 +7,11 @@ import logging
 import asyncio
 from discord.ext import commands
 from datetime import datetime, timedelta
-from cogs.utils.poll import Poll
-from cogs.utils.config import Config
-from cogs.utils.format import *
-from cogs.utils.reminders import Reminder
-import cogs.utils.heap as heap
+from includes.utils.poll import Poll
+from includes.utils.config import Config
+from includes.utils.format import *
+from includes.utils.reminders import Reminder
+import includes.utils.heap as heap
 
 logger = logging.getLogger('navi.general')
 

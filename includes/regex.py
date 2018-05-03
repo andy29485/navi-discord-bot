@@ -2,9 +2,9 @@
 
 import re
 import logging
-from cogs.utils import format as formatter
-from cogs.utils import perms
-from cogs.utils.config import Config
+from includes.utils import format as formatter
+from includes.utils import perms
+from includes.utils.config import Config
 
 logger = logging.getLogger('navi.regex')
 

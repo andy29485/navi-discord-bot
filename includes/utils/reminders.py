@@ -5,9 +5,9 @@ import time
 import logging
 import datetime
 from discord import Message
-import cogs.utils.heap as heap
-from cogs.utils.format import ok
-from cogs.utils import discord_helper as dh
+import includes.utils.heap as heap
+from includes.utils.format import ok
+from includes.utils import discord_helper as dh
 
 logger = logging.getLogger('navi.reminders')
 

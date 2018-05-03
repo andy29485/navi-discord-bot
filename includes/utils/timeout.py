@@ -4,8 +4,8 @@ import time
 import asyncio
 import discord
 import logging
-import cogs.utils.heap as heap
-import cogs.utils.discord_helper as dh
+import includes.utils.heap as heap
+import includes.utils.discord_helper as dh
 
 logger = logging.getLogger('navi.timeout')
 

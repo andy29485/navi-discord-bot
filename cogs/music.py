@@ -12,10 +12,10 @@ import os
 import logging
 from discord.ext import commands
 from ctypes.util import find_library
-from cogs.utils.format import *
-from cogs.utils.config import Config
-import cogs.utils.emby_helper as emby_helper
-import cogs.utils.discord_helper as dh
+from includes.utils.format import *
+from includes.utils.config import Config
+import includes.utils.emby_helper as emby_helper
+import includes.utils.discord_helper as dh
 
 logger = logging.getLogger('navi.music')
 

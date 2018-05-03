@@ -4,15 +4,15 @@ import inspect
 import asyncio
 import git
 import sys
-from cogs.utils import perms
-from cogs.utils import format as formatter
+from includes.utils import perms
+from includes.utils import format as formatter
 import logging
 
 # to expose to the eval command
 import datetime
 from collections import Counter
-from cogs.utils.config import Config
-from cogs.utils import discord_helper as dh
+from includes.utils.config import Config
+from includes.utils import discord_helper as dh
 
 logger = logging.getLogger('navi.admin')
 

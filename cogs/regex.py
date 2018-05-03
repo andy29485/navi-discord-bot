@@ -4,7 +4,7 @@ import asyncio
 from discord.ext import commands
 
 from includes.regex import Regex as RegexRes
-from cogs.utils import format as formatter
+from includes.utils import format as formatter
 
 class RegexCog:
   def __init__(self, bot):

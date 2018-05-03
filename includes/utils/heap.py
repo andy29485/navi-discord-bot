@@ -3,8 +3,8 @@
 import abc
 import time
 import logging
-from cogs.utils.config import Config
-import cogs.utils.obj_creator as obj_creator
+from includes.utils.config import Config
+import includes.utils.obj_creator as obj_creator
 
 logger = logging.getLogger('navi.heapclass')
 

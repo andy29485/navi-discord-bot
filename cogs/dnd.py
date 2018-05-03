@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from discord.ext import commands
-from cogs.utils.config import Config
+from includes.utils.config import Config
 
 logger = logging.getLogger('navi.dnd')
 

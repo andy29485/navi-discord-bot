@@ -5,7 +5,7 @@ import tempfile
 import logging
 import random
 import os
-from cogs.utils.config import Config
+from includes.utils.config import Config
 
 logger = logging.getLogger('navi.find')
 

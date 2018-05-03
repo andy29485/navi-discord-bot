@@ -5,8 +5,8 @@ import discord
 import asyncio
 import logging
 import time
-import cogs.utils.heap as heap
-import cogs.utils.format as formatter
+import includes.utils.heap as heap
+import includes.utils.format as formatter
 
 logger = logging.getLogger('navi.poll')
 

@@ -4,10 +4,10 @@ import asyncio
 import random
 import os
 import html
-from cogs.utils import perms
+from includes.utils import perms
 from discord.ext import commands
-from cogs.utils.config import Config
-from cogs.utils import format as formatter
+from includes.utils.config import Config
+from includes.utils import format as formatter
 
 class Games:
   def __init__(self, bot):

@@ -8,11 +8,11 @@ import os
 from os import stat
 from git import Repo,Actor
 from pwd import getpwuid
-from cogs.utils import perms
-import cogs.utils.format as formatter
-from cogs.utils import find as azfind
-from cogs.utils.config import Config
-from cogs.utils import discord_helper as dh
+from includes.utils import perms
+import includes.utils.format as formatter
+from includes.utils import find as azfind
+from includes.utils.config import Config
+from includes.utils import discord_helper as dh
 from zipfile import ZipFile as zipfile
 
 logger = logging.getLogger('navi.az')

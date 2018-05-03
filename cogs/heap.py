@@ -2,8 +2,8 @@
 
 import asyncio
 import logging
-from cogs.utils.config import Config
-import cogs.utils.heap as heap
+from includes.utils.config import Config
+import includes.utils.heap as heap
 
 logger = logging.getLogger('navi.heap')
 

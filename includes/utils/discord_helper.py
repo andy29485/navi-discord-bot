@@ -67,18 +67,44 @@ month_names = [
   re.compile(f'(?i)dec(em(ber)?)?\\s*{day_ex}\\s*({year_ex})?')
 ]
 
+colours = {
+  'teal' : discord.Colour.teal(),
+  'dark_teal' : discord.Colour.dark_teal(),
+  'green' : discord.Colour.green(),
+  'dark_green' : discord.Colour.dark_green(),
+  'blue' : discord.Colour.blue(),
+  'dark_blue' : discord.Colour.dark_blue(),
+  'purple' : discord.Colour.purple(),
+  'dark_purple' : discord.Colour.dark_purple(),
+  'magenta' : discord.Colour.magenta(),
+  'dark_magenta' : discord.Colour.dark_magenta(),
+  'gold' : discord.Colour.gold(),
+  'dark_gold' : discord.Colour.dark_gold(),
+  'orange' : discord.Colour.orange(),
+  'dark_orange' : discord.Colour.dark_orange(),
+  'red' : discord.Colour.red(),
+  'dark_red' : discord.Colour.dark_red(),
+  'lighter_grey' : discord.Colour.lighter_grey(),
+  'dark_grey' : discord.Colour.dark_grey(),
+  'light_grey' : discord.Colour.light_grey(),
+  'darker_grey' : discord.Colour.darker_grey()
+}
+
 def get_end_time(message):
   datestrs = []
   offset   = time.time()
+  dow      = False
   m_time   = None
   m_date   = None
   date_time = datetime.datetime.today()
   message = re.sub(r'(?i)^\s*(me|remove|end)?\s*(at|[oi]n)?\s*',
                    '', message
   ).strip()
+
   for num, day in enumerate(dow_names):
     m_date = day.search(message)
     if m_date:
+      dow = True
       offset=(7+num-date_time.weekday())%7 #offset=(7+want-now)%7
       date_time += datetime.timedelta(days=offset)
       if m_date.group('day'):
@@ -136,7 +162,9 @@ def get_end_time(message):
         message = message.replace(m_date.group(0), '')
         datestrs.append(m_date.group(0))
         break
+
   message = re.sub(r'(?i)^\s*(at|[oi]n)?\s*', '', message).strip()
+
   for t in tm:
     m_time = t.search(message)
     if m_time:
@@ -153,23 +181,28 @@ def get_end_time(message):
       if m_time.group('min'):
         m = int(m_time.group('min'))
         date_time = date_time.replace(minute=m)
+      else:
+        date_time = date_time.replace(minute=0)
       if m_time.group('sec'):
         s = int(m_time.group('sec'))
         date_time = date_time.replace(second=s)
-      while date_time < datetime.datetime.today():
-        if not m_time.group('hour'):
-          date_time += datetime.timedelta(hours=1)
-        elif not m_date or not m_date.group('day'):
-          date_time += datetime.timedelta(days=1)
-        elif not m_date.group('month'):
-          date_time += monthdelta.monthdelta(1)
-        elif not m_date.group('year'):
-          date_time += monthdelta.monthdelta(12)
-        else:
-          break
+      else:
+        date_time = date_time.replace(second=0)
+
       message = message.replace(m_time.group(0), '')
       datestrs.append(m_time.group(0))
       break
+
+  while date_time < datetime.datetime.today():
+    if not m_date or not m_date.group('day'):
+      date_time += datetime.timedelta(days=(7 if dow else 1))
+    elif not m_date.group('month'):
+      date_time += monthdelta.monthdelta(1)
+    elif not m_date.group('year'):
+      date_time += monthdelta.monthdelta(12)
+    else:
+      break
+
   if m_time or m_date:
     offset = date_time.timestamp()
   else:

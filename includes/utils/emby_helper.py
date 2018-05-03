@@ -6,7 +6,7 @@ import asyncio
 import requests
 import aiohttp
 import logging
-from cogs.utils.config import Config
+from includes.utils.config import Config
 from embypy import Emby as EmbyPy
 
 logger = logging.getLogger('navi.emby_helper')
@@ -62,6 +62,17 @@ async def makeEmbed(item, message='', ignore=()):
 
   em.title  = (message+name or '<No name>').strip()
 
+  if hasattr(item, 'series_name') and item.series_name:
+    logger.debug('setting show name as description')
+    season_num  = item.season_number
+    episode_num = item.episode_number
+    show_name   = item.series_name
+    if season_num:
+      str_ep = f'{show_name} - {season_num:02}x{episode_num:02}'
+    else:
+      str_ep = f'{item.season_name} - {episode_num:02}'
+    em.set_footer(text=str_ep)
+
   if getattr(item, 'overview') and 'Overview' not in ignore:
     logger.debug('setting overview as description')
     if len(item.overview) > 250:
@@ -69,10 +80,7 @@ async def makeEmbed(item, message='', ignore=()):
     else:
       des = item.overview
     em.description = des
-  elif hasattr(item, 'series_name') and item.series_name:
-    logger.debug('setting show name as description')
-    em.description = item.series_name
-  elif item.id:
+  elif item.type:
     logger.debug('using type for description')
     em.description = item.type
 
@@ -84,14 +92,14 @@ async def makeEmbed(item, message='', ignore=()):
     logger.debug('setting colour')
     em.colour = getColour(item.id)
 
-  if hasattr(item, 'artists') and 'Artists' not in ignore:
+  if 'artists' in dir(item) and 'Artists' not in ignore:
     logger.debug('setting artists')
     names = ', '.join(i.name for i in await item.artists)
     if len(names) > 250:
       names = names[:247]+'...'
     em.add_field(name='Artists', value=names)
 
-  if hasattr(item, 'album') and 'Album' not in ignore:
+  if 'album' in dir(item) and 'Album' not in ignore:
     logger.debug('setting album name')
     a = await item.album
     if a and a.name:
@@ -108,7 +116,7 @@ async def makeEmbed(item, message='', ignore=()):
       d = f'{d//3600:02}:{(d//60)%60:02}:{d%60:02}'
       em.add_field(name='Duration', value=d)
 
-  if hasattr(item, 'songs') and 'Songs' not in ignore:
+  if 'songs' in dir(item) and 'Songs' not in ignore:
     songs = ''
     for s in await item.songs:
       song = f'{s.index_number:02} - {s.name}\n'

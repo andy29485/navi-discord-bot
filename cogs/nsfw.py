@@ -7,9 +7,9 @@ import logging
 import pybooru
 from discord import Embed
 from discord.ext import commands
-from cogs.utils.config import Config
-import cogs.utils.format as formatter
-from cogs.utils import discord_helper as dh
+from includes.utils.config import Config
+import includes.utils.format as formatter
+from includes.utils import discord_helper as dh
 
 logger = logging.getLogger('navi.nsfw')
 

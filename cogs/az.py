@@ -2,7 +2,7 @@
 
 
 from discord.ext import commands
-from cogs.utils import perms
+from includes.utils import perms
 from includes.az import AZ
 
 

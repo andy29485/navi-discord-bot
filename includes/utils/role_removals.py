@@ -2,8 +2,8 @@
 
 import time
 import logging
-import cogs.utils.heap as heap
-from cogs.utils import discord_helper as dh
+import includes.utils.heap as heap
+from includes.utils import discord_helper as dh
 
 logger = logging.getLogger('navi.role_rm')
 

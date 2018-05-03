@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from discord.ext import commands
-import cogs.utils.emby_helper as emby_helper
-import cogs.utils.format as formatter
+import includes.utils.emby_helper as emby_helper
+import includes.utils.format as formatter
 import discord
 import asyncio
 import logging

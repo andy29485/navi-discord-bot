@@ -8,9 +8,9 @@ import tempfile
 import itertools
 from discord.ext import commands
 from PIL import Image, ImageFont, ImageDraw
-from cogs.utils.format import error
-from cogs.utils.config import Config
-from cogs.utils import discord_helper as dh
+from includes.utils.format import error
+from includes.utils.config import Config
+from includes.utils import discord_helper as dh
 
 logger = logging.getLogger('navi.memes')
 zp = itertools.zip_longest

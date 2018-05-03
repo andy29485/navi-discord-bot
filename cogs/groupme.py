@@ -7,8 +7,8 @@ import logging
 import hashlib
 from discord import Embed
 from discord.ext import commands
-from cogs.utils.config import Config
-from cogs.utils import format as formatter
+from includes.utils.config import Config
+from includes.utils import format as formatter
 
 colours = [0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
            0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0x1abc9c,

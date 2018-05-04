@@ -22,12 +22,13 @@ dt = [re.compile(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)'),
       )
 ]
 times = {
-   r'(?i)(\d+)\s*s(econds?)?\b'    : 1,
-   r'(?i)(\d+)\s*m(in(ute)?s?)?\b' : 60,
-   r'(?i)(\d+)\s*h(ours?)?\b'      : 3600,
-   r'(?i)(\d+)\s*d(ays?)?\b'       : 86400,
-   r'(?i)(\d+)\s*w(eeks?)?\b'      : 604800,
-   r'(?i)(\d+)\s*months?\b'        : 2628000
+   r'(?i)(\d+)\s*s(econds?)?\b'       : 'seconds',
+   r'(?i)(\d+)\s*m(in(ute)?s?)?\b'    : 'minutes',
+   r'(?i)(\d+)\s*(an\s+)?h(ours?)?\b' : 'hours',
+   r'(?i)(\d+)\s*d(ays?)?\b'          : 'days',
+   r'(?i)(\d+)\s*w(eeks?)?\b'         : 'weeks',
+   r'(?i)(\d+)\s*months?\b'           : 'months',
+   r'(?i)(\d+)\s*years?\b'            : 'years',
 }
 day_ex  = r'(\s*the)?\s*(?P<day>\d\d?)\s*(th|st|rd|nd)?(\s*of)?(?=[^a-z0-9:])'
 year_ex = r'\s*(-|,|of|in)?(\s*the\s*year)?(\s*of)?\s*(?P<year>\d{4})\b'
@@ -188,25 +189,31 @@ def get_end_time(message):
       message = message.replace(m_time.group(0), '')
       datestrs.append(m_time.group(0))
       break
-  while date_time < datetime.datetime.today():
-    if not m_date or not m_date.group('day'):
-      date_time += datetime.timedelta(days=(7 if dow else 1))
-    elif not m_date.group('month'):
-      date_time += monthdelta.monthdelta(1)
-    elif not m_date.group('year'):
-      date_time += monthdelta.monthdelta(12)
-    else:
-      break
   if m_time or m_date:
-    offset = date_time.timestamp()
+    while date_time < datetime.datetime.today():
+      if not m_date or not m_date.group('day'):
+        date_time += datetime.timedelta(days=(7 if dow else 1))
+      elif not m_date.group('month'):
+        date_time += monthdelta.monthdelta(1)
+      elif not m_date.group('year'):
+        date_time += monthdelta.monthdelta(12)
+      else:
+        break
   else:
     for t in times:
       match = re.search(t, message)
       if match:
-        offset += times[t]*float(match.group(1))
+        if times[t] == 'weeks':
+          date_time += datetime.timedelta(days=7*float(match.group(1)))
+        elif times[t] == 'months':
+          monthdelta.monthdelta(int(match.group(1)))
+        elif times[t] == 'years':
+          monthdelta.monthdelta(12*int(match.group(1)))
+        else:
+          date_time += datetime.timedelta(**{times[t]:float(match.group(1))})
         datestrs.append(match.group(0))
         message = message.replace(match.group(0), '')
-  return int(offset), message.strip(), datestrs
+  return int(date_time.timestamp()), message.strip(), datestrs
 
 def remove_comments(words):
   for i in range(len(words)):

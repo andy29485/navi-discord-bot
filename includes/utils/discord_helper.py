@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import datetime
+from datetime import datetime, timedelta
 import monthdelta
 import discord
 import logging
@@ -91,14 +91,14 @@ colours = {
   'darker_grey' : discord.Colour.darker_grey()
 }
 
-def get_end_time(message):
-  datestrs = []
-  offset   = time.time()
-  dow      = False
-  m_time   = None
-  m_date   = None
-  date_time = datetime.datetime.today()
-  message = re.sub(r'(?i)^\s*(me|remove|end)?\s*(at|[oi]n)?\s*',
+def get_end_time(message, start_date=datetime.today()):
+  datestrs  = []
+  offset    = time.time()
+  dow       = False
+  m_time    = None
+  m_date    = None
+  date_time = start_date
+  message   = re.sub(r'(?i)^\s*(me|remove|end)?\s*(at|[oi]n)?\s*',
                    '', message
   ).strip()
   for num, day in enumerate(dow_names):
@@ -106,11 +106,11 @@ def get_end_time(message):
     if m_date:
       dow = True
       offset=(7+num-date_time.weekday())%7 #offset=(7+want-now)%7
-      date_time += datetime.timedelta(days=offset)
+      date_time += timedelta(days=offset)
       if m_date.group('day'):
         day = int(m_date.group('day'))
         for i in range(1,53):
-          date_time_tmp = date_time+datetime.timedelta(weeks=i)
+          date_time_tmp = date_time+timedelta(weeks=i)
           if date_time_tmp.day == day:
             date_time = date_time_tmp
             break
@@ -129,11 +129,11 @@ def get_end_time(message):
         if m_date.group('year'):
           year = int(m_date.group('year'))
           date_time = date_time.replace(year=year)
-        while date_time < datetime.datetime.today():
+        while date_time <= start_date:
           if not m_date.group('year'):
             date_time += monthdelta.monthdelta(12)
           elif not m_date.group('day'):
-            date_time += datetime.timedelta(days=1)
+            date_time += timedelta(days=1)
           else:
             break
         message = message.replace(m_date.group(0), '')
@@ -152,11 +152,11 @@ def get_end_time(message):
         if m_date.group('day'):
           d = int(m_date.group('day'))
           date_time = date_time.replace(day=d)
-          while date_time < datetime.datetime.today():
+          while date_time <= start_date:
             if not m_date.group('year'):
               date_time += monthdelta.monthdelta(12)
             elif not m_date.group('day'):
-              date_time += datetime.timedelta(days=1)
+              date_time += timedelta(days=1)
             else:
               break
         message = message.replace(m_date.group(0), '')
@@ -190,9 +190,9 @@ def get_end_time(message):
       datestrs.append(m_time.group(0))
       break
   if m_time or m_date:
-    while date_time < datetime.datetime.today():
+    while date_time <= start_date:
       if not m_date or not m_date.group('day'):
-        date_time += datetime.timedelta(days=(7 if dow else 1))
+        date_time += timedelta(days=(7 if dow else 1))
       elif not m_date.group('month'):
         date_time += monthdelta.monthdelta(1)
       elif not m_date.group('year'):
@@ -204,13 +204,13 @@ def get_end_time(message):
       match = re.search(t, message)
       if match:
         if times[t] == 'weeks':
-          date_time += datetime.timedelta(days=7*float(match.group(1)))
+          date_time += timedelta(days=7*float(match.group(1)))
         elif times[t] == 'months':
-          monthdelta.monthdelta(int(match.group(1)))
+          date_time += monthdelta.monthdelta(int(match.group(1)))
         elif times[t] == 'years':
-          monthdelta.monthdelta(12*int(match.group(1)))
+          date_time += monthdelta.monthdelta(12*int(match.group(1)))
         else:
-          date_time += datetime.timedelta(**{times[t]:float(match.group(1))})
+          date_time += timedelta(**{times[t]:float(match.group(1))})
         datestrs.append(match.group(0))
         message = message.replace(match.group(0), '')
   return int(date_time.timestamp()), message.strip(), datestrs

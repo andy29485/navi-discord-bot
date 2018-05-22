@@ -32,6 +32,20 @@ class HeapCog:
       # wait a bit and check again
       await asyncio.sleep(min(self.conf['heap'].time_left, 30)+0.5)
 
+  def index(self, item):
+    return self.conf['heap'].index(item)
+
+  def push(self, item):
+    self.conf['heap'].push(item)
+    self.conf.save()
+
+  def pop(self, item):
+    self.conf['heap'].pop(item)
+    self.conf.save()
+
+  def __iter__(self):
+    return self.conf['heap'].__iter()
+
 def setup(bot):
   h = HeapCog(bot)
   bot.add_cog(h)

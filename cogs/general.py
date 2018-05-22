@@ -11,7 +11,6 @@ from includes.utils.poll import Poll
 from includes.utils.config import Config
 from includes.utils.format import *
 from includes.utils.reminders import Reminder
-import includes.utils.heap as heap
 
 logger = logging.getLogger('navi.general')
 
@@ -21,7 +20,8 @@ class General:
     self.loop        = bot.loop
     self.stopwatches = {}
     self.conf        = Config('configs/general.json')
-    self.heap        = Config('configs/heap.json')
+
+    heap = self.bot.get_cog('heap')
 
     if 'responses' not in self.conf:
       self.conf['responses'] = {}
@@ -32,8 +32,7 @@ class General:
     if '8-ball' not in self.conf:
       self.conf['8-ball'] = []
     for rem in self.conf.pop('reminders', []):
-      self.heap['heap'].push(rem)
-    self.heap.save()
+      heap.push(rem)
     self.conf.save()
 
 
@@ -85,7 +84,8 @@ class General:
 
     test_poll = Poll('', [], chan, 0, 1)
 
-    for poll in self.heap['heap']:
+    heap = self.bot.get_cog('heap')
+    for poll in heap:
       if test_poll == poll:
         await loop.run_in_executor(None, poll.vote, user, mess)
 
@@ -436,25 +436,27 @@ class General:
     .remind [me] remove <id>
     .remind [me] end <id>
     '''
+    heap = self.bot.get_cog('heap')
     author  = ctx.message.author.id
     channel = ctx.message.channel.id
     match   = re.match(r'(?i)^(me\s+)?(remove|end|stop)\s+(\d+)', message)
+
+
     if match:
       rid = int(match.group(3))
-      for index,item in enumerate(self.heap['heap']):
+      for index,item in enumerate(heap):
         if type(item) == Reminder \
             and item.reminder_id == rid \
             and item.user_id == author:
-          self.heap['heap'].pop(index)
+          heap.pop(index)
           await self.bot.say(ok(f'Message with id {rid} has been removed'))
           return
       else:
         await self.bot.say(ok(f'Could not find message with id {rid}'))
     else:
       r = Reminder(channel, author, message)
-      self.heap['heap'].push(r)
+      heap.push(r)
       await r.begin(self.bot)
-    self.heap.save()
 
   @commands.command(pass_context=True, aliases=['a', 'ask'])
   async def question(self, ctx):
@@ -471,13 +473,13 @@ class General:
     poll question? opt1, opt2, opt3 or opt4...
     poll stop|end
     '''
+    heap = self.bot.get_cog('heap')
 
     if question.lower().strip() in ['end', 'stop']:
-      for index,poll in enumerate(self.heap['heap']):
+      for index,poll in enumerate(heap):
         if isinstance(poll, Poll) and poll.channel_id == ctx.message.channel.id:
-          self.heap['heap'].pop(index)
+          heap.pop(index)
           await poll.end(self.bot)
-          self.heap.save()
           break
       else:
         await self.bot.say('There is no poll active in this channel')
@@ -493,12 +495,11 @@ class General:
 
     poll = Poll(question, options, ctx.message.channel, 600)
 
-    for item in self.heap['heap']:
+    for item in heap:
       if poll == item:
         await self.bot.say('There is a poll active in this channel already')
         return
-    self.heap['heap'].push(poll)
-    self.heap.save()
+    heap.push(poll)
     await poll.begin(self.bot)
 
 def split(choices):

@@ -16,7 +16,6 @@ from includes.utils.config import Config
 from includes.utils.timeout import Timeout
 from includes.utils import discord_helper as dh
 from includes.utils.role_removals import RoleRemove
-import includes.utils.heap as heap
 
 logger = logging.getLogger('navi.server')
 
@@ -37,11 +36,11 @@ class Server:
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/server.json')
-    self.heap = Config('configs/heap.json')
     self.cut  = {}
 
+    heap = self.bot.get_cog('heap')
     for rem in self.conf.pop('end_role', []):
-      self.heap['heap'].push(rem)
+      heap.push(rem)
 
   @perms.has_perms(manage_messages=True)
   @commands.command(name='prune', pass_context=True)
@@ -345,8 +344,7 @@ class Server:
       end_time = dh.get_end_time(date)[0]
       role_end = RoleRemove(end_time, role.id, auth.id, chan.id, serv.id)
 
-      self.heap['heap'].push(role_end)
-      self.heap.save()
+      self.bot.get_cog('heap').push(role_end)
       await role_end.begin(self.bot)
 
   @perms.has_perms(manage_messages=True)
@@ -544,6 +542,7 @@ class Server:
 
     usage `.timeout [add] @member [time in seconds]`
     """
+    heap = self.bot.get_cog('heap')
     if not perms.is_owner() and \
       ctx.message.author.server_permissions < member.server_permissions:
       await self.bot.say('Can\'t send higher ranking members to timeout')
@@ -575,13 +574,12 @@ class Server:
 
     try:
       timeout_obj = Timeout(channel, server, member, time)
-      self.heap['heap'].push(timeout_obj)
-      self.heap.save()
+      heap.push(timeout_obj)
       await timeout_obj.begin(self.bot, to_role, to_chan)
     except:
-      for index,obj in enumerate(self.heap['heap']):
+      for index,obj in enumerate(heap):
         if obj == timeout_obj:
-          self.heap['heap'].pop(index)
+          heap.pop(index)
           break
       await self.bot.say(
         'There was an error sending {}\'s to timeout \n({}{}\n)'.format(

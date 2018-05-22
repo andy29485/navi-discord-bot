@@ -14,6 +14,8 @@ endif
 test:
 	$(PYTHON) -t -m py_compile ./start.py
 	$(PYTHON) -t -m py_compile cogs/*py
+	$(PYTHON) -t -m py_compile includes/*py
+	$(PYTHON) -t -m py_compile includes/utils/*py
 	$(PYTHON) -W ignore -m unittest discover -s tests/
 
 clean:

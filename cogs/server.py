@@ -38,7 +38,7 @@ class Server:
     self.conf = Config('configs/server.json')
     self.cut  = {}
 
-    heap = self.bot.get_cog('heap')
+    heap = self.bot.get_cog('HeapCog')
     for rem in self.conf.pop('end_role', []):
       heap.push(rem)
 
@@ -344,7 +344,7 @@ class Server:
       end_time = dh.get_end_time(date)[0]
       role_end = RoleRemove(end_time, role.id, auth.id, chan.id, serv.id)
 
-      self.bot.get_cog('heap').push(role_end)
+      self.bot.get_cog('HeapCog').push(role_end)
       await role_end.begin(self.bot)
 
   @perms.has_perms(manage_messages=True)
@@ -542,7 +542,7 @@ class Server:
 
     usage `.timeout [add] @member [time in seconds]`
     """
-    heap = self.bot.get_cog('heap')
+    heap = self.bot.get_cog('HeapCog')
     if not perms.is_owner() and \
       ctx.message.author.server_permissions < member.server_permissions:
       await self.bot.say('Can\'t send higher ranking members to timeout')

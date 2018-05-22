@@ -21,7 +21,7 @@ class General:
     self.stopwatches = {}
     self.conf        = Config('configs/general.json')
 
-    heap = self.bot.get_cog('heap')
+    heap = self.bot.get_cog('HeapCog')
 
     if 'responses' not in self.conf:
       self.conf['responses'] = {}
@@ -84,7 +84,7 @@ class General:
 
     test_poll = Poll('', [], chan, 0, 1)
 
-    heap = self.bot.get_cog('heap')
+    heap = self.bot.get_cog('HeapCog')
     for poll in heap:
       if test_poll == poll:
         await loop.run_in_executor(None, poll.vote, user, mess)
@@ -436,7 +436,7 @@ class General:
     .remind [me] remove <id>
     .remind [me] end <id>
     '''
-    heap = self.bot.get_cog('heap')
+    heap = self.bot.get_cog('HeapCog')
     author  = ctx.message.author.id
     channel = ctx.message.channel.id
     match   = re.match(r'(?i)^(me\s+)?(remove|end|stop)\s+(\d+)', message)
@@ -473,7 +473,7 @@ class General:
     poll question? opt1, opt2, opt3 or opt4...
     poll stop|end
     '''
-    heap = self.bot.get_cog('heap')
+    heap = self.bot.get_cog('HeapCog')
 
     if question.lower().strip() in ['end', 'stop']:
       for index,poll in enumerate(heap):

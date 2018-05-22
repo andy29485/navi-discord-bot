@@ -1,5 +1,5 @@
 discord.py[voice]
-puush.py
+arrow
 GitPython
 html2text
 lxml

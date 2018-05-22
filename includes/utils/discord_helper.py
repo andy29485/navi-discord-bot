@@ -93,7 +93,7 @@ colours = {
 def get_end_time(message, start_date=arrow.now()):
   # datetime -> arrow compatibility fix
   if type(start_date) != arrow.arrow.Arrow:
-    start_date = arrow.now().fromdatetime(start_date)
+    start_date = arrow.get(start_date)
 
   datestrs  = []                     # list of matched strings
   m_time    = None                   # tmp var: matched time (w/o date)
@@ -120,11 +120,11 @@ def get_end_time(message, start_date=arrow.now()):
           if date_time_tmp.day == day:
             date_time = date_time_tmp
             break
-
       # remove match from message, and save matched string
       message = message.replace(m_date.group(0), '', 1)
       datestrs.append(m_date.group(0))
-      m_date = set(m_date.groupdict().keys()).union({'dow'})
+      m_date = {x:y for x,y in m_date.groupdict().items() if y}
+      m_date.update({'dow':num})
       break
 
   # if weekday was not matched, try looking for a date
@@ -144,7 +144,6 @@ def get_end_time(message, start_date=arrow.now()):
           # if year was also matched, replace that too
           year = int(m_date.group('year'))
           date_time = date_time.replace(year=year)
-
         # if date has passed, try to resolve it
         while date_time.date() < start_date.date():
           if not m_date.group('year'):
@@ -158,11 +157,10 @@ def get_end_time(message, start_date=arrow.now()):
             # issue will propogate and resolve itself later
             # TODO - maybe just return here?
             break
-
         # remove match from message, and save matched string
         message = message.replace(m_date.group(0), '')
         datestrs.append(m_date.group(0))
-        m_date = set(m_date.groupdict().keys())
+        m_date = {x:y for x,y in m_date.groupdict().items() if y}
         break
 
   # if weekday AND month names don't match, search for other date strings
@@ -174,20 +172,18 @@ def get_end_time(message, start_date=arrow.now()):
         if m_date.group('year'):
           y = int(m_date.group('year'))
           date_time = date_time.replace(year=y)
-
         # if month part is matched, replace default
         if m_date.group('month'):
           m = int(m_date.group('month'))
           date_time = date_time.replace(month=m)
-
         # if day part is matched, replace default
         if m_date.group('day'):
           d = int(m_date.group('day'))
           date_time = date_time.replace(day=d)
-
+        # remove match from message and save matched string
         message = message.replace(m_date.group(0), '')
         datestrs.append(m_date.group(0))
-        m_date = set(m_date.groupdict().keys())
+        m_date = {x:y for x,y in m_date.groupdict().items() if y}
         break
 
   # remove trash from message yet again
@@ -208,30 +204,31 @@ def get_end_time(message, start_date=arrow.now()):
           if h == 12:
             h = 0
         date_time = date_time.replace(hour=h)
-
+      # replace default minute if specified
       if m_time.group('min'):
         m = int(m_time.group('min'))
         date_time = date_time.replace(minute=m)
       else:
         # zero is a better default
         date_time = date_time.replace(minute=0)
-
+      # replace default second if specified
       if m_time.group('sec'):
         s = int(m_time.group('sec'))
         date_time = date_time.replace(second=s)
       else:
         # zero is a better default
         date_time = date_time.replace(second=0)
-
+      # remove match from message, and save matched string
       message = message.replace(m_time.group(0), '')
       datestrs.append(m_time.group(0))
-      m_time = set(m_time.groupdict().keys())
+      m_time = {x:y for x,y in m_time.groupdict().items() if y}
       break
 
   if m_time or m_date:
-    found_groups = (m_time or set()).union(m_date or set())
+    found_groups = (m_time or {})
+    found_groups.update(m_date or {})
     # shift the times to find the next matching time that works/not expired
-    while date_time <= start_date:
+    while date_time <= start_date.shift(seconds=5):
       if 'day' not in found_groups:
         shift = 7 if 'dow' in found_groups else 1
         date_time = date_time.shift(days=shift)

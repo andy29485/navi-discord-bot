@@ -36,6 +36,7 @@ class Config(dict):
         d = json.load(f, object_hook=as_obj) # and parse it as a json file
     except:                                  #   see `as_obj` function
       d = {}                                 # on failure, empty dict is used
+      #raise #for debugging
     self.update(d)                           # copy temp dict to self
 
   # save config to file

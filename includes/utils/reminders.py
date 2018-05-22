@@ -12,7 +12,8 @@ from includes.utils import discord_helper as dh
 logger = logging.getLogger('navi.reminders')
 
 class Reminder(heap.HeapNode):
-  def __init__(self, channel_id, user_id, message, end_time=0, times=[],
+  def __init__(self, channel_id, user_id, message,
+               end_time=0, times=[],
                command=False, reminder_id=0):
     self.user_id     = getattr(user_id,    'id',    user_id)
     self.channel_id  = getattr(channel_id, 'id', channel_id)
@@ -127,13 +128,12 @@ class Reminder(heap.HeapNode):
 
     while True:
       first = self.message.split()[0]
-      if first in ('-c'):
-        self.command = True
-      elif first in ('-r'):
-        self.times = times
-      elif first in ('-cr', '-rc'):
-        self.command = True
-        self.times = times
+      if first[0] == '-':
+        for opt in first[1:]:
+          if opt in 'c':
+            self.command = True
+          elif opt in 'r':
+            self.times = times
       else:
         break
       self.message = self.message.replace(first, '', 1).strip()

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-from datetime import datetime, timedelta
-import monthdelta
+import arrow
 import discord
 import logging
 import time
@@ -91,84 +90,117 @@ colours = {
   'darker_grey' : discord.Colour.darker_grey()
 }
 
-def get_end_time(message, start_date=datetime.today()):
-  datestrs  = []
-  offset    = time.time()
-  dow       = False
-  m_time    = None
-  m_date    = None
-  date_time = start_date
-  message   = re.sub(r'(?i)^\s*(me|remove|end)?\s*(at|[oi]n)?\s*',
-                   '', message
-  ).strip()
-  for num, day in enumerate(dow_names):
-    m_date = day.search(message)
-    if m_date:
-      dow = True
+def get_end_time(message, start_date=arrow.now()):
+  # datetime -> arrow compatibility fix
+  if type(start_date) != arrow.arrow.Arrow:
+    start_date = arrow.now().fromdatetime(start_date)
+
+  datestrs  = []                     # list of matched strings
+  m_time    = None                   # tmp var: matched time (w/o date)
+  m_date    = None                   # tmp var: matched date (w/o time)
+  date_time = start_date             # defaults for unmatched parts/final
+
+  # remove filler words from message
+  message = re.sub(r'(?i)^\s*(me|remove|end)?\s*(at|[oi]n)?\s*', '', message)
+  message = message.strip()
+
+  # check if a day of week (mon[0]..sun[6]) was mentioned
+  for num, day_pattern in enumerate(dow_names):
+    m_date = day_pattern.search(message)
+    if m_date: # week day matched
+      # get min number days until the next wanted day
       offset=(7+num-date_time.weekday())%7 #offset=(7+want-now)%7
-      date_time += timedelta(days=offset)
+      date_time = date_time.shift(days=offset)
+      # if a day of month was also specified
       if m_date.group('day'):
         day = int(m_date.group('day'))
-        for i in range(1,53):
-          date_time_tmp = date_time+timedelta(weeks=i)
+        for i in range(0,53):
+          # look for the next Xth dow that falls on the Yth dom
+          date_time_tmp = date_time.shift(weeks=i)
           if date_time_tmp.day == day:
             date_time = date_time_tmp
             break
-      message = message.replace(m_date.group(0), '')
+
+      # remove match from message, and save matched string
+      message = message.replace(m_date.group(0), '', 1)
       datestrs.append(m_date.group(0))
+      m_date = set(m_date.groupdict().keys()).union({'dow'})
       break
+
+  # if weekday was not matched, try looking for a date
   if not m_date:
+    # look for month names
     for num, month in enumerate(month_names, 2):
-      num = num//2
+      num = num//2 # because each month has 2 patterns, enumerate needs a fix
       m_date = month.search(message)
       if m_date:
+        # if matched replace default month name
         date_time = date_time.replace(month=num)
         if m_date.group('day'):
+          # if day of month was also matched, replace that too
           day = int(m_date.group('day'))
           date_time = date_time.replace(day=day)
         if m_date.group('year'):
+          # if year was also matched, replace that too
           year = int(m_date.group('year'))
           date_time = date_time.replace(year=year)
-        while date_time <= start_date:
+
+        # if date has passed, try to resolve it
+        while date_time.date() < start_date.date():
           if not m_date.group('year'):
-            date_time += monthdelta.monthdelta(12)
+            # if user says `remind me in march` on march 4th,
+            #   they probably care about next year's march
+            date_time = date_time.shift(years=1)
           elif not m_date.group('day'):
-            date_time += timedelta(days=1)
+            date_time = date_time.shift(days=1)
           else:
+            # can't do anything, reminder is already expired
+            # issue will propogate and resolve itself later
+            # TODO - maybe just return here?
             break
+
+        # remove match from message, and save matched string
         message = message.replace(m_date.group(0), '')
         datestrs.append(m_date.group(0))
+        m_date = set(m_date.groupdict().keys())
         break
+
+  # if weekday AND month names don't match, search for other date strings
   if not m_date:
-    for d in dt:
-      m_date = d.search(message)
+    for pattern in dt:
+      m_date = pattern.search(message)
       if m_date:
+        # if year part is matched, replace default
         if m_date.group('year'):
           y = int(m_date.group('year'))
           date_time = date_time.replace(year=y)
+
+        # if month part is matched, replace default
         if m_date.group('month'):
           m = int(m_date.group('month'))
           date_time = date_time.replace(month=m)
+
+        # if day part is matched, replace default
         if m_date.group('day'):
           d = int(m_date.group('day'))
           date_time = date_time.replace(day=d)
-          while date_time <= start_date:
-            if not m_date.group('year'):
-              date_time += monthdelta.monthdelta(12)
-            elif not m_date.group('day'):
-              date_time += timedelta(days=1)
-            else:
-              break
+
         message = message.replace(m_date.group(0), '')
         datestrs.append(m_date.group(0))
+        m_date = set(m_date.groupdict().keys())
         break
+
+  # remove trash from message yet again
   message = re.sub(r'(?i)^\s*(at|[oi]n)?\s*', '', message).strip()
-  for t in tm:
-    m_time = t.search(message)
+
+  # search for time part in message
+  for pattern in tm:
+    m_time = pattern.search(message)
     if m_time:
       if m_time.group('hour'):
         h = int(m_time.group('hour'))
         mer = str(m_time.group('meridiem')).lower()
+        # for the americans
         if mer[0] == 'p':
           if h < 12:
             h += 12
@@ -176,44 +208,51 @@ def get_end_time(message, start_date=datetime.today()):
           if h == 12:
             h = 0
         date_time = date_time.replace(hour=h)
+
       if m_time.group('min'):
         m = int(m_time.group('min'))
         date_time = date_time.replace(minute=m)
       else:
+        # zero is a better default
         date_time = date_time.replace(minute=0)
+
       if m_time.group('sec'):
         s = int(m_time.group('sec'))
         date_time = date_time.replace(second=s)
       else:
+        # zero is a better default
         date_time = date_time.replace(second=0)
+
       message = message.replace(m_time.group(0), '')
       datestrs.append(m_time.group(0))
+      m_time = set(m_time.groupdict().keys())
       break
+
   if m_time or m_date:
+    found_groups = (m_time or set()).union(m_date or set())
+    # shift the times to find the next matching time that works/not expired
     while date_time <= start_date:
-      if not m_date or not m_date.group('day'):
-        date_time += timedelta(days=(7 if dow else 1))
-      elif not m_date.group('month'):
-        date_time += monthdelta.monthdelta(1)
-      elif not m_date.group('year'):
-        date_time += monthdelta.monthdelta(12)
+      if 'day' not in found_groups:
+        shift = 7 if 'dow' in found_groups else 1
+        date_time = date_time.shift(days=shift)
+      elif 'month' not in found_groups:
+        date_time = date_time.shift(months=1)
+      elif 'year' not in found_groups:
+        date_time = date_time.shift(years=1)
       else:
         break
   else:
+    # if no dates / times were found, look for offsets
+    #   e.g "[in ]8 minutes"
     for t in times:
       match = re.search(t, message)
       if match:
-        if times[t] == 'weeks':
-          date_time += timedelta(days=7*float(match.group(1)))
-        elif times[t] == 'months':
-          date_time += monthdelta.monthdelta(int(match.group(1)))
-        elif times[t] == 'years':
-          date_time += monthdelta.monthdelta(12*int(match.group(1)))
-        else:
-          date_time += timedelta(**{times[t]:float(match.group(1))})
+        date_time = date_time.shift(**{times[t]:float(match.group(1))})
         datestrs.append(match.group(0))
         message = message.replace(match.group(0), '')
-  return int(date_time.timestamp()), message.strip(), datestrs
+
+  # return the timestamp, cleaned message, and a list of matched strings
+  return date_time.timestamp, message.strip(), datestrs
 
 def remove_comments(words):
   for i in range(len(words)):

@@ -70,9 +70,14 @@ def write_image(text_in, out, **kargs):
   font_name  = kargs.get('font',              '')
   image_file = kargs.get('image',             '')
   path       = kargs.get('path',              '')
-  flags      = kargs.get('flags',              [])
+  flags      = kargs.get('flags',             [])
   regexes    = kargs.get('matches',           [])
   formats    = kargs.get('formats',   ['{text}'])
+  colour     = kargs.get('colour',     (0, 0, 0))
+  border     = kargs.get('border',             0)
+
+  if type(colour) == int:
+    colour = (colour, colour, colour)
 
   tmp_loc = os.path.join(path, image_file)
   if os.path.exists(tmp_loc):
@@ -85,7 +90,7 @@ def write_image(text_in, out, **kargs):
   logger.debug('opening: '+ image_file)
   # load image
   img  = Image.open(image_file)
-  draw = ImageDraw.Draw(img)
+  draw = ImageDraw.Draw(img, "RGB")
 
   # for each fillable box
   text_in = re.split('\\s*(\n|\\|)\\s*', text_in)
@@ -137,11 +142,19 @@ def write_image(text_in, out, **kargs):
         line_pos = (xpos+maxwidth-line_width, ypos+size*i)
       else:
         line_pos = (xpos+((maxwidth-line_width)/2), ypos+size*i)
+
       logger.debug(f'drawing at {line_pos}')
-      try:
-        draw.text(line_pos, msg, (0,0,0), font=font)
-      except: # not grey scale images I guess
-        draw.text(line_pos, msg, 0, font=font)
+      #try:
+      draw.text(line_pos, msg, colour, font=font)
+      if border:
+        line_pos[0] -= border
+        line_pos[1] -= border
+        tmpfont = ImageFont.truetype(font_name, size+border*2)
+        colour  = tuple(255-x for x in colour)
+        draw.text(line_pos, msg, colour, font=tmpfont)
+      #except: # not grey scale images I guess
+        #colour = sum(colour)//3
+        #draw.text(line_pos, msg, colour, font=font)
 
   #save the image
   img.save(out)

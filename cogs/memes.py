@@ -68,9 +68,9 @@ def write_image(lines, out, **kargs):
   size_const = kargs.get('size',              25)
   spacing    = kargs.get('spacing',            0)
   font_name  = kargs.get('font',              '')
-  image_file  = kargs.get('image',             '')
+  image_file = kargs.get('image',             '')
   path       = kargs.get('path',              '')
-  flags       = kargs.get('flags',              [])
+  flags      = kargs.get('flags',              [])
   regexes    = kargs.get('matches',           [])
   formats    = kargs.get('formats',   ['{text}'])
 
@@ -88,7 +88,8 @@ def write_image(lines, out, **kargs):
   draw = ImageDraw.Draw(img)
 
   # for each fillable box
-  for text,loc,style,flag in zp(re.split('(\n|\\|)',lines),locs,formats,flags):
+  lines = re.split('\\s*(\n|\\|)\\s*', lines)
+  for text,loc,style,flag in zp(lines,locs,formats,flags):
     #just in case
     flag   = flag or ''
     style = style or '{text}'
@@ -165,8 +166,8 @@ class MemeGenerator:
     """
 
     match = MemeGenerator.pattern.match(text)
-    name  = match.group(1).lower()
-    text  = match.group(2)
+    name  = match.group(1).lower() if match else text
+    text  = match.group(2) if match else ''
     text  = ' '.join(dh.remove_comments(text.split()))
 
     cfg = self.conf.get('memes', {}).get(name, None)

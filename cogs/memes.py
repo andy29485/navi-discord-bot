@@ -147,17 +147,18 @@ def write_image(text_in, out, **kargs):
         logger.debug(f'drawing border at {line_pos}')
         x = line_pos[0]
         y = line_pos[1]
+        border_colour = tuple(255 - x  for x in colour)
 
-        draw.text((x-1, y), msg, colour, font=font)
-        draw.text((x+1, y), msg, colour, font=font)
-        draw.text((x, y-1), msg, colour, font=font)
-        draw.text((x, y+1), msg, colour, font=font)
+        draw.text((x-1, y), msg, border_colour, font=font)
+        draw.text((x+1, y), msg, border_colour, font=font)
+        draw.text((x, y-1), msg, border_colour, font=font)
+        draw.text((x, y+1), msg, border_colour, font=font)
 
         # thicker border
-        draw.text((x-1, y-1), msg, colour, font=font)
-        draw.text((x+1, y-1), msg, colour, font=font)
-        draw.text((x-1, y+1), msg, colour, font=font)
-        draw.text((x+1, y+1), msg, colour, font=font)
+        draw.text((x-1, y-1), msg, border_colour, font=font)
+        draw.text((x+1, y-1), msg, border_colour, font=font)
+        draw.text((x-1, y+1), msg, border_colour, font=font)
+        draw.text((x+1, y+1), msg, border_colour, font=font)
 
       logger.debug(f'drawing at {line_pos}')
       draw.text(line_pos, msg, colour, font=font)

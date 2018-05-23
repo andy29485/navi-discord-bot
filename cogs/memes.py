@@ -89,7 +89,7 @@ def write_image(text_in, out, **kargs):
 
   logger.debug('opening: '+ image_file)
   # load image
-  img  = Image.open(image_file)
+  img  = Image.open(image_file).convert("RGB")
   draw = ImageDraw.Draw(img, "RGB")
 
   # for each fillable box
@@ -147,10 +147,9 @@ def write_image(text_in, out, **kargs):
       #try:
       draw.text(line_pos, msg, colour, font=font)
       if border:
-        line_pos[0] -= border
-        line_pos[1] -= border
-        tmpfont = ImageFont.truetype(font_name, size+border*2)
-        colour  = tuple(255-x for x in colour)
+        tmpfont  = ImageFont.truetype(font_name, size+border*2)
+        line_pos = tuple(x-border for x in line_pos)
+        colour   = tuple(255 - x  for x in colour)
         draw.text(line_pos, msg, colour, font=tmpfont)
       #except: # not grey scale images I guess
         #colour = sum(colour)//3

@@ -74,7 +74,7 @@ def write_image(text_in, out, **kargs):
   regexes    = kargs.get('matches',           [])
   formats    = kargs.get('formats',   ['{text}'])
   colour     = kargs.get('colour',     (0, 0, 0))
-  border     = kargs.get('border',             0)
+  border     = kargs.get('border',         False)
 
   if type(colour) == int:
     colour = (colour, colour, colour)
@@ -143,17 +143,24 @@ def write_image(text_in, out, **kargs):
       else:
         line_pos = (xpos+((maxwidth-line_width)/2), ypos+size*i)
 
-      logger.debug(f'drawing at {line_pos}')
-      #try:
-      draw.text(line_pos, msg, colour, font=font)
       if border:
-        tmpfont  = ImageFont.truetype(font_name, size+border*2)
-        line_pos = tuple(x-border for x in line_pos)
-        colour   = tuple(255 - x  for x in colour)
-        draw.text(line_pos, msg, colour, font=tmpfont)
-      #except: # not grey scale images I guess
-        #colour = sum(colour)//3
-        #draw.text(line_pos, msg, colour, font=font)
+        logger.debug(f'drawing border at {line_pos}')
+        x = line_pos[0]
+        x = line_pos[1]
+
+        draw.text((x-1, y), msg, colour, font=font)
+        draw.text((x+1, y), msg, colour, font=font)
+        draw.text((x, y-1), msg, colour, font=font)
+        draw.text((x, y+1), msg, colour, font=font)
+
+        # thicker border
+        draw.text((x-1, y-1), msg, colour, font=font)
+        draw.text((x+1, y-1), msg, colour, font=font)
+        draw.text((x-1, y+1), msg, colour, font=font)
+        draw.text((x+1, y+1), msg, colour, font=font)
+
+      logger.debug(f'drawing at {line_pos}')
+      draw.text(line_pos, msg, colour, font=font)
 
   #save the image
   img.save(out)

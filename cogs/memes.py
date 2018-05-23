@@ -61,7 +61,7 @@ def wrap_text(text, width, font):
   return text_lines
 
 
-def write_image(lines, out, **kargs):
+def write_image(text_in, out, **kargs):
   # get variables
   logger.debug('kargs: '+ str(kargs))
   locs       = kargs.get('locations',         [])
@@ -88,8 +88,8 @@ def write_image(lines, out, **kargs):
   draw = ImageDraw.Draw(img)
 
   # for each fillable box
-  lines = re.split('\\s*(\n|\\|)\\s*', lines)
-  for text,loc,style,flag in zp(lines,locs,formats,flags):
+  text_in = re.split('\\s*(\n|\\|)\\s*', text_in)
+  for text,loc,style,flag in zp(text_in, locs, formats, flags):
     #just in case
     flag   = flag or ''
     style = style or '{text}'

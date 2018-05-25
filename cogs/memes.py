@@ -73,11 +73,13 @@ def write_image(text_in, out, **kargs):
   flags      = kargs.get('flags',             [])
   regexes    = kargs.get('matches',           [])
   formats    = kargs.get('formats',   ['{text}'])
-  colour     = kargs.get('colour',     (0, 0, 0))
+  colour     = kargs.get('colour',   (0, 0, 0, 0))
   border     = kargs.get('border',         False)
 
   if type(colour) == int:
-    colour = (colour, colour, colour)
+    colour = (colour, colour, colour, 255)
+  if len(colour) == 3:
+    colour = (colour[0], colour[1], colour[2], 255)
 
   tmp_loc = os.path.join(path, image_file)
   if os.path.exists(tmp_loc):
@@ -89,8 +91,8 @@ def write_image(text_in, out, **kargs):
 
   logger.debug('opening: '+ image_file)
   # load image
-  img  = Image.open(image_file).convert("RGB")
-  draw = ImageDraw.Draw(img, "RGB")
+  img  = Image.open(image_file).convert("RGBA")
+  draw = ImageDraw.Draw(img, "RGBA")
 
   # for each fillable box
   text_in = re.split('\\s*(\n|\\|)\\s*', text_in)

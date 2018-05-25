@@ -126,10 +126,11 @@ class General:
     """
     loop = asyncio.get_event_loop()
 
-    roll = '\n'.join(await loop.run_in_executor(None, self.rolls, dice))
+    total,roll = await loop.run_in_executor(None, self.rolls, dice)
+    roll = '\n'.join(roll)
     message = ctx.message.author.mention + ':\n'
     if '\n' in roll:
-      message += code(roll)
+      message += code(roll + f'\nTotal: {total}')
     else:
       message += inline(roll)
     await self.bot.say(message)
@@ -357,9 +358,11 @@ class General:
     if not dice:
       dice = ['20']
 
+    gobal_total = 0
     for roll in dice:
       match = re.search('^((\\d+)?d)?(\\d+)([+-]\\d+)?$', roll, re.I)
       message = ''
+      total = 0
       if not match:
         message = 'Invalid roll'
       else:
@@ -380,16 +383,16 @@ class General:
         elif sides < 2:
           message = 'No'
         else:
-          total = 0
           for i in range(times):
             num      = random.randint(1, sides)+add
             total   += num
             message += '{}, '.format(num)
           message = message[:-2]
+          gobal_total += total
           if times > 1:
             message += ' (sum = {})'.format(total)
       out.append('{}: {}'.format(roll, message))
-    return out
+    return (gobal_total, out)
 
   @commands.command(pass_context=True, aliases=['c', 'choice'])
   async def choose(self, ctx, *, choices):

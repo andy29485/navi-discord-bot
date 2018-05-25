@@ -44,7 +44,7 @@ class HeapCog:
     self.conf.save()
 
   def __iter__(self):
-    return self.conf['heap'].__iter()
+    return self.conf['heap'].__iter__()
 
 def setup(bot):
   h = HeapCog(bot)

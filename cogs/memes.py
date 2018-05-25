@@ -175,7 +175,7 @@ class MemeGenerator:
     self.conf   = Config('configs/memes.json')
     doc  = self.meme.__dict__['help']
     doc += '\n  '
-    doc += '\n  '.join(self.conf.get('memes', {}).keys())
+    doc += '\n  '.join(sorted(self.conf.get('memes', {}).keys()))
 
     self.meme.__dict__['help'] = doc
 

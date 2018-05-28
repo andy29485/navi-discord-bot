@@ -94,19 +94,25 @@ class NSFW:
       em    = Embed()
       em.title = search_tags or 'rating:e'
       em.url   = 'https://danbooru.donmai.us/posts/{}'.format(post['id'])
-      u        = 'https://danbooru.donmai.us'
+
       if 'large_file_url' in post:
-        u += post['large_file_url']
+        u = post['large_file_url']
       elif 'file_url' in post:
-        u += post['file_url']
+        u = post['file_url']
       else:
         await self.bot.say('''
                 Sorry, there seems to be a premium tag in the image,
                 send me $20 if you you want to search it.
         ''')
+      if 'http' not in u:
+        u = f'https://danbooru.donmai.us/{u}'
       em.set_image(url=u)
-      if post['tag_string']:
-        em.set_footer(text=post['tag_string'])
+
+      tags = post['tag_string']
+      if len(tags) > 700:
+        tags = tags[:696] + ' ...'
+      if tags:
+        em.set_footer(text=tags)
 
       await self.bot.say(embed=em)
 
@@ -153,8 +159,12 @@ class NSFW:
       em.url   = 'https://lolibooru.moe/post/show/{}'.format(post['id'])
       u        = post['file_url'].replace(' ', '%20')
       em.set_image(url=u)
-      if post['tags']:
-        em.set_footer(text=post['tags'])
+
+      tags = post['tags']
+      if len(tags) > 700:
+        tags = tags[:696] + ' ...'
+      if tags:
+        em.set_footer(text=tags)
 
       await self.bot.say(embed=em)
 
@@ -201,8 +211,12 @@ class NSFW:
       em.url   = 'https://yande.re/post/show/{}'.format(post['id'])
       u        = post['file_url']
       em.set_image(url=u)
-      if post['tags']:
-        em.set_footer(text=post['tags'])
+
+      tags = post['tags']
+      if len(tags) > 700:
+        tags = tags[:696] + ' ...'
+      if tags:
+        em.set_footer(text=tags)
 
       await self.bot.say(embed=em)
 
@@ -241,19 +255,25 @@ class NSFW:
       em    = Embed()
       em.title = search_tags
       em.url   = 'https://safebooru.donmai.us/posts/{}'.format(post['id'])
-      u        = 'https://safebooru.donmai.us'
       if 'large_file_url' in post:
-        u += post['large_file_url']
+        u = post['large_file_url']
       elif 'file_url' in post:
-        u += post['file_url']
+        u = post['file_url']
       else:
         await self.bot.say('''
                 Sorry, there seems to be a premium tag in the image,
                 send me $20 if you you want to search it.
         ''')
+        return
+      if 'http' not in u:
+        u = 'https://safebooru.donmai.us' + u
       em.set_image(url=u)
-      if post['tag_string']:
-        em.set_footer(text=post['tag_string'])
+
+      tags = post['tag_string']
+      if len(tags) > 700:
+        tags = tags[:696] + ' ...'
+      if tags:
+        em.set_footer(text=tags)
 
       await self.bot.say(embed=em)
 

@@ -50,13 +50,12 @@ class AZ:
     return '¯\_(ツ)_/¯'
 
   @staticmethod
-  def renderLatex(text,fntsz=18,dpi=300,fsz=.01,fmt='svg',file=None,**kargs):
+  def renderLatex(text,fntsz=12,dpi=300,fsz=.01,fmt='svg',file=None,**kargs):
     if type(file) == str and file:
       if not file.endswith(fmt):
         file += '.'+fmt
       with open(file, 'w') as f:
-        return renderLatex(text, fntsz, dpi, fsz, fmt, col, f, **kargs)
-
+        return renderLatex(text, fntsz, dpi, fsz, fmt, f, **kargs)
     text = text.strip().replace('\n', '\\\\')
     if text.startswith('\\begin'):
       text = f'\\[{text}\\]'
@@ -81,7 +80,7 @@ class AZ:
 
     output = BytesIO() if file is None else file
     fig.savefig(output, dpi=dpi, transparent=True, format=fmt,
-                bbox_inches='tight', pad_inches=0.0, frameon=False
+                bbox_inches='tight', pad_inches=0.1, frameon=False
     )
     plt.close(fig)
 

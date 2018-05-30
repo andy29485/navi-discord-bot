@@ -50,12 +50,12 @@ class AZ:
     return '¯\_(ツ)_/¯'
 
   @staticmethod
-  def renderLatex(text, fntsz=24, dpi=300, fsz=5, fmt='svg', file=None):
+  def renderLatex(text,fntsz=24,dpi=300,fsz=5,fmt='svg',file=None, **kargs):
     if type(file) == str and file:
       if not file.endswith(fmt):
         file += '.'+fmt
       with open(file, 'w') as f:
-        return renderLatex(text, fntsz, dpi, fsz, fmt, f)
+        return renderLatex(text, fntsz, dpi, fsz, fmt, col, f, **kargs)
 
     text = text.strip().replace('\n', '\\\\')
     if text.startswith('\\begin'):
@@ -68,7 +68,7 @@ class AZ:
     plt.rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]
 
     fig = plt.figure(figsize=(fsz, fsz))
-    fig.text(.5, .5, text, fontsize=fntsz, ha='center', ma='center')
+    fig.text(.5, .5, text, fontsize=fntsz, ha='center', ma='center', **kargs)
 
     output = BytesIO() if file is None else file
     fig.savefig(output, dpi=dpi, transparent=True, format=fmt,

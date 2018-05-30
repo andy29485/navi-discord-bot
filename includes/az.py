@@ -50,7 +50,7 @@ class AZ:
     return '¯\_(ツ)_/¯'
 
   @staticmethod
-  def renderLatex(text,fntsz=24,dpi=300,fsz=.01,fmt='svg',file=None, **kargs):
+  def renderLatex(text,fntsz=18,dpi=300,fsz=1,fmt='svg',file=None,**kargs):
     if type(file) == str and file:
       if not file.endswith(fmt):
         file += '.'+fmt
@@ -65,10 +65,19 @@ class AZ:
     logger.debug(f'attempting to render latex string: \"{text}\"')
 
     plt.rc('text', usetex=True)
-    plt.rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]
+    plt.rcParams['text.latex.preamble'] = [
+      r'\usepackage{amsmath}',
+      r'\usepackage{amssymb}',
+      r'\usepackage{tikz}',
+    ]
 
     fig = plt.figure(figsize=(fsz, fsz))
-    fig.text(.5, .5, text, fontsize=fntsz, ha='center', ma='center', **kargs)
+    fig.text(
+      .5, .5, text,
+      fontsize=fntsz, ha='center', ma='center',
+      linespacing=1,
+      **kargs
+    )
 
     output = BytesIO() if file is None else file
     fig.savefig(output, dpi=dpi, transparent=True, format=fmt,

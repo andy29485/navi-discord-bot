@@ -50,7 +50,7 @@ class AZ:
     return '¯\_(ツ)_/¯'
 
   @staticmethod
-  def renderLatex(text,fntsz=24,dpi=300,fsz=5,fmt='svg',file=None, **kargs):
+  def renderLatex(text,fntsz=24,dpi=300,fsz=.01,fmt='svg',file=None, **kargs):
     if type(file) == str and file:
       if not file.endswith(fmt):
         file += '.'+fmt

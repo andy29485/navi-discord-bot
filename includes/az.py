@@ -62,6 +62,9 @@ class AZ:
     elif not text.startswith('$') and not text.startswith('\\['):
       text = f'\\[\\begin{split}{text}\\end{split}\\]'
 
+    plt.rc('text', usetex=True)
+    plt.rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]
+
     fig = plt.figure(figsize=(fsz, fsz))
     fig.text(.5, .5, text, fontsize=fntsz, ha='center', ma='center')
 

@@ -85,9 +85,9 @@ class AzCog:
 
   @commands.command(pass_context=True)
   async def math(self, ctx, *, formula):
-    f = lambda: self.az.renderLatex(formula)
+    f = lambda: self.az.renderLatex(formula, fmt='png')
     f = await self.bot.loop.run_in_executor(None, f)
-    await self.bot.send_file(ctx.message.channel, f, filename='math.svg')
+    await self.bot.send_file(ctx.message.channel, f, filename='math.png')
 
   async def repeat(self, message):
     chan = message.channel

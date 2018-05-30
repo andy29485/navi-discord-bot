@@ -60,7 +60,7 @@ class AZ:
     if text.startswith('\\begin'):
       text = f'\\[{text}\\]'
     elif not text.startswith('$') and not text.startswith('\\['):
-      text = f'\\[\\begin{split}{text}\\end{split}\\]'
+      text = f'\\[\\begin{{split}}{text}\\end{{split}}\\]'
 
     plt.rc('text', usetex=True)
     plt.rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]

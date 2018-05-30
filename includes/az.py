@@ -9,6 +9,7 @@ from os import stat
 from io import BytesIO
 from pwd import getpwuid
 from git import Repo,Actor
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from includes.utils import perms
 import includes.utils.format as formatter
@@ -64,6 +65,7 @@ class AZ:
 
     plt.rc('text', usetex=True)
     plt.rcParams['text.latex.preamble']=[r"\usepackage{amsmath}"]
+    mpl.use('Agg')
 
     fig = plt.figure(figsize=(fsz, fsz))
     fig.text(.5, .5, text, fontsize=fntsz, ha='center', ma='center')

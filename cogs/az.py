@@ -85,9 +85,17 @@ class AzCog:
 
   @commands.command(pass_context=True)
   async def math(self, ctx, *, formula):
-    f = lambda: self.az.renderLatex(formula,fmt='png',backgroundcolor='white')
-    f = await self.bot.loop.run_in_executor(None, f)
-    await self.bot.send_file(ctx.message.channel, f, filename='math.png')
+    try:
+      f = lambda: self.az.renderLatex(formula,fmt='png',backgroundcolor='white')
+      f = await self.bot.loop.run_in_executor(None, f)
+    except:
+      f = None
+    if f:
+      await self.bot.send_file(ctx.message.channel, f, filename='math.png')
+    else:
+      await self.bot.send_message(ctx.message.channel,
+                                  error('LaTeX syntax error')
+      )
 
   async def repeat(self, message):
     chan = message.channel

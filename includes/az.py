@@ -6,8 +6,10 @@ import discord
 import logging
 import os
 from os import stat
-from git import Repo,Actor
+from io import BytesIO
 from pwd import getpwuid
+from git import Repo,Actor
+import matplotlib.pyplot as plt
 from includes.utils import perms
 import includes.utils.format as formatter
 from includes.utils import find as azfind
@@ -45,6 +47,33 @@ class AZ:
 
   def shrug(self):
     return '¯\_(ツ)_/¯'
+
+  @staticmethod
+  def renderLatex(text, fntsz=24, dpi=300, fsz=5, fmt='svg', file=None):
+    if type(file) == str and file:
+      if not file.endswith(fmt):
+        file += '.'+fmt
+      with open(file, 'w') as f:
+        return renderLatex(text, fntsz, dpi, fsz, fmt, f)
+
+    text = text.strip().replace('\n', '\\\\')
+    if text.startswith('\\begin'):
+      text = f'\\[{text}\\]'
+    elif not text.startswith('$') and not text.startswith('\\['):
+      text = f'\\[\\begin{split}{text}\\end{split}\\]'
+
+    fig = plt.figure(figsize=(fsz, fsz))
+    fig.text(.5, .5, text, fontsize=fntsz, ha='center', ma='center')
+
+    output = BytesIO() if file is None else file
+    fig.savefig(output, dpi=dpi, transparent=True, format=fmt,
+                bbox_inches='tight', pad_inches=0.0, frameon=False
+    )
+    plt.close(fig)
+
+    if file is None:
+      output.seek(0)
+      return output
 
   def get_colour(self, colour):
     colour = colour.lower().strip()

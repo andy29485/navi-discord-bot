@@ -12,12 +12,7 @@ class MathCog:
     self.math = Math()
 
 
-  @commands.group(pass_context=True, name='math')
-  async def _math(self, ctx, *, formula):
-    if ctx.invoked_subcommand is None:
-      await self.format(ctx, formula=formula)
-
-  @_math.command(pass_context=True)
+  @commands.command(pass_context=True, name='math')
   async def format(self, ctx, *, formula):
     try:
       f = lambda: self.math.renderLatex(
@@ -33,7 +28,7 @@ class MathCog:
               formatter.error('LaTeX syntax error')
       )
 
-  @_math.command(pass_context=True)
+  @commands.command(pass_context=True)
   async def graph(self, ctx, *, parameters):
     try:
       f = lambda: self.math.renderGraph(

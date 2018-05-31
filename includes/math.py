@@ -52,7 +52,7 @@ class Math:
     return _savefig(fig, file, dpi, fmt)
 
   @staticmethod
-  def renderGraph(info, dpi=100, fsz=10,
+  def renderGraph(info, dpi=100, fsz=8,
                   fmt='svg', file=None, **kargs):
     graph=nx.Graph()
 
@@ -98,6 +98,8 @@ class Math:
 
     fig = plt.figure(figsize=(fsz, fsz))
     nx.draw(graph, ax=fig.add_subplot(111), labels=labels, **kargs)
+    if kargs.get('backgroundcolor'):
+      fig.set_facecolor(kargs.get('backgroundcolor'))
 
     return _savefig(fig, file, dpi, fmt)
 

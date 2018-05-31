@@ -11,8 +11,14 @@ class MathCog:
     self.bot  = bot
     self.math = Math()
 
-  @commands.command(pass_context=True)
+
+  @commands.group(pass_context=True)
   async def math(self, ctx, *, formula):
+    if ctx.invoked_subcommand is None:
+      await self.format(ctx, formula=formula)
+
+  @math.command(pass_context=True)
+  async def format(self, ctx, *, formula):
     try:
       f = lambda: self.math.renderLatex(
           formula, fmt='png', backgroundcolor='white'
@@ -28,7 +34,7 @@ class MathCog:
               formatter.error('LaTeX syntax error')
       )
 
-  @commands.command(pass_context=True)
+  @math.command(pass_context=True)
   async def graph(self, ctx, *, parameters):
     try:
       f = lambda: self.math.renderGraph(

@@ -6,6 +6,8 @@ import logging
 from io import BytesIO
 import matplotlib as mpl ; mpl.use('Agg')
 import matplotlib.pyplot as plt
+import networkx as nx
+
 import includes.utils.format as formatter
 from includes.utils.config import Config
 

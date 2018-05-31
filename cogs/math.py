@@ -12,12 +12,12 @@ class MathCog:
     self.math = Math()
 
 
-  @commands.group(pass_context=True)
-  async def math(self, ctx, *, formula):
+  @commands.group(pass_context=True, name=math)
+  async def _math(self, ctx, *, formula):
     if ctx.invoked_subcommand is None:
       await self.format(ctx, formula=formula)
 
-  @math.command(pass_context=True)
+  @_math.command(pass_context=True)
   async def format(self, ctx, *, formula):
     try:
       f = lambda: self.math.renderLatex(
@@ -25,7 +25,6 @@ class MathCog:
       )
       f = await self.bot.loop.run_in_executor(None, f)
     except:
-      raise
       f = None
     if f:
       await self.bot.send_file(ctx.message.channel, f, filename='math.png')
@@ -34,7 +33,7 @@ class MathCog:
               formatter.error('LaTeX syntax error')
       )
 
-  @math.command(pass_context=True)
+  @_math.command(pass_context=True)
   async def graph(self, ctx, *, parameters):
     try:
       f = lambda: self.math.renderGraph(
@@ -42,7 +41,6 @@ class MathCog:
       )
       f = await self.bot.loop.run_in_executor(None, f)
     except:
-      raise
       f = None
     if f:
       await self.bot.send_file(ctx.message.channel, f, filename='graph.png')

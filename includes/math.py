@@ -12,8 +12,8 @@ import includes.utils.format as formatter
 from includes.utils.config import Config
 
 ginfopat = re.compile(r'\s*(?:\n|;|(?<=[\)\]])\s*,)\s*')
-edgepat  = re.compile(r'^[\(\[]\s*(.+)\s*,\s*(.+)\s*[\)\]]$', re.S)
-setpat   = re.compile(r'^(.+)\s*=\s*(\w+)$', re.S)
+edgepat  = re.compile(r'^[\(\[]\s*(.+)\s*,\s*(.+)\s*[\)\]]$')
+setpat   = re.compile(r'^(.+)\s*=\s*(.+)$')
 
 logger = logging.getLogger('navi.az')
 plt.rc('text', usetex=True)

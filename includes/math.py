@@ -97,7 +97,7 @@ class Math:
     labels = {i:lable for i,lable in enumerate(labels)}
 
     fig = plt.figure(figsize=(fsz, fsz))
-    nx.draw(graph, ax=fig.add_subplot(111), labels=labels)
+    nx.draw(graph, ax=fig.add_subplot(111), labels=labels, **kargs)
 
     return _savefig(fig, file, dpi, fmt)
 

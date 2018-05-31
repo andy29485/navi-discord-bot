@@ -15,9 +15,7 @@ class MathCog:
   @commands.command(pass_context=True, name='math')
   async def format(self, ctx, *, formula):
     try:
-      f = lambda: self.math.renderLatex(
-          formula, fmt='png', backgroundcolor='white'
-      )
+      f = lambda: self.math.renderLatex(formula, fmt='png')
       f = await self.bot.loop.run_in_executor(None, f)
     except:
       f = None
@@ -31,9 +29,7 @@ class MathCog:
   @commands.command(pass_context=True)
   async def graph(self, ctx, *, parameters):
     try:
-      f = lambda: self.math.renderGraph(
-          parameters, fmt='png', backgroundcolor='white'
-      )
+      f = lambda: self.math.renderGraph(parameters, fmt='png')
       f = await self.bot.loop.run_in_executor(None, f)
     except:
       f = None

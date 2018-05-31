@@ -66,7 +66,7 @@ class Math:
       matchset = setpat.search(line)
       matchedg = edgepat.search(line)
       if matchset:
-        vars.set(matchset.group(1), matchset.group(2))
+        vars[matchset.group(1)] = matchset.group(2)
       elif matchedg:
         if matchedg.group(1) in labels:
           a = labels.index(matchedg.group(1))

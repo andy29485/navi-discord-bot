@@ -19,6 +19,7 @@ class MathCog:
       )
       f = await self.bot.loop.run_in_executor(None, f)
     except:
+      raise
       f = None
     if f:
       await self.bot.send_file(ctx.message.channel, f, filename='math.png')
@@ -35,6 +36,7 @@ class MathCog:
       )
       f = await self.bot.loop.run_in_executor(None, f)
     except:
+      raise
       f = None
     if f:
       await self.bot.send_file(ctx.message.channel, f, filename='graph.png')

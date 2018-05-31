@@ -53,11 +53,13 @@ class Math:
   def renderGraph(info, dpi=100, fsz=10,
                   fmt='svg', file=None, **kargs):
     graph=nx.Graph()
+
     index  = 0
     vars   = {}
     edges  = []
     nodes  = []
     labels = []
+
     for line in ginfopat.split(info):
       matchset = setpat.search(line)
       matchedg = edgepat.search(line)
@@ -70,6 +72,7 @@ class Math:
           labels.append(matchedg.group(1))
           a = index
           index += 1
+
         if matchedg.group(2) in labels:
           b = labels.index(matchedg.group(2))
         else:
@@ -81,14 +84,19 @@ class Math:
         labels.append(line)
         nodes.append(index)
         index += 1
+
     for i,label in enumerate(labels):
       label = vars.get(label, label)
       labels[i] = label
+
     graph.add_edges_from(edges)
     graph.add_nodes_from(nodes)
+
     labels = {i:lable for i,lable in enumerate(labels)}
+
     fig = plt.figure(figsize=(fsz, fsz))
     nx.draw(graph, ax=fig.add_subplot(111), labels=labels)
+
     return _savefig(fig, file, dpi, fmt)
 
 def _savefig(fig, file, dpi, fmt):

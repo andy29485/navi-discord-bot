@@ -12,7 +12,7 @@ class MathCog:
     self.math = Math()
 
 
-  @commands.group(pass_context=True, name=math)
+  @commands.group(pass_context=True, name='math')
   async def _math(self, ctx, *, formula):
     if ctx.invoked_subcommand is None:
       await self.format(ctx, formula=formula)

@@ -54,7 +54,7 @@ class Math:
   @staticmethod
   def renderGraph(info, dpi=100, fsz=8,
                   fmt='svg', file=None, **kargs):
-    graph=nx.Graph()
+    graph=nx.MultiGraph()
 
     index  = 0
     vars   = {}
@@ -74,7 +74,6 @@ class Math:
           labels.append(matchedg.group(1))
           a = index
           index += 1
-
         if matchedg.group(2) in labels:
           b = labels.index(matchedg.group(2))
         else:

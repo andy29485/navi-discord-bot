@@ -68,6 +68,7 @@ class AZ:
       r'\usepackage{amsmath}',
       r'\usepackage{amssymb}',
       r'\usepackage{tikz}',
+      r'\usepackage{xcolor}',
     ]
 
     fig = plt.figure(figsize=(fsz, fsz))

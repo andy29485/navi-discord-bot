@@ -43,7 +43,7 @@ class AZ:
     except:
       num = 1
       out = self.conf['lenny'].get(first.lower(), None)
-    out = code(out) if out else '\n( ͡° ͜ʖ ͡° )'
+    out = formatter.code(out) if out else '\n( ͡° ͜ʖ ͡° )'
     return out*num
 
   def shrug(self):
@@ -68,6 +68,9 @@ class AZ:
       r'\usepackage{amsmath}',
       r'\usepackage{amssymb}',
       r'\usepackage{tikz}',
+      r'\usepackage{xcolor}',
+      r'\usepackage[mathscr]{euscript}',
+      r'\usepackage{mathrsfs}',
     ]
 
     fig = plt.figure(figsize=(fsz, fsz))

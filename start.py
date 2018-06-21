@@ -32,7 +32,8 @@ starting_cogs = [
   'cogs.nsfw',
   'cogs.games',
   'cogs.osu',
-  'cogs.memes'
+  'cogs.memes',
+  'cogs.math',
 ]
 
 if not os.path.exists('configs'):

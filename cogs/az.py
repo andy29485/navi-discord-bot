@@ -2,6 +2,7 @@
 
 
 from discord.ext import commands
+import includes.utils.format as formatter
 from includes.utils import perms
 from includes.az import AZ
 
@@ -70,7 +71,8 @@ class AzCog:
   async def img(self, ctx, *search):
     url = await self.bot.loop.run_in_executor(None, self.az.img, *search)
     if not url:
-      await self.bot.say(error(f'Could not find image matching: {search}'))
+      error = formatter.error(f'Could not find image matching: {search}')
+      await self.bot.say(error)
     elif type(url) == str and url.rpartition('.')[2] in ('zip', 'cbz'):
       zf = zipfile(path, 'r')
       for fl in zf.filelist:
@@ -82,20 +84,6 @@ class AzCog:
       await self.bot.say(url)
     else:
       await self.bot.say(embed=url)
-
-  @commands.command(pass_context=True)
-  async def math(self, ctx, *, formula):
-    try:
-      f = lambda: self.az.renderLatex(formula,fmt='png',backgroundcolor='white')
-      f = await self.bot.loop.run_in_executor(None, f)
-    except:
-      f = None
-    if f:
-      await self.bot.send_file(ctx.message.channel, f, filename='math.png')
-    else:
-      await self.bot.send_message(ctx.message.channel,
-                                  error('LaTeX syntax error')
-      )
 
   async def repeat(self, message):
     chan = message.channel

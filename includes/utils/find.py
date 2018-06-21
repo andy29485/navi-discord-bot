@@ -26,7 +26,7 @@ def search(directory, pattern, single=True):
   # remove duplicates from pattern,
   # convert all strings to lowercase,
   # and remove empty strings
-  pattern = set([x.lower() for x in pattern if x])
+  pattern = set(x.lower() for x in pattern if x)
 
   # replaces each of the search terms so that more things get found)
   for word,rep in conf.get('img-reps', {}).items(): # for each rep-able word
@@ -41,10 +41,10 @@ def search(directory, pattern, single=True):
   for root, directories, filenames in os.walk(directory):
     # ignore the git directory
     directories[:] = [d for d in directories if d not in ['.git']]
-    for filename in filenames:
-      filename = os.path.realpath(os.path.join(root, filename)) # get full path
-      if match(filename.lower(), pattern): # if file matches pattern,
-        matches.append(filename)           #   add it to the list of matches
+    tmproot = root.replace(directory, '') # root dir for search only
+    for name in filenames:
+      if match(os.join(tmproot, name).lower(), pattern):
+        matches.append(os.path.realpath(s.join(root, name)))
 
   # if user wants only one file, choose and return at random
   # otherwise return all matches

@@ -43,7 +43,7 @@ def search(directory, pattern, single=True):
     directories[:] = [d for d in directories if d not in ['.git']]
     tmproot = root.replace(directory, '') # root dir for search only
     for name in filenames:
-      if match(os.join(tmproot, name).lower(), pattern):
+      if match(os.path.join(tmproot, name).lower(), pattern):
         matches.append(os.path.realpath(s.join(root, name)))
 
   # if user wants only one file, choose and return at random

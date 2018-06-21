@@ -44,8 +44,7 @@ def search(directory, pattern, single=True):
     tmproot = root.replace(directory, '') # root dir for search only
     for name in filenames:
       if match(os.path.join(tmproot, name).lower(), pattern):
-        matches.append(os.path.realpath(s.join(root, name)))
-
+        matches.append(os.path.realpath(os.path.join(root, name)))
   # if user wants only one file, choose and return at random
   # otherwise return all matches
   if single:

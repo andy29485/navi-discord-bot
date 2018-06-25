@@ -10,12 +10,15 @@ import random
 import re
 import os
 import logging
+import inspect
 from discord.ext import commands
 from ctypes.util import find_library
 from includes.utils.format import *
 from includes.utils.config import Config
 import includes.utils.emby_helper as emby_helper
 import includes.utils.discord_helper as dh
+
+hasattr = lambda x,y: inspect.getattr_static(x, y, None) is not None
 
 logger = logging.getLogger('navi.music')
 
@@ -469,41 +472,44 @@ class Music:
       await self.bot.say(error("Not an emby item, can't tag"))
       return
 
-    item   = state.current.item
-    path   = item.path
-    muten  = mutagen.File(item.path)
-    genres = muten.get('genre', [])
-    bpost  = False
-    bname  = False
+    try:
+      item   = state.current.item
+      path   = item.path
+      muten  = mutagen.File(item.path)
+      genres = muten.get('genre', [])
+      bpost  = False
+      bname  = False
 
-    for i,t in enumerate(tags):
-      t = t.lower()
-      if t in ('i', 'instrumental'):
-        if 'instrumental' not in path:
-          path  = path.rpartition('.')
-          path  = f'{path[0]} -instrumental-.{path[2]}'
-          bname = True
-      elif t in ('d', 'drama'):
-        if 'drama' not in ' '.join(genres).lower():
-          genres.append('Drama')
-          muten['genre'] = '; '.join(genres)
-          item.genres    = genres
+      for i,t in enumerate(tags):
+        t = t.lower()
+        if t in ('i', 'instrumental'):
+          if 'instrumental' not in path:
+            path  = path.rpartition('.')
+            path  = f'{path[0]} -instrumental-.{path[2]}'
+            bname = True
+        elif t in ('d', 'drama'):
+          if 'drama' not in ' '.join(genres).lower():
+            genres.append('Drama')
+            muten['genre'] = '; '.join(genres)
+            item.genres    = genres
+            bpost = True
+        elif t in ('c', 'comment'):
+          comment = ' '.join(tags[(i+1):])
+          item.overview = comment
+          if type(muten) == ID3:
+            comment = COMM(encoding=3, lang=u'eng', desc='desc', text=comment)
+          muten['comment'] = comment
           bpost = True
-      elif t in ('c', 'comment'):
-        comment = ' '.join(tags[(i+1):])
-        item.overview = comment
-        if type(muten) == ID3:
-          comment = COMM(encoding=3, lang=u'eng', desc='desc', text=comment)
-        muten['comment'] = comment
-        bpost = True
-        break
+          break
 
-    if bpost:
-      await item.post()
-      muten.save()
-    if bname:
-      os.rename(item.path, path)
-    await self.bot.say(ok('tags set'))
+      if bpost:
+        await item.post()
+        muten.save()
+      if bname:
+        os.rename(item.path, path)
+      await self.bot.say(ok('tags set'))
+    except:
+      await self.bot.say(error('probably an mp3 issue'))
 
   @music.command(pass_context=True, aliases=['shuff', 'sh'], no_pm=True)
   async def shuffle(self, ctx):

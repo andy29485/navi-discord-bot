@@ -6,14 +6,20 @@ import asyncio
 import requests
 import aiohttp
 import logging
+import inspect
 from includes.utils.config import Config
 from embypy import Emby as EmbyPy
 
+
+hasattr = lambda x,y: inspect.getattr_static(x, y, None) is not None
+
 logger = logging.getLogger('navi.emby_helper')
 
-colours = [0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
-           0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0x1abc9c,
-           0x2ecc71, 0xa84300, 0xe74c3c, 0xad1457, 0x11806a]
+colours = [
+  0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
+  0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0x1abc9c,
+  0x2ecc71, 0xa84300, 0xe74c3c, 0xad1457, 0x11806a,
+]
 
 conf = Config('configs/emby.json')
 
@@ -92,14 +98,14 @@ async def makeEmbed(item, message='', ignore=()):
     logger.debug('setting colour')
     em.colour = getColour(item.id)
 
-  if 'artists' in dir(item) and 'Artists' not in ignore:
+  if hasattr(item, 'artists') and 'Artists' not in ignore:
     logger.debug('setting artists')
     names = ', '.join(i.name for i in await item.artists)
     if len(names) > 250:
       names = names[:247]+'...'
-    em.add_field(name='Artists', value=names)
+    em.add_field(name='Artists', value=names or 'None(?)')
 
-  if 'album' in dir(item) and 'Album' not in ignore:
+  if hasattr(item, 'album') and 'Album' not in ignore:
     logger.debug('setting album name')
     a = await item.album
     if a and a.name:
@@ -116,7 +122,7 @@ async def makeEmbed(item, message='', ignore=()):
       d = f'{d//3600:02}:{(d//60)%60:02}:{d%60:02}'
       em.add_field(name='Duration', value=d)
 
-  if 'songs' in dir(item) and 'Songs' not in ignore:
+  if hasattr(item, 'songs') and 'Songs' not in ignore:
     songs = ''
     for s in await item.songs:
       song = f'{s.index_number:02} - {s.name}\n'
@@ -124,7 +130,7 @@ async def makeEmbed(item, message='', ignore=()):
         songs += '...'
         break
       songs += song
-    em.add_field(name='Songs', value=songs)
+    em.add_field(name='Songs', value=songs or 'None(?)')
 
   logger.debug('done making embed - %s', str(em.to_dict()))
   return em

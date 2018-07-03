@@ -228,7 +228,7 @@ def get_end_time(message, start_date=arrow.now()):
     found_groups = (m_time or {})
     found_groups.update(m_date or {})
     # shift the times to find the next matching time that works/not expired
-    while date_time <= start_date.shift(seconds=5):
+    while date_time <= start_date.shift(seconds=20):
       if 'day' not in found_groups:
         shift = 7 if 'dow' in found_groups else 1
         date_time = date_time.shift(days=shift)

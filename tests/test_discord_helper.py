@@ -29,7 +29,7 @@ class TestConfig(unittest.TestCase):
     date_time = arrow.now().shift(hours=5)
     ts        = date_time.timestamp
     message   = "offset +5h"
-    self.assertAboutEqual(result[0], ts,  message+' - timestamp')
+    self.assertAboutEqual(result[0],     ts,  message+' - timestamp')
     self.assertEqual(result[1],    'message', message+' - message')
     self.assertItemsEqual(result[2], ['5 h'], message+' - match')
 
@@ -38,7 +38,7 @@ class TestConfig(unittest.TestCase):
     date_time = arrow.now().shift(hours=5,minutes=3)
     ts        = date_time.timestamp
     message   = "offset +5h, +3m"
-    self.assertAboutEqual(result[0], ts,            message+' - timestamp')
+    self.assertAboutEqual(result[0],               ts,  message+' - timestamp')
     self.assertEqual(result[1],             'message',  message+' - message')
     self.assertItemsEqual(result[2], ['5 hours','3 m'], message+' - match')
 
@@ -58,7 +58,7 @@ class TestConfig(unittest.TestCase):
     date_time = arrow.now().shift(months=7)
     ts        = date_time.timestamp
     message   = "offset +7 months (me)"
-    self.assertAboutEqual(result[0], ts,       message+' - timestamp')
+    self.assertAboutEqual(result[0],          ts,  message+' - timestamp')
     self.assertEqual(result[1],        'message',  message+' - message')
     self.assertItemsEqual(result[2], ['7 months'], message+' - match')
 
@@ -68,7 +68,7 @@ class TestConfig(unittest.TestCase):
     date_time = arrow.now().shift(months=7)
     ts        = date_time.timestamp
     message   = "offset +7 months (in)"
-    self.assertAboutEqual(result[0], ts,       message+' - timestamp')
+    self.assertAboutEqual(result[0],          ts,  message+' - timestamp')
     self.assertEqual(result[1],        'message',  message+' - message')
     self.assertItemsEqual(result[2], ['7 months'], message+' - match')
 
@@ -82,7 +82,7 @@ class TestConfig(unittest.TestCase):
     )
     ts = date_time.timestamp
     message = "date (2017-10-23)"
-    self.assertAboutEqual(result[0], ts,         message+' - timestamp')
+    self.assertAboutEqual(result[0],            ts,  message+' - timestamp')
     self.assertEqual(result[1],          'message',  message+' - message')
     self.assertItemsEqual(result[2], ['2017-10-23'], message+' - match')
 
@@ -100,7 +100,7 @@ class TestConfig(unittest.TestCase):
     ts = date_time.timestamp
     match   = ['2017-10-23','T05:11:56']
     message = "timestamp (2017-10-23T05:11:56)"
-    self.assertAboutEqual(result[0], ts,   message+' - timestamp')
+    self.assertAboutEqual(result[0],      ts,  message+' - timestamp')
     self.assertEqual(result[1],     'message', message+' - message')
     self.assertItemsEqual(result[2], match,    message+' - match')
 
@@ -118,7 +118,7 @@ class TestConfig(unittest.TestCase):
     ts = date_time.timestamp
     match   = ['2017-10-23', '05:11:56']
     message = "timestamp (2017-10-23 05:11:56)"
-    self.assertAboutEqual(result[0], ts,   message+' - timestamp')
+    self.assertAboutEqual(result[0],      ts,  message+' - timestamp')
     self.assertEqual(result[1],     'message', message+' - message')
     self.assertItemsEqual(result[2], match,    message+' - match')
 
@@ -136,7 +136,7 @@ class TestConfig(unittest.TestCase):
     ts = date_time.timestamp
     match   = ['10/23/2017', '5:11 PM']
     message = "timestamp (10/23/2017 5:11 PM)"
-    self.assertAboutEqual(result[0], ts,   message+' - timestamp')
+    self.assertAboutEqual(result[0],      ts,  message+' - timestamp')
     self.assertEqual(result[1],     'message', message+' - message')
     self.assertItemsEqual(result[2], match,    message+' - match')
 
@@ -182,6 +182,19 @@ class TestConfig(unittest.TestCase):
     dt      = arrow.get(result[0]).to(arrow.now().tzinfo)
     self.assertEqual(dt.weekday(),            4, message+' - weekday')
     self.assertEqual(dt.day,                  4, message+' - day of month')
+    self.assertEqual(dt.hour,                 8, message+' - hour')
+    self.assertEqual(dt.minute,               0, message+' - minute')
+    self.assertEqual(result[1],       'message', message+' - message')
+    self.assertItemsEqual(result[2], ['friday', '8:00'], message+' - match')
+
+  def test_weekday_sec_before_dow_hm(self):
+    start   = arrow.get('2018-05-04 7:59:50', 'YYYY-M-D H:mm:ss')
+    start   = start.replace(tzinfo=arrow.now().tzinfo)
+    result  = dh.get_end_time('on friday 8:00 message', start)
+    message = "dow hour:min - min before"
+    dt      = arrow.get(result[0]).to(arrow.now().tzinfo)
+    self.assertEqual(dt.weekday(),            4, message+' - weekday')
+    self.assertEqual(dt.day,                 11, message+' - day of month')
     self.assertEqual(dt.hour,                 8, message+' - hour')
     self.assertEqual(dt.minute,               0, message+' - minute')
     self.assertEqual(result[1],       'message', message+' - message')

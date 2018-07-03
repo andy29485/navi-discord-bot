@@ -64,7 +64,7 @@ class General:
     '''reply with a link that allows this bot to be invited'''
     await self.bot.send_message(
       ctx.message.channel,
-      f'https://discordapp.com/oauth2/authorize?client_id={self.bot.id}'+
+      f'https://discordapp.com/oauth2/authorize?client_id={self.bot.user.id}'+
       '&permissions=305260592&scope=bot'
     )
 
@@ -439,11 +439,10 @@ class General:
     .remind [me] remove <id>
     .remind [me] end <id>
     '''
-    heap = self.bot.get_cog('HeapCog')
+    heap    = self.bot.get_cog('HeapCog')
     author  = ctx.message.author.id
     channel = ctx.message.channel.id
     match   = re.match(r'(?i)^(me\s+)?(remove|end|stop)\s+(\d+)', message)
-
 
     if match:
       rid = int(match.group(3))

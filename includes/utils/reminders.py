@@ -3,7 +3,7 @@
 import re
 import time
 import logging
-import datetime
+from datetime import datetime
 from discord import Message
 import includes.utils.heap as heap
 from includes.utils.format import ok
@@ -64,7 +64,7 @@ class Reminder(heap.HeapNode):
     return self.end_time > other.end_time
 
   async def begin(self, bot):
-    t = datetime.datetime.fromtimestamp(self.end_time).isoformat()
+    t = datetime.fromtimestamp(self.end_time).isoformat().replace('T', ' ')
     if not self.reminder_id:
       while True:
         self.reminder_id = int(time.time()*1000000)%1000000

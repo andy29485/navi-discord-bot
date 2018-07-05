@@ -85,8 +85,14 @@ class AzCog:
     else:
       await self.bot.say(embed=url)
 
+  async def repeat(message):
+    await self.az.repeat(self.bot, message)
+
+  async def censor(message):
+    await self.az.censor(self.bot, message)
+
 def setup(bot):
   az = AzCog(bot)
-  bot.add_listener(lambda msg: az.az.repeat(bot,msg), "on_message")
-  bot.add_listener(lambda msg: az.az.censor(bot,msg), "on_message")
+  bot.add_listener(az.repeat, "on_message")
+  bot.add_listener(az.censor, "on_message")
   bot.add_cog(az)

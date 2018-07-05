@@ -85,25 +85,8 @@ class AzCog:
     else:
       await self.bot.say(embed=url)
 
-  async def repeat(self, message):
-    chan = message.channel
-    data = self.az.last.get(chan, ['', 0])
-
-    if not message.content:
-      return
-
-    if data[0] == message.content.lower():
-      data[1] += 1
-    else:
-      data = [message.content.lower(), 1]
-
-    if data[1] == self.az.conf.get('repeat_after', 3):
-      await self.bot.send_message(chan, message.content)
-      data[1] = 0
-
-    self.az.last[chan] = data
-
 def setup(bot):
   az = AzCog(bot)
-  bot.add_listener(az.repeat, "on_message")
+  bot.add_listener(lambda msg: az.az.repeat(bot,msg), "on_message")
+  bot.add_listener(lambda msg: az.az.censor(bot,msg), "on_message")
   bot.add_cog(az)

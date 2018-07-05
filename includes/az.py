@@ -9,6 +9,7 @@ from os import stat
 from io import BytesIO
 from pwd import getpwuid
 from git import Repo,Actor
+from apng import APNG as apng
 import matplotlib as mpl ; mpl.use('Agg')
 import matplotlib.pyplot as plt
 from includes.utils import perms
@@ -123,6 +124,9 @@ class AZ:
     if not path.strip():
       return None
 
+    # fix line apngs a bit (they only loop once)
+    loop_apng(path)
+
     try:
       url = path.replace(self.conf['path'], self.conf['path-rep'])
       logger.info(url)
@@ -138,6 +142,48 @@ class AZ:
         return url
     except:
       raise
+
+  async def censor(self, bot, message):
+    reps = self.conf.get('censor', {})
+    cont = message.content
+    chan = message.channel
+    auth = message.author.mention
+    send = False
+
+    for pat,rep in reps.items():
+      if re.search(pat, cont):
+        send = True
+        cont = re.sub(pat, rep, cont)
+
+    if send:
+      bot.send_message(chan, cont)
+
+
+  async def repeat(self, bot, message):
+    chan = message.channel
+    data = self.last.get(chan, ['', 0])
+
+    if not message.content:
+      return
+
+    if data[0] == message.content.lower():
+      data[1] += 1
+    else:
+      data = [message.content.lower(), 1]
+
+    if data[1] == self.conf.get('repeat_after', 3):
+      await bot.send_message(chan, message.content)
+      data[1] = 0
+
+    self.last[chan] = data
+
+def loop_apng(filename):
+  image = apng.open(filename) # open
+  if len(image.frames) < 2:   # check that it is an apng
+    return
+  i.num_plays = 0             # make it loop and hold the last frame longer
+  i.frames[-1][1].delay = 8*i.frames[0][1].delay
+  i.save(filename)
 
 def git_sync(path):
   # load repo

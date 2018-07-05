@@ -156,8 +156,8 @@ class AZ:
         cont = re.sub(pat, rep, cont)
 
     if send:
-      bot.send_message(chan, cont)
-
+      await bot.delete_message(message)
+      await bot.send_message(chan, f'<{auth}> {cont}')
 
   async def repeat(self, bot, message):
     chan = message.channel

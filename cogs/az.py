@@ -85,10 +85,10 @@ class AzCog:
     else:
       await self.bot.say(embed=url)
 
-  async def repeat(message):
+  async def repeat(self, message):
     await self.az.repeat(self.bot, message)
 
-  async def censor(message):
+  async def censor(self, message):
     await self.az.censor(self.bot, message)
 
 def setup(bot):

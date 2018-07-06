@@ -108,10 +108,10 @@ class AZ:
       logger.debug('could not find images')
       raise IOError('No images found')
 
-    try:
-      git_sync(self.conf.get('path'))
-    except:
-      pass
+    #try:
+    #  git_sync(self.conf.get('path'))
+    #except:
+    #  pass
 
     search = [re.sub(r'[^\w\./#\*-]+', '', i).lower() for i in search]
     search = dh.remove_comments(search)

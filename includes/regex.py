@@ -114,7 +114,7 @@ class Regex:
       return rep
     return None
 
-  def is_banned(author_id):
+  def is_banned(self, author_id):
     return author_id in self.permissions['rep-blacklist']
 
 def get_match(string):

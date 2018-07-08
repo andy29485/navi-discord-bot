@@ -35,7 +35,7 @@ def has_role_check(check, **perms):
   return commands.check(lambda ctx: role_or_permissions(ctx, check, **perms))
 
 def pm_or_perms(**perms):
-  return commands.check(lambda ctx: pm_or_permissions(ctx, check, **perms))
+  return commands.check(lambda ctx: pm_or_permissions(ctx, **perms))
 
 def is_owner_check(message):
   if type(message) == str:

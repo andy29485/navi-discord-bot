@@ -42,7 +42,7 @@ class Server:
     for rem in self.conf.pop('end_role', []):
       heap.push(rem)
 
-  @perms.pm_or_permissions(manage_messages=True)
+  @perms.pm_or_perms(manage_messages=True)
   @commands.command(name='prune', pass_context=True)
   async def _prune(self, ctx, num_to_delete : int, *message):
     """
@@ -347,7 +347,7 @@ class Server:
       self.bot.get_cog('HeapCog').push(role_end)
       await role_end.begin(self.bot)
 
-  @perms.pm_or_permissions(manage_messages=True)
+  @perms.pm_or_perms(manage_messages=True)
   @commands.command(name='cut', pass_context=True)
   async def _cut(self, ctx, num_to_cut : int, num_to_skip : int = 0):
     '''

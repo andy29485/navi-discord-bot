@@ -59,6 +59,11 @@ def check_permissions(msg, **perms):
                                                         value in perms.items()
   )
 
+def pm_or_permissions(ctx, **perms):
+  # http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
+  chan = ctx.message.channel
+  return chan.is_private or check_permissions(ctx.message, **perms)
+
 def role_or_permissions(ctx, check, **perms):
   # http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
   if check_permissions(ctx.message, **perms):

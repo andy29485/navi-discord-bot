@@ -349,7 +349,7 @@ class Server:
 
   @perms.pm_or_perms(manage_messages=True)
   @commands.command(name='cut', pass_context=True)
-  async def _cut(self, ctx, num_to_cut : int, num_to_skip : int = 0):
+  async def _cut(self, ctx, cut : str, skip : str = ''):
     '''
     cuts num_to_cut messages from the current channel
     skips over num_to_skip messages (skips none if not specified)
@@ -358,8 +358,11 @@ class Server:
     User1: first message
     User2: other message
     User3: final message
-    Using ".cut 1 1" will cut User2's message
-    Using ".cut 1" will cut User3's message
+    Using ".cut 1"       will cut User3's message
+    Using ".cut 1 1"     will cut User2's message
+    Using ".cut 3"       will cut all messages
+    Using ".cut 3:other" will cut User2 and 3's messages
+    Using ".cut id:XXXX" will cut up to message with id XXXX
 
     messages will not be deleted until paste
     needs manage_messages perm in the current channel to use
@@ -368,7 +371,33 @@ class Server:
     #if num_to_cut > 100:
     #  await self.bot.say('Sorry, only up to 100')
     #  return
-    if num_to_cut < 1: # can't cut no messages
+    in_id = re.search('^id:(\\d+)$',   cut)
+    in_re = re.search('^(\d+):(.)+)$', cut)
+    if in_id:
+      cut = await self.bot.get_message(ctx.message.channel, in_id.group(1))
+    elif by_re:
+      cut   = int(in_re.group(1))
+      in_re = re.compile(in_re.group(2))
+    elif re.search('^\d+', cut):
+      cut = int(cut)
+    else:
+      await self.bot.say(error('bad cut parameter'))
+      return
+
+    skip_id = re.search('^id:(\\d+)$',   skip)
+    skip_re = re.search('^(\d+):(.)+)$', skip)
+    if skip_id:
+      skip = await self.bot.get_message(ctx.message.channel, skip_id.group(1))
+    elif skip_re:
+      skip   = int(skip_re.group(1))
+      skip_re = re.compile(skip_re.group(2))
+    elif not cut or re.search('^\d+', cut):
+      cut = int(cut or '0')
+    else:
+      await self.bot.say(error('bad skip parameter'))
+      return
+
+    if not cut or (type(cut) == int and cut < 1): # can't cut no messages
       await self.bot.say('umm... no')
       return
 
@@ -384,18 +413,32 @@ class Server:
 
     # if messages should be skipped when cutting
     # save the timestamp of the oldest message
-    if num_to_skip > 0:
-      async for m in self.bot.logs_from(chan, num_to_skip, reverse=True):
+    if skip:
+      if type(skip) == int:
+        run = lambda : self.bot.logs_from(chan, skip, reverse=True)
+      else:
+        run = lambda : self.bot.logs_from(chan, after=skip, reverse=True)
+
+      async for m in run():
+        if skip_re and not skip_re.search(m.content):
+          continue
         bef = m.timestamp
         break
 
     # save the logs to a list
-    logs = []
-    async for m in self.bot.logs_from(chan,num_to_cut,before=bef,reverse=True):
-      logs.append(m)
-
     #store true in position 0 of list if channel is a nsfw channel
-    logs.insert(0, 'nsfw' in chan.name.lower())
+    logs = ['nsfw' in chan.name.lower()]
+    if type(cut) == int:
+      run = lambda : self.bot.logs_from(chan,cut,before=bef,reverse=True)
+    else:
+      run = lambda : self.bot.logs_from(chan,after=cut,before=bef,reverse=True)
+
+    async for m in run():
+      if in_re and in_re.search(m.content):
+        in_re = False
+      elif in_re:
+        continue
+      logs.append(m)
 
     # save logs to dict (associate with user)
     self.cut[aid] = logs

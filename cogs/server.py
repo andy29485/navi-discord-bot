@@ -375,7 +375,7 @@ class Server:
     in_re = re.search('^(\d+):(.+)$', cut)
     if in_id:
       cut = await self.bot.get_message(ctx.message.channel, in_id.group(1))
-    elif by_re:
+    elif in_re:
       cut   = int(in_re.group(1))
       in_re = re.compile(in_re.group(2))
     elif re.search('^\d+', cut):

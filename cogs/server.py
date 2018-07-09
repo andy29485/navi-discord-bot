@@ -371,28 +371,28 @@ class Server:
     #if num_to_cut > 100:
     #  await self.bot.say('Sorry, only up to 100')
     #  return
-    in_id = re.search('^id:(\\d+)$',   cut)
+    in_id = re.search('^id:(\\d+)$',  cut)
     in_re = re.search('^(\d+):(.+)$', cut)
     if in_id:
       cut = await self.bot.get_message(ctx.message.channel, in_id.group(1))
     elif in_re:
       cut   = int(in_re.group(1))
       in_re = re.compile(in_re.group(2))
-    elif re.search('^\d+', cut):
+    elif re.search('^\d+$', cut):
       cut = int(cut)
     else:
       await self.bot.say(error('bad cut parameter'))
       return
 
-    skip_id = re.search('^id:(\\d+)$',   skip)
+    skip_id = re.search('^id:(\\d+)$',  skip)
     skip_re = re.search('^(\d+):(.+)$', skip)
     if skip_id:
       skip = await self.bot.get_message(ctx.message.channel, skip_id.group(1))
     elif skip_re:
       skip   = int(skip_re.group(1))
       skip_re = re.compile(skip_re.group(2))
-    elif not cut or re.search('^\d+', cut):
-      cut = int(cut or '0')
+    elif not skip or re.search('^\d+$', skip):
+      skip = int(skip or '0')
     else:
       await self.bot.say(error('bad skip parameter'))
       return

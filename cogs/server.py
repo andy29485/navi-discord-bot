@@ -358,11 +358,12 @@ class Server:
     User1: first message
     User2: other message
     User3: final message
-    Using ".cut 1"       will cut User3's message
-    Using ".cut 1 1"     will cut User2's message
-    Using ".cut 3"       will cut all messages
-    Using ".cut 3:other" will cut User2 and 3's messages
-    Using ".cut id:XXXX" will cut up to message with id XXXX
+    Using ".cut 1"             will cut User3's message
+    Using ".cut 1 1"           will cut User2's message
+    Using ".cut 3"             will cut all messages
+    Using ".cut 3:other"       will cut User2 and 3's messages
+    Using ".cut id:XXX"        will cut id XXX
+    Using ".cut id:XXX id:YYY" will cut messages in range (id XXX, id YYY]
 
     messages will not be deleted until paste
     needs manage_messages perm in the current channel to use

@@ -372,7 +372,7 @@ class Server:
     #  await self.bot.say('Sorry, only up to 100')
     #  return
     in_id = re.search('^id:(\\d+)$',   cut)
-    in_re = re.search('^(\d+):(.)+)$', cut)
+    in_re = re.search('^(\d+):(.+)$', cut)
     if in_id:
       cut = await self.bot.get_message(ctx.message.channel, in_id.group(1))
     elif by_re:
@@ -385,7 +385,7 @@ class Server:
       return
 
     skip_id = re.search('^id:(\\d+)$',   skip)
-    skip_re = re.search('^(\d+):(.)+)$', skip)
+    skip_re = re.search('^(\d+):(.+)$', skip)
     if skip_id:
       skip = await self.bot.get_message(ctx.message.channel, skip_id.group(1))
     elif skip_re:

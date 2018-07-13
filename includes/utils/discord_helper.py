@@ -90,9 +90,11 @@ colours = {
   'darker_grey' : discord.Colour.darker_grey()
 }
 
-def get_end_time(message, start_date=arrow.now()):
+def get_end_time(message, start_date=arrow.now):
   # datetime -> arrow compatibility fix
   if type(start_date) != arrow.arrow.Arrow:
+    if(callable(start_date)):
+      start_date = start_date()
     start_date = arrow.get(start_date)
 
   datestrs  = []                     # list of matched strings

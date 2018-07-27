@@ -73,17 +73,19 @@ class AzCog:
     if not url:
       error = formatter.error(f'Could not find image matching: {search}')
       await self.bot.say(error)
-    elif type(url) == str and url.rpartition('.')[2] in ('zip', 'cbz'):
+    elif type(url) != str:
+      await self.bot.say(embed=url)
+    elif url.rpartition('.')[2] in ('zip', 'cbz'):
       zf = zipfile(path, 'r')
       for fl in zf.filelist:
         f = zf.open(fl.filename)
         await self.bot.send_file(ctx.message.channel, f, filename=fl.filename)
         f.close()
       zf.close()
-    elif type(url) == str:
+    elif url.rpartition('.')[2] in ('gif','png','jpg','jpeg'):
+      await self.bot.send_file(ctx.message.channel, url)
+    elif:
       await self.bot.say(url)
-    else:
-      await self.bot.say(embed=url)
 
   async def repeat(self, message):
     await self.az.repeat(self.bot, message)

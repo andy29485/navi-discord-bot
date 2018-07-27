@@ -130,16 +130,7 @@ class AZ:
     try:
       url = path.replace(self.conf['path'], self.conf['path-rep'])
       logger.info(url)
-      if url.rpartition('.')[2] in ('gif', 'png', 'jpg', 'jpeg', 'zip', 'cbz'):
-        try:
-          em = discord.Embed()
-          em.set_image(url=url)
-          logger.debug(f'sending {str(em.to_dict())}')
-          return em
-        except:
-          pass
-      else:
-        return url
+      return url
     except:
       raise
 

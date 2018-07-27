@@ -128,7 +128,8 @@ class AZ:
     loop_apng(path)
 
     try:
-      url = path.replace(self.conf['path'], self.conf['path-rep'])
+      if self.conf.get('path-rep'):
+        url = path.replace(self.conf['path'], self.conf['path-rep'])
       logger.info(url)
       return url
     except:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
+import os
 import logging
-import os.stat
 from discord.ext import commands
 from zipfile import ZipFile as zipfile
 import includes.utils.format as formatter

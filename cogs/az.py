@@ -70,6 +70,7 @@ class AzCog:
   @perms.in_group('img')
   async def img(self, ctx, *search):
     url = await self.bot.loop.run_in_executor(None, self.az.img, *search)
+    logger.debug('img (%s) - %s', type(url), str(url))
     if not url:
       error = formatter.error(f'Could not find image matching: {search}')
       await self.bot.say(error)

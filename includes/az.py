@@ -129,9 +129,9 @@ class AZ:
 
     try:
       if self.conf.get('path-rep'):
-        url = path.replace(self.conf['path'], self.conf['path-rep'])
-      logger.info(url)
-      return url
+        path = path.replace(self.conf['path'], self.conf['path-rep'])
+      logger.info(path)
+      return path
     except:
       raise
 

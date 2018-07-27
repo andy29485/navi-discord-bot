@@ -73,23 +73,29 @@ class AzCog:
   @commands.command(pass_context=True)
   @perms.in_group('img')
   async def img(self, ctx, *search):
-    url = await self.bot.loop.run_in_executor(None, self.az.img, *search)
-    size_ok = os.stat(url).st_size/1024/1024 <= upload_limit
-    logger.debug('img (%s) - %s', type(url), str(url))
-    if not url:
+    path,url = await self.bot.loop.run_in_executor(None, self.az.img, *search)
+
+    if path:
+      size_ok = os.stat(path).st_size/1024/1024 <= upload_limit
+    else:
+      size_ok = False
+      
+    logger.debug('img (%s) - %s', type(path), str(path))
+
+    if not path:
       error = formatter.error(f'Could not find image matching: {search}')
       await self.bot.say(error)
-    elif type(url) != str:
-      await self.bot.say(embed=url)
-    elif url.rpartition('.')[2] in ('zip', 'cbz'):
-      zf = zipfile(url, 'r')
+    elif type(path) != str:
+      await self.bot.say(embed=path)
+    elif path.rpartition('.')[2] in ('zip', 'cbz'):
+      zf = zipfile(path, 'r')
       for fl in zf.filelist:
         f = zf.open(fl.filename)
         await self.bot.send_file(ctx.message.channel, f, filename=fl.filename)
         f.close()
       zf.close()
-    elif url.rpartition('.')[2] in ('gif','png','jpg','jpeg') and size_ok:
-      await self.bot.send_file(ctx.message.channel, url)
+    elif path.rpartition('.')[2] in ('gif','png','jpg','jpeg') and size_ok:
+      await self.bot.send_file(ctx.message.channel, path)
     else:
       await self.bot.say(url)
 

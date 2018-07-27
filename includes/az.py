@@ -128,10 +128,12 @@ class AZ:
     loop_apng(path)
 
     try:
-      if self.conf.get('path-rep'):
-        path = path.replace(self.conf['path'], self.conf['path-rep'])
       logger.info(path)
-      return path
+      if self.az.conf.get('path-rep'):
+        url = path.replace(self.az.conf['path'], self.az.conf['path-rep'])
+      else:
+        url = 'No url, `pat-rep` not set'
+      return path,url
     except:
       raise
 

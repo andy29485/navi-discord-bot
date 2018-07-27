@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-
+import logging
 from discord.ext import commands
 import includes.utils.format as formatter
 from includes.utils import perms
 from includes.az import AZ
 
+logger = logging.getLogger('navi.az')
 
 class AzCog:
   def __init__(self, bot):

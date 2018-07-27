@@ -129,8 +129,8 @@ class AZ:
 
     try:
       logger.info(path)
-      if self.az.conf.get('path-rep'):
-        url = path.replace(self.az.conf['path'], self.az.conf['path-rep'])
+      if self.conf.get('path-rep'):
+        url = path.replace(self.conf['path'], self.conf['path-rep'])
       else:
         url = 'No url, `pat-rep` not set'
       return path,url

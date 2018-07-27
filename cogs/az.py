@@ -2,6 +2,7 @@
 
 import logging
 from discord.ext import commands
+from zipfile import ZipFile as zipfile
 import includes.utils.format as formatter
 from includes.utils import perms
 from includes.az import AZ

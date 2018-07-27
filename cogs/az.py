@@ -79,7 +79,7 @@ class AzCog:
     elif type(url) != str:
       await self.bot.say(embed=url)
     elif url.rpartition('.')[2] in ('zip', 'cbz'):
-      zf = zipfile(path, 'r')
+      zf = zipfile(url, 'r')
       for fl in zf.filelist:
         f = zf.open(fl.filename)
         await self.bot.send_file(ctx.message.channel, f, filename=fl.filename)

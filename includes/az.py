@@ -175,9 +175,9 @@ def loop_apng(filename):
   image = apng.open(filename) # open
   if len(image.frames) < 2:   # check that it is an apng
     return
-  i.num_plays = 0             # make it loop and hold the last frame longer
-  i.frames[-1][1].delay = 8*i.frames[0][1].delay
-  i.save(filename)
+  image.num_plays = 0         # make it loop and hold the last frame longer
+  image.frames[-1][1].delay = 8*image.frames[0][1].delay
+  image.save(filename)
 
 def git_sync(path):
   # load repo

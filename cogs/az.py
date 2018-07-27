@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import os.stat
 from discord.ext import commands
 from zipfile import ZipFile as zipfile
 import includes.utils.format as formatter
@@ -8,6 +9,7 @@ from includes.utils import perms
 from includes.az import AZ
 
 logger = logging.getLogger('navi.az')
+upload_limit = 5.0047
 
 class AzCog:
   def __init__(self, bot):
@@ -72,6 +74,7 @@ class AzCog:
   @perms.in_group('img')
   async def img(self, ctx, *search):
     url = await self.bot.loop.run_in_executor(None, self.az.img, *search)
+    size_ok = os.stat(url).st_size/1024/1024 <= upload_limit
     logger.debug('img (%s) - %s', type(url), str(url))
     if not url:
       error = formatter.error(f'Could not find image matching: {search}')
@@ -85,7 +88,7 @@ class AzCog:
         await self.bot.send_file(ctx.message.channel, f, filename=fl.filename)
         f.close()
       zf.close()
-    elif url.rpartition('.')[2] in ('gif','png','jpg','jpeg'):
+    elif url.rpartition('.')[2] in ('gif','png','jpg','jpeg') and size_ok:
       await self.bot.send_file(ctx.message.channel, url)
     else:
       await self.bot.say(url)

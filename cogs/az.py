@@ -85,7 +85,7 @@ class AzCog:
       zf.close()
     elif url.rpartition('.')[2] in ('gif','png','jpg','jpeg'):
       await self.bot.send_file(ctx.message.channel, url)
-    elif:
+    else:
       await self.bot.say(url)
 
   async def repeat(self, message):

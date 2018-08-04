@@ -5,6 +5,7 @@ import tempfile
 import logging
 import random
 import os
+import re
 from includes.utils.config import Config
 
 logger = logging.getLogger('navi.find')
@@ -26,13 +27,23 @@ def search(directory, pattern, single=True):
   # remove duplicates from pattern,
   # convert all strings to lowercase,
   # and remove empty strings
-  pattern = set(x.lower() for x in pattern if x)
+  pattern = set(x for x in pattern if x)
 
-  # replaces each of the search terms so that more things get found)
-  for word,rep in conf.get('img-reps', {}).items(): # for each rep-able word
-    if word in pattern:                             #   if it's being searched
-      pattern.add(rep)                              #     remove it
-      pattern.remove(word)                          #     add replacement
+  for pat in pattern:
+    tmp = pat[0] + re.sub('[_ -]+', '_', pat[1:])
+
+    for word,rep in conf.get('img-reps', {}).items():
+      match = re.search(f'^(-?)(_)?{word}(?(2)_)$', pat)
+      tmp = match.group(1)+match.group(2)+rep+match.group(3)
+      break
+
+    tmp = re.sub(r'(^\*+|\*+$)', '', tmp)
+    tmp = re.sub(r'\*+', '\\w*', tmp)
+    tmp = re.sub(r'^(-?)_(.*)_$', r'\1(?<=[\b_])\2(?=\b|_)', tmp)
+    tmp = re.sub(r'^-(.*)$', r'^((?!\1).)*$', tmp)
+
+    pattern.add(re.compile(tmp))
+    pattern.remove(pat)
 
   # create an empty list of matches(nothing matched yet)
   matches = []
@@ -51,14 +62,10 @@ def search(directory, pattern, single=True):
     return random.choice(matches)
   return matches
 
-def match(filename, pattern):
+def match(filename, patterns):
   '''
   checks if a filename matches a specified pattern
   '''
-  for i in pattern:         # for each pattern
-    if i[0] == '-':         # if it's a negative match pattern,
-      if i[1:] in filename: #   return false it it's found in the filename
-        return False
-    elif i not in filename: # otherwise return false if it's NOT found
-      return False
-  return True               # return true at the end, since all test succeeded
+  for pat in patterns:
+    if not pat.search(filename): return False
+  return True

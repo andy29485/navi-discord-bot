@@ -113,7 +113,7 @@ class AZ:
     #except:
     #  pass
 
-    search = [re.sub(r'[^\w\./#\*-]+', '', i).lower() for i in search]
+    search = [re.sub(r'[^\w\./#\* -]+', '', ).lower() for i in search]
     search = dh.remove_comments(search)
 
     try:
@@ -172,6 +172,8 @@ class AZ:
     self.last[chan] = data
 
 def loop_apng(filename):
+  if 'noloop' in filename:
+    return
   image = apng.open(filename) # open
   if len(image.frames) < 2:   # check that it is an apng
     return

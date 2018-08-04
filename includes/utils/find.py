@@ -28,11 +28,12 @@ def search(directory, patterns, single=True):
   # convert all strings to lowercase,
   # and remove empty strings
   patterns = set(x for x in patterns if x)
+  debugPts = []
   tmp_pats = set()
 
   for pat in patterns:
     tmp = pat[0] + re.sub('[_ -]+', '_', pat[1:])
-    
+
     for word,rep in conf.get('img-reps', {}).items():
       match = re.search(f'^(-?)(_)?{word}(?(2)_)$', tmp)
       if match:
@@ -44,8 +45,10 @@ def search(directory, patterns, single=True):
     tmp = re.sub(r'^(-?)_(.*)_$', r'\1(?<=[\b_])\2(?=\b|_)', tmp)
     tmp = re.sub(r'^-(.*)$', r'^((?!\1).)*$', tmp)
 
+    debugPts.append(tmp)
     tmp_pats.add(re.compile(tmp))
   patterns = tmp_pats
+  logger.debug('patterns = [%s]', ', '.join(debugPts))
 
   # create an empty list of matches(nothing matched yet)
   matches = []
@@ -58,6 +61,8 @@ def search(directory, patterns, single=True):
     for name in filenames:
       if match(os.path.join(tmproot, name).lower(), patterns):
         matches.append(os.path.realpath(os.path.join(root, name)))
+  logger.debug('matched %d files', len(matches))
+
   # if user wants only one file, choose and return at random
   # otherwise return all matches
   if single:

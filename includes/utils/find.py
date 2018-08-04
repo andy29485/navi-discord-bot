@@ -35,9 +35,9 @@ def search(directory, patterns, single=True):
     tmp = pat[0] + re.sub('[_ -]+', '_', pat[1:])
 
     for word,rep in conf.get('img-reps', {}).items():
-      match = re.search(f'^(-?)(_)?{word}(?(2)_)$', tmp)
-      if match:
-        tmp = match.group(1)+match.group(2)+rep+match.group(3)
+      mtc = re.search(f'^(-?)(_)?{word}(?(2)_)$', tmp)
+      if mtc:
+        tmp = mtc.group(1)+mtc.group(2)+rep+mtc.group(3)
         break
 
     tmp = re.sub(r'(^\*+|\*+$)', '', tmp)
@@ -56,7 +56,7 @@ def search(directory, patterns, single=True):
   # traverse all files in location to search
   for root, directories, filenames in os.walk(directory):
     # ignore the git directory
-    directories[:] = [d for d in directories if d not in ['.git']]
+    directories[:] = [d for d in directories if d and d[0] != '.']
     tmproot = root.replace(directory, '') # root dir for search only
     for name in filenames:
       if match(os.path.join(tmproot, name).lower(), patterns):

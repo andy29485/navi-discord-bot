@@ -122,7 +122,7 @@ class AZ:
       path = ''
 
     if not path.strip():
-      return None
+      return None,None
 
     # fix line apngs a bit (they only loop once)
     loop_apng(path)

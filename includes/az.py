@@ -113,7 +113,7 @@ class AZ:
     #except:
     #  pass
 
-    search = [re.sub(r'[^\w\./#\* -]+', '', ).lower() for i in search]
+    search = [re.sub(r'[^\w\./#\* -]+', '', i).lower() for i in search]
     search = dh.remove_comments(search)
 
     try:

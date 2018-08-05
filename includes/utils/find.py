@@ -28,9 +28,10 @@ def search(directory, patterns, single=True):
   # convert all strings to lowercase,
   # and remove empty strings
   patterns = set(x for x in patterns if x)
-  debugPts = []
+  debugPts = set()
   tmp_pats = set()
 
+  logger.debug('patts-in = {%s}', ', '.join(patterns))
   for pat in patterns:
     tmp = pat[0] + re.sub('[_ -]+', '_', pat[1:])
 
@@ -46,10 +47,10 @@ def search(directory, patterns, single=True):
     tmp = re.sub(r'^(.*)_$', r'\1(\\b|_)', tmp)
     tmp = re.sub(r'^-(.*)$', r'^((?!\1).)*$', tmp)
 
-    debugPts.append(tmp)
+    debugPts.add(tmp)
     tmp_pats.add(re.compile(tmp))
   patterns = tmp_pats
-  logger.debug('patterns = [%s]', ', '.join(debugPts))
+  logger.debug('patterns = {%s}', ', '.join(debugPts))
 
   # create an empty list of matches(nothing matched yet)
   matches = []

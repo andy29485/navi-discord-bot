@@ -113,8 +113,10 @@ class AZ:
     #except:
     #  pass
 
+    logger.debug('input: %s', ', '.join(search))
     search = [re.sub(r'[^\w\./#\* -]+', '', i).lower() for i in search]
     search = dh.remove_comments(search)
+    logger.debug('uncomment: %s', ', '.join(search))
 
     try:
       path = azfind.search(self.conf['path'], search)

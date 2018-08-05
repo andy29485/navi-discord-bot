@@ -36,7 +36,7 @@ def search(directory, patterns, single=True):
     tmp = pat[0] + re.sub('[_ -]+', '_', pat[1:])
 
     for word,rep in conf.get('img-reps', {}).items():
-      mtc = re.search(f'^(-?)(_)?{word}(?(2)_)$', tmp)
+      mtc = re.search(f'^(-?)(_?){word}(_?)$', tmp)
       if mtc:
         tmp = mtc.group(1)+mtc.group(2)+rep+mtc.group(3)
         break

@@ -43,7 +43,7 @@ def search(directory, patterns, single=True):
 
     tmp = tmp.replace('.', '\\.')
     tmp = re.sub(r'(^\*+|\*+$)', '', tmp)
-    tmp = re.sub(r'\*+', '\\w*', tmp)
+    tmp = re.sub(r'\*+', r'\\w*', tmp)
     tmp = re.sub(r'^(-?)_(.*)$', r'\1(\\b|_)\2', tmp)
     tmp = re.sub(r'^(.*)_$', r'\1(\\b|_)', tmp)
     tmp = re.sub(r'^-(.*)$', r'^((?!\1).)*$', tmp)

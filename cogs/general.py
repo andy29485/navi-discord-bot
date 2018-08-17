@@ -111,6 +111,8 @@ class General:
           rep = rep.replace(j, random.choice(j[1:-1].split("|")))
         for j in subs:
           rep = await loop.run_in_executor(None, re.sub, j, subs[j], rep)
+        for j in re.findall("\\(.*\\|.*\\)", rep):
+          rep = rep.replace(j, random.choice(j[1:-1].split("|")))
         msg = re.sub("(?i){}".format(i[0]), rep, message.content)
         if rep:
           await self.bot.send_message(message.channel, msg)

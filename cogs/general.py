@@ -107,11 +107,11 @@ class General:
                 "\\{ui\\}"         : message.author.mention,
                 "\\{situations\\}" : random.choice(self.conf['situations'])
                }
-        for j in re.findall("\\(.*\\|.*\\)", rep):
+        for j in re.findall("\\(.*?\\|.*?\\)", rep):
           rep = rep.replace(j, random.choice(j[1:-1].split("|")))
         for j in subs:
           rep = await loop.run_in_executor(None, re.sub, j, subs[j], rep)
-        for j in re.findall("\\(.*\\|.*\\)", rep):
+        for j in re.findall("\\(.*?\\|.*?\\)", rep):
           rep = rep.replace(j, random.choice(j[1:-1].split("|")))
         msg = re.sub("(?i){}".format(i[0]), rep, message.content)
         if rep:

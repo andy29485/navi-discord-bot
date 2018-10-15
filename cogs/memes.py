@@ -64,17 +64,17 @@ def wrap_text(text, width, font):
 def write_image(text_in, out, **kargs):
   # get variables
   logger.debug('kargs: '+ str(kargs))
-  locs       = kargs.get('locations',         [])
-  size_const = kargs.get('size',              25)
-  spacing    = kargs.get('spacing',            0)
-  font_name  = kargs.get('font',              '')
-  image_file = kargs.get('image',             '')
-  path       = kargs.get('path',              '')
-  flags      = kargs.get('flags',             [])
-  regexes    = kargs.get('matches',           [])
-  formats    = kargs.get('formats',   ['{text}'])
-  colour     = kargs.get('colour',   (0, 0, 0, 0))
-  border     = kargs.get('border',         False)
+  locs       = kargs.get('locations',          [])
+  size_const = kargs.get('size',               25)
+  spacing    = kargs.get('spacing',             0)
+  font_name  = kargs.get('font',               '')
+  image_file = kargs.get('image',              '')
+  path       = kargs.get('path',               '')
+  flags      = kargs.get('flags',              [])
+  regexes    = kargs.get('matches',            [])
+  formats    = kargs.get('formats',    ['{text}'])
+  colour     = kargs.get('colour', (0, 0, 0, 255))
+  border     = kargs.get('border',          False)
 
   if type(colour) == int:
     colour = (colour, colour, colour, 255)

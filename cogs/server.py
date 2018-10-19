@@ -506,7 +506,7 @@ class Server:
       if message.content or message.attachments:
         tmp = '<{0.author.name}> {0.content}\n'.format(message)
         for a in message.attachments:
-          tmp += '{filename}: {url}\n'.format(**a)
+          tmp += '{0.filename}: {0.url}\n'.format(a)
       else:
         tmp = ''
       # if this message would make the current output buffer too long,

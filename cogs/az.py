@@ -74,16 +74,16 @@ class AzCog:
   @commands.command()
   @perms.in_group('img')
   async def img(self, ctx, *search):
-    path,url = await self.bot.loop.run_in_executor(None, self.az.img, *search)
-
-    if path:
-      size_ok = os.stat(path).st_size/1024/1024 <= upload_limit
-    else:
-      size_ok = False
-
-    logger.debug('img (%s) - %s', type(path), str(path))
-
     async with ctx.typing():
+      path,url = await self.bot.loop.run_in_executor(None, self.az.img, *search)
+
+      if path:
+        size_ok = os.stat(path).st_size/1024/1024 <= upload_limit
+      else:
+        size_ok = False
+
+      logger.debug('img (%s) - %s', type(path), str(path))
+
       if not path:
         error = formatter.error(f'Could not find image matching: {search}')
         await ctx.send(error)

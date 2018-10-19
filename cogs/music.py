@@ -114,7 +114,7 @@ class Music:
     info  = self.info[str(vc.guild.id)]
     queue = info['queue']
 
-    if queue.isEmpty():
+    if len(queue):
       await vc.disconnect()
 
     info['np'] = item = queue.pop()

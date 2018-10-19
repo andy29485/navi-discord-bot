@@ -207,9 +207,6 @@ class Music:
     else:
       return await self.emby_play(ctx, *shlex.split(query))
 
-
-    self.next(ctx.voice_client)
-
   async def emby_play(self, ctx, *search):
     qnext = False
     mult = False

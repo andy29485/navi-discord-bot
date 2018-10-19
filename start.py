@@ -101,7 +101,7 @@ async def on_ready():
   await bot.change_presence(activity=discord.Game(f'{prefix[0]}help'))
 
 @bot.event
-async def on_command_error(error, ctx):
+async def on_command_error(ctx, error):
   msg = ctx.message
   if isinstance(error, commands.NoPrivateMessage):
     await msg.author.send(formatter.error(
@@ -135,7 +135,7 @@ async def on_resumed():
   print('resuming...')
 
 @bot.event
-async def on_command(command, ctx):
+async def on_command(ctx):
   msg = ctx.message
   chan = None
   if (not isinstance(chan, GC)):

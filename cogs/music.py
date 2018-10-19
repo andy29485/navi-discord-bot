@@ -193,9 +193,9 @@ class Music:
     mchan = dh.get_channel(ctx.guild, 'music', function)
     bchan = dh.get_channel(ctx.guild, 'bot', function)
 
-    guild_id = str(ctx.guild.id)
-    if guild_id not in self.info:
-      self.info[guild_id] = {
+    gid = str(ctx.guild.id)
+    if gid not in self.info:
+      self.info[gid] = {
         'queue': deque(),
         'chan':  mchan or bchan or ctx.channel,
         'skip':  set(),
@@ -203,9 +203,12 @@ class Music:
       }
 
     if re.search('^(?:http|ftp|s?ftp)s?://', query):
-      return await self.yt(ctx, query)
+      await self.yt(ctx, query)
     else:
-      return await self.emby_play(ctx, *shlex.split(query))
+      await self.emby_play(ctx, *shlex.split(query))
+
+    if not self.info[gid]['np']:
+      return await self.next(ctx.voice_client)
 
   async def emby_play(self, ctx, *search):
     qnext = False
@@ -213,7 +216,7 @@ class Music:
     shuf = False
     albm = False
     num = 0
-    gid = ctx.guild.id
+    gid = str(ctx.guild.id)
 
     # parse arguments
     while search:
@@ -301,7 +304,7 @@ class Music:
 
   async def yt(self, ctx, url):
     """Plays from a url (almost anything youtube_dl supports)"""
-    gid = ctx.guild.id
+    gid = str(ctx.guild.id)
 
     async with ctx.typing():
       self.info[gid]['queue'].append(url)

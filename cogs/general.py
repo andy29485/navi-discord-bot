@@ -117,7 +117,7 @@ class General:
           rep = rep.replace(j, random.choice(j[1:-1].split("|")))
         msg = re.sub("(?i){}".format(i[0]), rep, message.content)
         if rep:
-          await send(msg)
+          await message.channel.send(msg)
         return
 
   @commands.command(name='roll', aliases=['r', 'clench'])

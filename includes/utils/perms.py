@@ -3,7 +3,7 @@
 import logging
 from discord.ext import commands
 import discord.utils
-import discord.abc.GuildChannel as GC
+from discord.abc import GuildChannel as GC
 from includes.utils.config import Config
 
 logger = logging.getLogger('navi.perms')

@@ -6,12 +6,12 @@ if __name__ == '__main__' and __package__ is None:
 
 import discord
 from discord.ext import commands
+from discord.abc import GuildChannel as GC
 import asyncio
 import aiohttp
 import datetime
 import re, sys, os
 import traceback
-import discord.abc.GuildChannel as GC
 
 from cogs import *
 from includes.utils.config import Config

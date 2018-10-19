@@ -5,6 +5,7 @@ import re
 import os
 import logging
 import inspect
+import random
 
 from includes.utils.format import *
 from includes.utils.config import Config
@@ -123,14 +124,13 @@ class Music:
 
     async with info['chan'].typing():
       if type(item) == str:
-        player = await YTDLSource.from_url(item, loop=vc.loop, stream=True)
-        vc.play(player, after=nxt)
+        source = await YTDLSource.from_url(item, loop=vc.loop, stream=True)
         info['chan'].send(f'Now Playing: {item}')
       else:
         em = await emby_helper.makeEmbed(item, 'Now playing: ')
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(item.path))
-        vc.play(source, after=nxt)
         info['chan'].send(embed=em)
+      vc.play(source, after=nxt)
 
   @commands.group(pass_context=True, aliases=['m'])
   async def music(self, ctx):

@@ -196,10 +196,10 @@ class Music:
     guild_id = str(ctx.guild.id)
     if guild_id not in self.info:
       self.info[guild_id] = {
-        queue: deque(),
-        chan:  mchan or bchan or ctx.channel,
-        skip:  set(),
-        np:    None,
+        'queue': deque(),
+        'chan':  mchan or bchan or ctx.channel,
+        'skip':  set(),
+        'np':    None,
       }
 
     if re.search('^(?:http|ftp|s?ftp)s?://', query):
@@ -260,7 +260,7 @@ class Music:
     # filter non-music items
     items = [s for s in items if s.type == 'Audio']
     if not items:
-      await self.bot.say(error('could not find song'))
+      await ctx.send(error('could not find song'))
       return
 
     # shuffle if needed (if user passed '-s')
@@ -297,7 +297,7 @@ class Music:
         self.info[gid]['queue'].appendleft(item)
       else:
         self.info[gid]['queue'].append(item)
-    await self.bot.say(embed=em)
+    await ctx.send(embed=em)
 
   async def yt(self, ctx, url):
     """Plays from a url (almost anything youtube_dl supports)"""

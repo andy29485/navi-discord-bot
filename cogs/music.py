@@ -111,7 +111,7 @@ class Music:
     if not vc.guild:
       return
 
-    info  = self.info[str(vc.guild)]
+    info  = self.info[str(vc.guild.id)]
     queue = info['queue']
 
     if queue.isEmpty():

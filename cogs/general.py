@@ -44,7 +44,7 @@ class General:
   @commands.command()
   async def time(self, ctx, first=''):
     '''remind people to hurry up'''
-    say = lambda msg: ctx.message.channel.send_message(msg)
+    say = lambda msg: ctx.send(msg)
     if random.randrange(50) or not first.startswith('@'):
       now = datetime.now().replace(microsecond=0)
       await say(now.isoformat().replace('T', ' '))
@@ -65,7 +65,7 @@ class General:
   @commands.command()
   async def invite(self, ctx):
     '''reply with a link that allows this bot to be invited'''
-    await ctx.message.channel.send_message(
+    await ctx.send(
       f'https://discordapp.com/oauth2/authorize?client_id={self.bot.user.id}'+
       '&permissions=305260592&scope=bot'
     )
@@ -117,7 +117,7 @@ class General:
           rep = rep.replace(j, random.choice(j[1:-1].split("|")))
         msg = re.sub("(?i){}".format(i[0]), rep, message.content)
         if rep:
-          await message.channel.send_message(msg)
+          await send(msg)
         return
 
   @commands.command(name='roll', aliases=['r', 'clench'])
@@ -211,7 +211,7 @@ class General:
   async def _td_list(self, ctx):
     todos = self.conf['todo'].get(str(ctx.message.author.id), [])
     if not todos:
-      await ctx.message.channel.send_message('No TODOs found.')
+      await ctx.send('No TODOs found.')
     else:
       #TODO - ensure that the outgoing message is not too long
       msg     = 'TODO:\n'
@@ -223,7 +223,7 @@ class General:
           msg += done.format(i, todo[1])
         else:
           msg += working.format(i, todo[1])
-      await ctx.message.channel.send_message(msg)
+      await ctx.send(msg)
 
   @commands.group(aliases=["sw"])
   async def stopwatch(self, ctx):
@@ -249,15 +249,13 @@ class General:
     aid = str(ctx.message.author.id)
     tme = ctx.message.timestamp.timestamp()
     if aid in self.stopwatches and self.stopwatches[aid][0]:
-      await ctx.message.channel.send_message(
-                                  'You\'ve already started a stopwatch.'
-      )
+      await ctx.send('You\'ve already started a stopwatch.')
     elif aid in self.stopwatches:
       self.stopwatches[aid][0] = tme
-      await ctx.message.channel.send_message('Stopwatch resumed.')
+      await ctx.send('Stopwatch resumed.')
     else:
       self.stopwatches[aid] = [tme, 0]
-      await ctx.message.channel.send_message('Stopwatch started.')
+      await ctx.send('Stopwatch started.')
 
   @stopwatch.command(name='stop', aliases=['end','e'])
   async def _sw_stop_wrap(self, ctx):
@@ -282,11 +280,9 @@ class General:
       for lap in zip(range(1,len(old)), old[2:]):
         msg += '\nLap {0:03} - {1}'.format(*lap)
       msg += '```'
-      await ctx.message.channel.send_message(msg)
+      await ctx.send(msg)
     else:
-      await ctx.message.channel.send_message(
-                                  'No stop watches started, cannot stop.'
-      )
+      await ctx.send('No stop watches started, cannot stop.')
 
   @stopwatch.command(name='status', aliases=['look','peak'])
   async def _sw_status(self, ctx):
@@ -307,11 +303,9 @@ class General:
       for lap in zip(range(1,len(old)), old[2:]):
         msg += '\nLap {0:03} - {1}'.format(*lap)
       msg += '```'
-      await ctx.message.channel.send_message(msg)
+      await ctx.send(msg)
     else:
-      await ctx.message.channel.send_message(
-                                  'No stop watches started, cannot look.'
-      )
+      await ctx.send('No stop watches started, cannot look.')
 
   @stopwatch.command(name='lap', aliases=['l'])
   async def _sw_lap(self, ctx):

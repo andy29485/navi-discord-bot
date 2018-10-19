@@ -18,9 +18,9 @@ class Osu:
   user_url_patterns         =[re.compile('https?://osu.ppy.sh/u/(\\d+)')]
 
   def __init__(self, bot):
-    self.bot           = bot
-    self.loop          = bot.loop
-    self.conf          = Config('configs/osu.json')
+    self.bot  = bot
+    self.loop = bot.loop
+    self.conf = Config('configs/osu.json')
 
     if 'api-key' not in self.conf:
       self.conf['api-key'] = input('enter osu api key: ')
@@ -43,9 +43,9 @@ class Osu:
         beatmap = await self.api.get_beatmaps(beatmapset_id=bid)
         em = await self.osu_embed(beatmap)
         if not em:
-          chan.send_message('could not find beatmap')
+          chan.send('could not find beatmap')
         else:
-          await chan.send_message(embed=em)
+          await chan.send(embed=em)
       else:
         continue
       break
@@ -55,9 +55,9 @@ class Osu:
         beatmap = await self.api.get_beatmaps(beatmap_id=bid)
         em = await self.osu_embed(beatmap[0])
         if not em:
-          chan.send_message('could not find beatmap')
+          chan.send('could not find beatmap')
         else:
-          await chan.send_message(embed=em)
+          await chan.send(embed=em)
       else:
         continue
       break
@@ -67,9 +67,9 @@ class Osu:
         user = await self.api.get_user(int(uid))
         em = await self.osu_embed(user[0])
         if not em:
-          chan.send_message('could not find user')
+          chan.send('could not find user')
         else:
-          await chan.send_message(embed=em)
+          await chan.send(embed=em)
       else:
         continue
       break
@@ -195,7 +195,7 @@ class Osu:
               for chan_id in chans:
                 try:
                   chan = self.bot.get_channel(chan_id)
-                  await chan.send_message(embed=em)
+                  await chan.send(embed=em)
                 except:
                   logger.exception('issue with send %s', str(em.to_dict()))
               break

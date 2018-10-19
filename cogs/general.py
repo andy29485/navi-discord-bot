@@ -454,7 +454,7 @@ class General:
     else:
       r = Reminder(channel, author, message)
       heap.push(r)
-      await r.begin(self.bot)
+      await r.begin(ctx)
 
   @commands.command(aliases=['a', 'ask'])
   async def question(self, ctx):

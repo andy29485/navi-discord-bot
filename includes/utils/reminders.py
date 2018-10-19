@@ -63,7 +63,7 @@ class Reminder(heap.HeapNode):
   def __gt__(self, other):
     return self.end_time > other.end_time
 
-  async def begin(self, bot):
+  async def begin(self, ctx):
     t = datetime.fromtimestamp(self.end_time).isoformat().replace('T', ' ')
     if not self.reminder_id:
       while True:
@@ -73,8 +73,7 @@ class Reminder(heap.HeapNode):
             break
         else:
           break
-    chan = bot.get_channel(self.channel_id)
-    await chan.send(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
+    await ctx.send(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
 
   async def end(self, bot):
     chan = bot.get_channel(self.channel_id)

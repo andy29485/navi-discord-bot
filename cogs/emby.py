@@ -44,7 +44,7 @@ class Emby:
               logger.debug('      sending to chan: %s', chan_id)
               chan = self.bot.get_channel(chan_id)
               em   = await emby_helper.makeEmbed(item, 'New item added: ')
-              await self.bot.send_message(chan, embed=em)
+              await chan.send(embed=em)
           except:
             logger.exception('Issue with sending latest item(s)')
             break
@@ -52,24 +52,24 @@ class Emby:
       self.conf.save()
       await asyncio.sleep(30)
 
-  @commands.group(pass_context=True)
+  @commands.group()
   async def emby(self, ctx):
     """Manage emby stuff"""
     if ctx.invoked_subcommand is None:
-      await self.bot.say(formatter.error("Please specify valid subcommand"))
+      await ctx.send(formatter.error("Please specify valid subcommand"))
 
-  @emby.command(name='lookup', aliases=['info', 'i'], pass_context=True)
+  @emby.command(name='lookup', aliases=['info', 'i'])
   async def _info(self, ctx, *, item_ids = ''):
     """print emby server info, or an embed for each item id"""
     for item_id in item_ids.split():
       item = await self.conn.info(item_id)
       em   = await emby_helper.makeEmbed(item)
-      await self.bot.send_message(ctx.message.channel, embed=em)
+      await ctx.message.channel.send(embed=em)
     if not item_ids:
       info = await self.conn.info()
-      await self.bot.say(info)
+      await ctx.send(info)
 
-  @emby.command(name='watch', aliases=['w'], pass_context=True)
+  @emby.command(name='watch', aliases=['w'])
   async def _watch(self, ctx, *, item_ids = ''):
     """
     Add show id to follow list
@@ -80,14 +80,14 @@ class Emby:
     """
     for item_id in item_ids.split():
       watching = self.conf['watching'].get(item_id)
-      if watching and ctx.message.channel.id not in watching:
-        self.conf['watching'].get(item_id).append(ctx.message.channel.id)
+      if watching and str(ctx.message.channel.id) not in watching:
+        self.conf['watching'].get(item_id).append(str(ctx.message.channel.id))
       elif not watching:
-        self.conf['watching'][item_id] = [ctx.message.channel.id]
-    await self.bot.say(formatter.ok())
+        self.conf['watching'][item_id] = [str(ctx.message.channel.id)]
+    await ctx.send(formatter.ok())
     self.conf.save()
 
-  @emby.command(name='unwatch', aliases=['uwatch', 'uw'], pass_context=True)
+  @emby.command(name='unwatch', aliases=['uwatch', 'uw'])
   async def _uwatch(self, ctx, *, item_ids = ''):
     """
     Remove show id from this channel's follow list
@@ -98,11 +98,11 @@ class Emby:
     for item_id in item_ids.split():
       watching = self.conf['watching'].get(item_id)
       if watching and ctx.message.channel.id in watching:
-        self.conf['watching'].get(item_id).remove(ctx.message.channel.id)
-    await self.bot.say(formatter.ok())
+        self.conf['watching'].get(item_id).remove(str(ctx.message.channel.id))
+    await ctx.send(formatter.ok())
     self.conf.save()
 
-  @emby.command(name='search', aliases=['find', 's'], pass_context=True)
+  @emby.command(name='search', aliases=['find', 's'])
   async def _search(self, ctx, *, query : str):
     """searches for query on emby, displays first result
 
@@ -112,7 +112,7 @@ class Emby:
 
     match = re.search(r'^(\d)+\s+(\S.*)$', query)
     if not query:
-      await self.bot.say(formatter.error('missing query'))
+      await ctx.send(formatter.error('missing query'))
       return
     elif match:
       num   = int(match.group(1))
@@ -123,13 +123,13 @@ class Emby:
     results = await self.conn.search(query)
     results = [i for i in results if issubclass(type(i), EmbyObject)]
     if not results:
-      await self.bot.say('No results found')
+      await ctx.send('No results found')
       return
 
     for result in results[:num]:
       await result.update()
       em = await emby_helper.makeEmbed(result)
-      await self.bot.send_message(ctx.message.channel, embed=em)
+      await ctx.message.channel.send(embed=em)
 
   async def on_socket_message(self, message):
     if message['MessageType'] == 'LibraryChanged':

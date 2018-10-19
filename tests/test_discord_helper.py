@@ -2,6 +2,7 @@
 
 import unittest
 import arrow
+import time
 import includes.utils.discord_helper as dh
 
 class TestConfig(unittest.TestCase):
@@ -16,9 +17,11 @@ class TestConfig(unittest.TestCase):
     self.assertEqual(len(a), len(b), msg)
     self.assertEqual(set(a), set(b), msg)
 
-  def assertAboutEqual(self, a, b, msg=''):
+  def assertAboutEqual(self, a, b, msg='', margin=None):
+    if margin == None:
+      margin = self.err_margin
     try:
-      self.assertLessEqual(abs(a-b), self.err_margin, msg)
+      self.assertLessEqual(abs(a-b), margin, msg)
     except:
       a = arrow.get(a)
       b = arrow.get(b)
@@ -251,6 +254,15 @@ class TestConfig(unittest.TestCase):
     self.assertEqual(dt.minute,               0, message+' - minute')
     self.assertEqual(result[1],       'message', message+' - message')
     self.assertItemsEqual(result[2], ['friday', '8:00'], message+' - match')
+
+  def test_now_time_changes(self):
+    offset = 3
+    start  = dh.get_end_time('')[0]
+
+    time.sleep(offset)
+    end = dh.get_end_time('')[0]
+
+    self.assertAboutEqual(start, end-offset, 'now time changes', margin=1)
 
 if __name__ == '__main__':
   unittest.main()

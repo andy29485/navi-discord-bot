@@ -41,23 +41,24 @@ class NSFW:
     self.lolibooru = pybooru.Moebooru('lolibooru',**self.conf['lolibooru-conf'])
     self.safebooru = pybooru.Danbooru('safebooru',**self.conf['safebooru-conf'])
 
-  @commands.group(pass_context=True)
+  @commands.group()
+  @commands.is_nsfw()
   async def nsfw(self, ctx):
     """NSFW stuff"""
     channel = ctx.message.channel
-    # ensure that the current channel is marked as nsfw
-    if not channel.is_private and 'nsfw' not in channel.name.lower():
-      await self.bot.say(formatter.error('not in nsfw channel'))
-      ctx.invoked_subcommand = None
-      return
+    # # ensure that the current channel is marked as nsfw
+    # if not channel.is_private and 'nsfw' not in channel.name.lower():
+    #   await ctx.send(formatter.error('not in nsfw channel'))
+    #   ctx.invoked_subcommand = None
+    #   return
 
     # if user misstyped or does not know what they are doing, complain
     if ctx.invoked_subcommand is None:
-      await self.bot.say(formatter.error("Please specify valid subcommand"))
+      await ctx.send(formatter.error("Please specify valid subcommand"))
       return
 
   @nsfw.command(name='danbooru', aliases=['d'])
-  async def _danbooru(self, *, search_tags : str = ''):
+  async def _danbooru(self, ctx, *, search_tags : str = ''):
     """
       searches danbooru for an image
 
@@ -87,7 +88,7 @@ class NSFW:
     posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
-      await self.bot.say('could not find anything')
+      await ctx.send('could not find anything')
       return
 
     for post in posts:
@@ -100,7 +101,7 @@ class NSFW:
       elif 'file_url' in post:
         u = post['file_url']
       else:
-        await self.bot.say('''
+        await ctx.send('''
                 Sorry, there seems to be a premium tag in the image,
                 send me $20 if you you want to search it.
         ''')
@@ -114,10 +115,10 @@ class NSFW:
       if tags:
         em.set_footer(text=tags)
 
-      await self.bot.say(embed=em)
+      await ctx.send(embed=em)
 
   @nsfw.command(name='lolibooru', aliases=['l'])
-  async def _lolibooru(self, *, search_tags : str = ''):
+  async def _lolibooru(self, ctx, *, search_tags : str = ''):
     """
       searches lolibooru for an image
 
@@ -146,7 +147,7 @@ class NSFW:
     posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
-      await self.bot.say('could not find anything')
+      await ctx.send('could not find anything')
       return
 
     for i in range(num):
@@ -166,10 +167,10 @@ class NSFW:
       if tags:
         em.set_footer(text=tags)
 
-      await self.bot.say(embed=em)
+      await ctx.send(embed=em)
 
   @nsfw.command(name='yandere', aliases=['y'])
-  async def _yandre(self, *, search_tags : str = '' or 'rating:e'):
+  async def _yandre(self, ctx, *, search_tags : str = '' or 'rating:e'):
     """
       searches yande.re for an image
 
@@ -198,7 +199,7 @@ class NSFW:
     posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
-      await self.bot.say('could not find anything')
+      await ctx.send('could not find anything')
       return
 
     for i in range(num):
@@ -218,10 +219,10 @@ class NSFW:
       if tags:
         em.set_footer(text=tags)
 
-      await self.bot.say(embed=em)
+      await ctx.send(embed=em)
 
   @commands.command(name='safebooru', aliases=['s', 'safe'])
-  async def _safebooru(self, *, search_tags : str):
+  async def _safebooru(self, ctx, *, search_tags : str):
     """
       searches safebooru for an image
 
@@ -248,7 +249,7 @@ class NSFW:
     posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
-      await self.bot.say('could not find anything')
+      await ctx.send('could not find anything')
       return
 
     for post in posts:
@@ -260,7 +261,7 @@ class NSFW:
       elif 'file_url' in post:
         u = post['file_url']
       else:
-        await self.bot.say('''
+        await ctx.send('''
                 Sorry, there seems to be a premium tag in the image,
                 send me $20 if you you want to search it.
         ''')
@@ -275,7 +276,7 @@ class NSFW:
       if tags:
         em.set_footer(text=tags)
 
-      await self.bot.say(embed=em)
+      await ctx.send(embed=em)
 
 def setup(bot):
   bot.add_cog(NSFW(bot))

@@ -40,14 +40,14 @@ def pm_or_perms(**perms):
 def is_owner_check(message):
   if type(message) == str:
     return message == config['owner']
-  return message.author.id == config['owner']
+  return str(message.author.id) == str(config['owner'])
 
 def in_group_check(msg, group):
   if is_owner_check(msg):
     return True
 
   for num in config[group]:
-    if num == msg.author.id or num == msg:
+    if str(num) == str(msg.author.id) or num == msg:
       return True
   return False
 
@@ -82,8 +82,8 @@ def role_or_permissions(ctx, check, **perms):
 
 def is_in_servers(*server_ids):
   def predicate(ctx):
-    server = ctx.message.server
+    server = ctx.message.guild
     if not server:
       return False
-    return server.id in server_ids
+    return str(server.id) in (str(sid) for sid in server_ids)
   return commands.check(predicate)

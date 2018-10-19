@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import discord
 import logging
 from discord.ext import commands
 from zipfile import ZipFile as zipfile
@@ -9,7 +10,7 @@ from includes.utils import perms
 from includes.az import AZ
 
 logger = logging.getLogger('navi.az')
-upload_limit = 5.0047
+upload_limit = 7.9999
 
 class AzCog:
   def __init__(self, bot):
@@ -17,21 +18,21 @@ class AzCog:
     self.az  = AZ()
 
   @commands.command()
-  async def lenny(self, first=''):
-    await self.bot.say(self.az.lenny(first))
+  async def lenny(self, ctx, first=''):
+    await ctx.send(self.az.lenny(first))
 
   @commands.command()
-  async def shrug(self):
-    await self.bot.say('\n¯\_(ツ)_/¯')
+  async def shrug(self, ctx):
+    await ctx.send('\n¯\_(ツ)_/¯')
 
-  @commands.command(pass_context=True)
+  @commands.command()
   async def me(self, ctx, *, message : str):
-    await self.bot.say(f'*{ctx.message.author.name} {message}*')
-    await self.bot.delete_message(ctx.message)
+    await ctx.send(f'*{ctx.message.author.name} {message}*')
+    await ctx.message.delete()
 
-  @commands.command(pass_context=True,name='set_colour',aliases=['sc'])
+  @commands.command(name='set_colour',aliases=['sc'])
   @perms.is_in_servers('168702989324779520')
-  @perms.has_role_check(lambda r: r.id == '258405421813989387')
+  @perms.has_role_check(lambda r: str(r.id) == '258405421813989387')
   async def _set_colour(self, ctx, colour):
     """
     set role colour
@@ -58,19 +59,19 @@ class AzCog:
     light_grey   0x979c9f.
     darker_grey  0x546e7a.
     """
-    server = ctx.message.server
+    server = ctx.message.guild
     colour = self.az.get_colour(colour)
     role   = dh.get_role(server, '258405421813989387')
 
     if not role:
-      await self.bot.say('could not find role to change')
+      await ctx.send('could not find role to change')
     elif not colour:
-      await self.bot.say('Could not figure out colour - see help')
+      await ctx.send('Could not figure out colour - see help')
     else:
-      await self.bot.edit_role(server, role, colour=colour)
-      await self.bot.say(ok())
+      await role.edit(colour=colour)
+      await ctx.send(ok())
 
-  @commands.command(pass_context=True)
+  @commands.command()
   @perms.in_group('img')
   async def img(self, ctx, *search):
     path,url = await self.bot.loop.run_in_executor(None, self.az.img, *search)
@@ -79,25 +80,26 @@ class AzCog:
       size_ok = os.stat(path).st_size/1024/1024 <= upload_limit
     else:
       size_ok = False
-      
+
     logger.debug('img (%s) - %s', type(path), str(path))
 
-    if not path:
-      error = formatter.error(f'Could not find image matching: {search}')
-      await self.bot.say(error)
-    elif type(path) != str:
-      await self.bot.say(embed=path)
-    elif path.rpartition('.')[2] in ('zip', 'cbz'):
-      zf = zipfile(path, 'r')
-      for fl in zf.filelist:
-        f = zf.open(fl.filename)
-        await self.bot.send_file(ctx.message.channel, f, filename=fl.filename)
-        f.close()
-      zf.close()
-    elif path.rpartition('.')[2] in ('gif','png','jpg','jpeg') and size_ok:
-      await self.bot.send_file(ctx.message.channel, path)
-    else:
-      await self.bot.say(url)
+    async with ctx.typing():
+      if not path:
+        error = formatter.error(f'Could not find image matching: {search}')
+        await ctx.send(error)
+      elif type(path) != str:
+        await ctx.send(embed=path)
+      elif path.rpartition('.')[2] in ('zip', 'cbz'):
+        zf = zipfile(path, 'r')
+        for fl in zf.filelist:
+          f = zf.open(fl.filename)
+          await ctx.send(file=discord.File(f, fl.filename))
+          f.close()
+        zf.close()
+      elif path.rpartition('.')[2] in ('gif','png','jpg','jpeg') and size_ok:
+        await ctx.send(file=discord.File(path))
+      else:
+        await ctx.send(url)
 
   async def repeat(self, message):
     await self.az.repeat(self.bot, message)

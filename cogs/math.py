@@ -22,11 +22,9 @@ class MathCog:
     except:
       f = None
     if f:
-      await self.bot.send_file(ctx.message.channel, f, filename='math.png')
+      await ctx.send(file=discord.File(f, 'math.png'))
     else:
-      await self.bot.send_message(ctx.message.channel,
-              formatter.error('LaTeX syntax error')
-      )
+      await ctx.send(formatter.error('LaTeX syntax error'))
 
   @commands.command(pass_context=True)
   async def graph(self, ctx, *, parameters):
@@ -38,11 +36,9 @@ class MathCog:
     except:
       f = None
     if f:
-      await self.bot.send_file(ctx.message.channel, f, filename='graph.png')
+      await ctx.send(file=discord.File(f, 'graph.png'))
     else:
-      await self.bot.send_message(ctx.message.channel,
-            formatter.error('Graph rendering issue')
-      )
+      await ctx.send(formatter.error('Graph rendering issue'))
 
 def setup(bot):
   math = MathCog(bot)

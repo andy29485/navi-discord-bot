@@ -12,7 +12,7 @@ class DnD:
     self.bot  = bot
     self.conf = Config('configs/dnd.json')
 
-  @commands.command(pass_context=True)
+  @commands.command()
   async def echo(self, ctx, *, entire_message : str):
     """
     Short description - repeats user's message
@@ -24,7 +24,7 @@ class DnD:
     # example `.echo hello world!`
     #   ctx.message.content           # the full message `.echo hello world`
     #   entire_message                # `hello world!`
-    await self.bot.say(f'<{ctx.message.author.name}> {entire_message}')
+    await ctx.send(f'<{ctx.message.author.name}> {entire_message}')
 
 def setup(bot):
   d = DnD(bot)

@@ -11,24 +11,24 @@ class Search:
     self.bot   = bot
 
   @commands.command(name='search', aliases=['ddg', 'd', 'g'])
-  async def google(self, *, query):
+  async def google(self, ctx, *, query):
     """
     Searches DuckDuckGo and Google and gives you top results.
     """
-    await self.bot.say(await internet.google(query))
+    await ctx.send(await internet.google(query))
 
-  @commands.command(pass_context=True, name='jisho', aliases=['j'])
-  async def jisho(self, context, *, search: str):
+  @commands.command(name='jisho', aliases=['j'])
+  async def jisho(self, ctx, context, *, search: str):
     result = await internet.jisho_search(search)
     if not result:
-      await self.bot.say('No results found')
+      await ctx.send('No results found')
     else:
-      await self.bot.say(embed=result)
+      await ctx.send(embed=result)
 
   @commands.command()
-  async def lmgtfy(self, *, search_terms : str):
+  async def lmgtfy(self, ctx, *, search_terms : str):
     """Creates a lmgtfy link"""
-    await self.bot.say(internet.lmgtfy(search_terms))
+    await ctx.send(internet.lmgtfy(search_terms))
 
 def setup(bot):
   bot.add_cog(Search(bot))

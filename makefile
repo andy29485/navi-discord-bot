@@ -1,11 +1,11 @@
-PYTHON36 := $(shell python3.6 --version 2> /dev/null)
+PYTHON36 := $(shell python3.7 --version 2> /dev/null)
 
-ifdef PYTHON36
-	PYTHON=python3.6
+ifdef PYTHON37
+	PYTHON=python3.7
 else
 	PYTHON3 := $(shell python3 --version 2> /dev/null)
 	ifdef PYTHON3
-		PYTHON=python3.6
+		PYTHON=python3
 	else
 		PYTHON=python
 	endif

@@ -90,11 +90,11 @@ colours = {
   'darker_grey' : discord.Colour.darker_grey()
 }
 
-def get_end_time(message, start_date=arrow.now):
+def get_end_time(message, start_date=arrow.now:
   # datetime -> arrow compatibility fix
+  if(callable(start_date)):
+    start_date = start_date()
   if type(start_date) != arrow.arrow.Arrow:
-    if(callable(start_date)):
-      start_date = start_date()
     start_date = arrow.get(start_date)
 
   datestrs  = []                     # list of matched strings
@@ -282,9 +282,9 @@ def get_user(server, search_param, function=None):
     - server nickname
   '''
   if hasattr(server, 'message'):  # if ctx was passed instead of a server
-    server = server.message.server
+    server = server.message.guild
   elif hasattr(server, 'server'): # if a message was passed instead of a server
-    server = server.server
+    server = server.guild
 
   if type(search_param) == int or re.match(r'\d+$', search_param):
     user = server.get_member(str(search_param))
@@ -328,9 +328,9 @@ def get_role(server, search_param, function=None):
     - role name
   '''
   if hasattr(server, 'message'):  # if ctx was passed instead of a server
-    server = server.message.server
+    server = server.message.guild
   elif hasattr(server, 'server'): # if a message was passed instead of a server
-    server = server.server
+    server = server.guild
 
   if type(search_param) == int:
     search_param = str(search_param)
@@ -356,9 +356,9 @@ def get_channel(server, search_param, function=None):
   chans = []
   if hasattr(server, 'message'):  # if ctx was passed instead of a server
     chans  = server.bot.get_all_channels()
-    server = server.message.server
+    server = server.message.guild
   elif hasattr(server, 'server'): # if a message was passed instead of a server
-    server = server.server
+    server = server.guild
 
   if type(search_param) == int or re.match(r'\d+$', search_param):
     search_param = str(search_param)

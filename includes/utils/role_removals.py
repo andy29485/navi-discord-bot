@@ -10,10 +10,10 @@ logger = logging.getLogger('navi.role_rm')
 class RoleRemove(heap.HeapNode):
   def __init__(self, end_time, role_id, auth_id, chan_id, serv_id):
     self.end_time= end_time
-    self.role_id = getattr(role_id, 'id', role_id)
-    self.serv_id = getattr(serv_id, 'id', serv_id)
-    self.auth_id = getattr(auth_id, 'id', auth_id)
-    self.chan_id = getattr(chan_id, 'id', chan_id)
+    self.role_id = str(getattr(role_id, 'id', role_id))
+    self.serv_id = str(getattr(serv_id, 'id', serv_id))
+    self.auth_id = str(getattr(auth_id, 'id', auth_id))
+    self.chan_id = str(getattr(chan_id, 'id', chan_id))
 
   @staticmethod
   def from_dict(dct):
@@ -60,14 +60,14 @@ class RoleRemove(heap.HeapNode):
         break
 
   async def end(self, bot):
-    serv = bot.get_server(      self.serv_id) # get server info
+    serv = bot.get_guild(       self.serv_id) # get server info
     auth = dh.get_user(   serv, self.auth_id) # get author info
     chan = dh.get_channel(serv, self.chan_id) # get channel info
     role = dh.get_role(   serv, self.role_id) # get role info
 
     # remove the role
-    await bot.remove_roles(auth, role)
+    await auth.remove_roles(role)
 
     # create a message, and report that role has been removed
     msg = f"{auth.mention}: role {role.name} has been removed"
-    await bot.send_message(chan, msg)
+    await chan.send(msg)

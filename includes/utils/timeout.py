@@ -16,10 +16,10 @@ class Timeout(heap.HeapNode):
     roles.insert(0, None)
 
     self.end_time   =  end_time
-    self.channel_id =  getattr(chan,    'id',  chan)
-    self.server_id  =  getattr(serv,    'id',  serv)
-    self.user_id    =  getattr(user,    'id',  user)
-    self.roles      = [getattr(role,    'id',  role)
+    self.channel_id =  str(getattr(chan,    'id',  chan))
+    self.server_id  =  str(getattr(serv,    'id',  serv))
+    self.user_id    =  str(getattr(user,    'id',  user))
+    self.roles      = [str(getattr(role,    'id',  role))
            for role in getattr(user, 'roles', roles)
     ]
 
@@ -72,7 +72,7 @@ class Timeout(heap.HeapNode):
     '''
     # set end_time to proper time upon start of timeout
     self.end_time += time.time()
-    serv   = bot.get_server(self.server_id)
+    serv   = bot.get_guild(self.server_id)
     chan   = dh.get_channel(serv, self.channel_id)
     member = dh.get_user(serv, self.user_id)
 
@@ -86,15 +86,13 @@ class Timeout(heap.HeapNode):
     # if timeout_role does not exist, create it
     if not timeout_role:
       p = discord.Permissions.none()
-      to_role = await bot.create_role(server,            name='timeout',
-                                      hoist=True,        permissions=p,
-                                      mentionable=False,
-                                      colour=discord.Colour.dark_red()
+      to_role = await server.create_role(
+                name='timeout', mentionable=False,
+                hoist=True,     permissions=p,
+                colour=discord.Colour.dark_red()
       )
       if not to_role: # if it could not be created, stop
-        await bot.send_message(chan,
-                              'no `timeout` role found/unable to create it'
-        )
+        await chan.send('no `timeout` role found/unable to create it')
         return
 
     # permission objects:
@@ -117,17 +115,21 @@ class Timeout(heap.HeapNode):
     # dissable access to all channels for timeout_role
     #   this is done each time in case a new channel gets created/modified/etc.
     for chan in serv.channels:
-      await bot.edit_channel_permissions(chan, to_role, po1)
+      await chan.set_permissions(to_role, overwrite=po1)
 
     # create channel if needed
     # set permissions:
     #   p1 - normal users(not in timeout) - cannot read
     #   p2 - timeout_role(not in timeout) - can read/send
     if not to_chan:
-      p1 = discord.ChannelPermissions(target=server.default_role, overwrite=po1)
-      p2 = discord.ChannelPermissions(target=to_role,             overwrite=po2)
-      to_chan = await self.bot.create_channel(server, 'timeout_room', p1, p2)
-    await bot.edit_channel_permissions(to_chan, bot.user, po3)
+      overwrites = {
+        server.default_role: po1,
+        to_role:             po2,
+      }
+      to_chan = await server.create_text_channel(
+            'timeout_room', overwrites=overwrites
+      )
+    await to_chan.set_permissions(bot.user, overwrite=po3)
 
     # format message
     message = '{}: you are now under a {} second timeout'.format(
@@ -135,14 +137,14 @@ class Timeout(heap.HeapNode):
                 time
     )
     # remove current roles, and apply timout role, then send message
-    await self.bot.replace_roles(member, to_role)
-    await asyncio.sleep(1) # wait so that the user does not get a notification
-    await self.bot.send_message(chan, message) # in a chan they can't access
+    await member.edit(roles=to_role)
+    await asyncio.sleep(1)  # wait so that the user does not get a notification
+    await chan.send(message)# in a chan they can't access
 
     # send message to the channel where the timeout request was made
     if to_chan and to_chan != chan:
       try:
-        await self.bot.send_message(to_chan, message)
+        await to_chan.send(message)
       except:
         pass
 
@@ -151,15 +153,13 @@ class Timeout(heap.HeapNode):
     Ends the timeout associated with this object
     '''
     # get data objects
-    serv   = bot.get_server(self.server_id)
+    serv   = bot.get_guild(self.server_id)
     chan   = dh.get_channel(serv, self.channel_id)
     member = dh.get_user(serv, self.user_id)
     roles  = [dh.get_role(dh, role_id) for role_id in self.roles]
 
     # restore perms and notify user
-    await bot.replace_roles(member, *roles)
-    await bot.send_message(chan,
-          '{}: your time out is up, permissions restored'.format(
-            member.mention
-          )
-    )
+    await member.edit(roles=roles)
+    await chan.send('{}: your time out is up, permissions restored'.format(
+        member.mention
+    ))

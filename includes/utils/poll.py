@@ -14,7 +14,7 @@ class Poll(heap.HeapNode):
   def __init__(self, question, opts, channel, sleep, timeout=0):
     self.options    = {}
     self.question   = question
-    self.channel_id = getattr(channel, 'id', channel)
+    self.channel_id = str(getattr(channel, 'id', channel))
     self.end_time   = timeout if timeout else sleep + time.time()
 
     for opt in opts:
@@ -59,16 +59,16 @@ class Poll(heap.HeapNode):
 
   async def end(self, bot):
     chan = bot.get_channel(self.channel_id)
-    await bot.send_message(chan, formatter.escape_mentions(self.results()))
+    await chan.send(formatter.escape_mentions(self.results()))
 
   def vote(self, user : discord.User, message):
     v = False
     for i in self.options:
       if not v and re.search(r'(?i)\b{}\b'.format(i), message):
-        self.options[i].add(user.id)
+        self.options[i].add(str(user.id))
         v = True
-      elif user.id in self.options[i]:
-        self.options[i].remove(user.id)
+      elif str(user.id) in self.options[i]:
+        self.options[i].remove(str(user.id))
 
   def results(self):
     out = ''

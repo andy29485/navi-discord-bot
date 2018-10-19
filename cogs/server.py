@@ -43,7 +43,7 @@ class Server:
       heap.push(rem)
 
   @perms.pm_or_perms(manage_messages=True)
-  @commands.command(name='prune', pass_context=True)
+  @commands.command(name='prune')
   async def _prune(self, ctx, num_to_delete : int, *message):
     """
     deletes specified number of messages from channel
@@ -56,13 +56,13 @@ class Server:
     """
     # tmp channel/server pointer
     chan = ctx.message.channel
-    serv = ctx.message.server
+    serv = ctx.message.guild
 
     #if num_to_delete > 100:                       # api only allows up to 100
-    #  await self.bot.say('Sorry, only up to 100') # TODO - copy thing done in
+    #  await ctx.send('Sorry, only up to 100') # TODO - copy thing done in
     #  return                                      #        self._paste
     if num_to_delete < 1:                         # delete nothing?
-      await self.bot.say('umm... no')             #  answer: no
+      await ctx.send('umm... no')             #  answer: no
       return
 
     # if the first word in the message matches a user,
@@ -78,12 +78,12 @@ class Server:
     check = lambda m: True
     if user: # if a user was matched, delete messages for that user only
       logger.debug(f'pruning for user {user.name}')
-      check = lambda m: m.author.id == user.id
+      check = lambda m: str(m.author.id) == str(user.id)
 
     message = ' '.join(message) #make the message a string
 
     logs = []
-    async for m in self.bot.logs_from(chan, num_to_delete, reverse=True):
+    async for m in chan.history(limit=num_to_delete, reverse=True):
       if check(m):
         logs.append(m)
 
@@ -93,22 +93,22 @@ class Server:
       if len(logs) > 1:      #   if more than one left to delete and not old,
         if not old:          #     attempt batch delete [2-100] messages
           try:
-            await self.bot.delete_messages(logs[:100])
+            await chan.delete_messages(logs[:100])
           except:            #   if problem when batch deleting
             old = True       #     then the messages must be old
         if old:              # if old, traverse and delete individually
           for entry in logs[:100]:
             try:
-              await self.bot.delete_message(entry)
+              await entry.delete()
             except:
               logger.exception('<{0.author.name}> {0.content}'.format(entry))
         logs = logs[100:]
       else:                   # if only one message, delete individually
-        await self.bot.delete_message(logs[0])
+        await logs[0].delete()
         logs.remove(logs[0])
 
     #report that prume was complete, how many were prunned, and the message
-    await self.bot.say(ok('Deleted {} message{} {}'.format(
+    await ctx.send(ok('Deleted {} message{} {}'.format(
                              deleted,
                              ''             if deleted == 1 else 's',
                              f'({message})' if message      else ''
@@ -116,8 +116,7 @@ class Server:
                          )
     )
 
-  @commands.group(name='role', aliases=['give', 'giveme', 'gimme'],
-                  pass_context=True)
+  @commands.group(name='role', aliases=['give', 'giveme', 'gimme'])
   async def _role(self, ctx):
     """
     Manage publicly available roles
@@ -126,7 +125,7 @@ class Server:
     if ctx.invoked_subcommand is None:
       msg = ctx.message.content.split() # attempt to parse args
       if len(msg) < 2:
-        await self.bot.say('see help (`.help role`)')
+        await ctx.send('see help (`.help role`)')
         return
       role = msg[1]
       date = ' '.join(msg[2:])
@@ -140,31 +139,32 @@ class Server:
       #if the user does have permission to manage, they must be an admin/mod
       #  ask them what they want to do - since they clearly did not know what
       #  they were trying to do
-      await self.bot.say('Are you trying to [a]dd a new role ' + \
+      await ctx.send('Are you trying to [a]dd a new role ' + \
                          'or are you [r]equesting this role for yourself?'
       )
       try: # wait for them to reply
-        msg = await self.bot.wait_for_message(30, author=ctx.message.author,
-                                                  channel=ctx.message.channel
-        )
+        def check(m):
+          return m.author == ctx.message.author and \
+                 m.channel == ctx.message.channel
+        msg = await self.bot.wait_for('message', timeout=30, check=check)
       except: # if they do not reply, give them a helpful reply
             #   without commenting on their IQ
-        await self.bot.say(error('Response timeout, maybe look at the help?'))
+        await ctx.send(error('Response timeout, maybe look at the help?'))
         return
       # if a reply was recived, check what they wanted to do and pass along
       msg = msg.content.lower()
       if msg.startswith('a') or 'add' in msg:       # adding new role to list
         await self._add_wrap(ctx, role)
         reply = f"Please run `.role request {role}` to get the \"{role}\" role"
-        await self.bot.say(reply)
+        await ctx.send(reply)
       elif msg.startswith('r') or 'request' in msg: # requesting existing role
         await self._request_wrap(ctx, role, date)
       else:                                         # they can't read
-        await self.bot.say(error('I have no idea what you are attempting' + \
+        await ctx.send(error('I have no idea what you are attempting' + \
                                  ' to do, maybe look at the help?')
         )
 
-  @_role.command(name='add', aliases=['create', 'a'], pass_context=True)
+  @_role.command(name='add', aliases=['create', 'a'])
   @perms.has_perms(manage_roles=True)
   async def _add(self, ctx, role : str):
     """
@@ -172,21 +172,21 @@ class Server:
     """
     await self._add_wrap(ctx, role)
 
-  @_role.command(name='list', aliases=['ls', 'l'], pass_context=True)
+  @_role.command(name='list', aliases=['ls', 'l'])
   async def _list(self, ctx):
     """
     lists public roles avalible in the server
     """
 
     # pull roles out of the config file
-    serv            = ctx.message.server
+    serv            = ctx.message.guild
     names           = []
     m_len           = 0
-    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
+    available_roles = self.conf.get(str(serv.id), {}).get('pub_roles', [])
 
     # if no roles, say so
     if not available_roles:
-      await self.bot.say('no public roles in this server\n' + \
+      await ctx.send('no public roles in this server\n' + \
                          ' see `.help role create` and `.help role add`'
       )
       return
@@ -197,7 +197,7 @@ class Server:
     # Note: this block also finds the strlen of the longest role name,
     #       this will be used later for formatting
     for role_id in available_roles:
-      role = discord.utils.find(lambda r: r.id == role_id, serv.roles)
+      role = discord.utils.find(lambda r: str(r.id) == role_id, serv.roles)
       if role:
         names.append(role.name)
         m_len = max(m_len, len(role.name))
@@ -211,9 +211,9 @@ class Server:
       msg += line.format(name, rid)
 
     # send message with role list
-    await self.bot.say(msg+'```')
+    await ctx.send(msg+'```')
 
-  @_role.command(name='remove', aliases=['rm'], pass_context=True)
+  @_role.command(name='remove', aliases=['rm'])
   @perms.has_perms(manage_roles=True)
   async def _delete(self, ctx, role : str):
     """
@@ -221,67 +221,71 @@ class Server:
     """
 
     # attempt to find specified role and get list of roles in server
-    serv            = ctx.message.server
-    role            = dh.get_role(serv, role)
-    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
+    serv     = ctx.message.guild
+    role     = dh.get_role(serv, role)
+    guild_id = str(serv.id)
+    role_id  = str(role.id)
+    available_roles = self.conf.get(guild_id, {}).get('pub_roles', [])
 
     # if user failed to specify role, complain
     if not role:
-      await self.bot.say('Please specify a valid role')
+      await ctx.send('Please specify a valid role')
       return
 
-    if serv.id not in self.conf:
-      self.conf[serv.id] = {'pub_roles':[]}
+    if guild_id not in self.conf:
+      self.conf[guild_id] = {'pub_roles':[]}
       self.conf.save()
-    elif 'pub_roles' not in self.conf[serv.id]:
-      self.conf[serv.id]['pub_roles'] = []
+    elif 'pub_roles' not in self.conf[guild_id]:
+      self.conf[guild_id]['pub_roles'] = []
       self.conf.save()
 
-    if role.id in available_roles: # if role is found, remove and report
-      self.conf[serv.id]['pub_roles'].remove(role.id)
+    if role_id in available_roles: # if role is found, remove and report
+      self.conf[guild_id]['pub_roles'].remove(guild_id)
       self.conf.save()
-      await self.bot.say(ok('role removed from public list'))
+      await ctx.send(ok('role removed from public list'))
     else:                          # if role is not in server, just report
-      await self.bot.say(error('role is not in the list'))
+      await ctx.send(error('role is not in the list'))
 
-  @_role.command(name='request', aliases=['r'], pass_context=True)
+  @_role.command(name='request', aliases=['r'])
   async def _request(self, ctx, role : str, date : str = ''):
     """
     adds role to requester(if in list)
     """
     await self._request_wrap(ctx, role, date)
 
-  @_role.command(name='unrequest', aliases=['rmr', 'u'], pass_context=True)
+  @_role.command(name='unrequest', aliases=['rmr', 'u'])
   async def _unrequest(self, ctx, role : str):
     """removes role from requester(if in list)"""
 
     # attempt to find role that user specied for removal
     auth = ctx.message.author
-    serv = ctx.message.server
+    serv = ctx.message.guild
     role = dh.get_role(serv, role)
+    guild_id = str(serv.id)
+    role_id  = str(role.id)
 
     # if user failed to find specify role, complain
     if not role:
-      await self.bot.say('Please specify a valid role')
+      await ctx.send('Please specify a valid role')
       return
 
     # get a list of roles that are listed as public and the user roles
-    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
-    user_roles      = discord.utils.find(lambda r: r.id == role.id, auth.roles)
+    available_roles = self.conf.get(guild_id, {}).get('pub_roles', [])
+    user_roles = discord.utils.find(lambda r: str(r.id) == role_id, auth.roles)
 
     # ONLY remove roles if they are in the public roles list
     # Unless there is no list,
     #   in which case any of the user's roles can be removed
-    if role.id in available_roles or user_roles:
-      await self.bot.remove_roles(auth, role)
-      await self.bot.say(ok('you no longer have that role'))
+    if role_id in available_roles or user_roles:
+      await auth.remove_roles(role)
+      await ctx.send(ok('you no longer have that role'))
     else:
-      await self.bot.say(error('I\'m afraid that I can\'t remove that role'))
+      await ctx.send(error('I\'m afraid that I can\'t remove that role'))
 
 
   # wrapper function for adding roles to public list
   async def _add_wrap(self, ctx, role):
-    serv = ctx.message.server
+    serv = ctx.message.guild
 
     # find the role,
     # if it is not found, create a new role
@@ -289,66 +293,77 @@ class Server:
     if type(role) != discord.Role:
       role = dh.get_role(serv, role_str)
     if not role:
-      role = await self.bot.create_role(serv, name=role_str, mentionable=True)
-      await self.bot.say(ok(f'New role created: {role_str}'))
+      role = await serv.create_role(name=role_str, mentionable=True)
+      await ctx.send(ok(f'New role created: {role_str}'))
 
     # if still no role, report and stop
     if not role:
-      await self.bot.say(error("could not find or create role role"))
+      await ctx.send(error("could not find or create role role"))
       return
+
+    guild_id = str(serv.id)
+    role_id  = str(role.id)
 
     # The @everyone role (also @here iiuc) cannot be given/taken
     if role.is_everyone:
-      await self.bot.say(error('umm... no'))
+      await ctx.send(error('umm... no'))
       return
 
-    if serv.id not in self.conf: # if server does not have a list yet create it
-      self.conf[serv.id] = {'pub_roles': [role.id]}
-    elif 'pub_roles' not in self.conf[serv.id]:   # if list is corruptted
-      self.conf[serv.id]['pub_roles'] = [role.id] # fix it
-    elif role.id in self.conf[serv.id]['pub_roles']: # if role is already there
-      await self.bot.say('role already in list')     #   report and stop
+    if guild_id not in self.conf: # if server does not have a list yet create it
+      self.conf[guild_id] = {'pub_roles': [role_id]}
+    elif 'pub_roles' not in self.conf[guild_id]:   # if list is corruptted
+      self.conf[guild_id]['pub_roles'] = [role_id] # fix it
+    elif role_id in self.conf[guild_id]['pub_roles']: # if role is already there
+      await ctx.send('role already in list')     #   report and stop
       return
     else: # otherwise add it to the list and end
-      self.conf[serv.id]['pub_roles'].append(role.id)
+      self.conf[guild_id]['pub_roles'].append(role_id)
 
     # save any changes to config file, and report success
     self.conf.save()
-    await self.bot.say(ok('role added to public role list'))
+    await ctx.send(ok('role added to public role list'))
 
   # wrapper function for getting roles that are on the list
   async def _request_wrap(self, ctx, role, date = ''):
     auth = ctx.message.author
     chan = ctx.message.channel
-    serv = ctx.message.server
+    serv = ctx.message.guild
 
     # attempt to find the role if a string was given,
     #   if not found, stop
     if type(role) != discord.Role:
       role = dh.get_role(serv, role)
     if not role:
-      await self.bot.say(error("could not find role, ask a mod to create it"))
+      await ctx.send(error("could not find role, ask a mod to create it"))
       return
 
     # get list of public roles
-    available_roles = self.conf.get(serv.id, {}).get('pub_roles', [])
+    available_roles = self.conf.get(guild_id, {}).get('pub_roles', [])
+    role_id  = str(role.id)
+    guild_id = str(serv.id)
 
-    if role.id in available_roles:         # if role is a public role,
-      await self.bot.add_roles(auth, role) #   give it
-      await self.bot.say(ok('you now have that role'))
+    if role_id in available_roles:         # if role is a public role,
+      await auth.add_roles(role)           #   give it
+      await ctx.send(ok('you now have that role'))
     else:                                  # otherwise don't
-      await self.bot.say(error('I\'m afraid that I can\'t give you that role'))
+      await ctx.send(error('I\'m afraid that I can\'t give you that role'))
       return
 
     if date: # if a timeout was specified
       end_time = dh.get_end_time(date)[0]
-      role_end = RoleRemove(end_time, role.id, auth.id, chan.id, serv.id)
+      role_end = RoleRemove(
+        end_time,
+        role_id,
+        str(auth.id),
+        str(chan.id),
+        guild_id
+      )
 
       self.bot.get_cog('HeapCog').push(role_end)
       await role_end.begin(self.bot)
 
   @perms.pm_or_perms(manage_messages=True)
-  @commands.command(name='cut', pass_context=True)
+  @commands.command(name='cut')
   async def _cut(self, ctx, cut : str, skip : str = ''):
     '''
     cuts num_to_cut messages from the current channel
@@ -370,55 +385,55 @@ class Server:
     see .paste
     '''
     #if num_to_cut > 100:
-    #  await self.bot.say('Sorry, only up to 100')
+    #  await ctx.send('Sorry, only up to 100')
     #  return
     in_id = re.search('^id:(\\d+)$',  cut)
     in_re = re.search('^(\d+):(.+)$', cut)
     if in_id:
-      cut = await self.bot.get_message(ctx.message.channel, in_id.group(1))
+      cut = await ctx.message.channel.get_message(int(in_id.group(1)))
     elif in_re:
       cut   = int(in_re.group(1))
       in_re = re.compile(in_re.group(2))
     elif re.search('^\d+$', cut):
       cut = int(cut)
     else:
-      await self.bot.say(error('bad cut parameter'))
+      await ctx.send(error('bad cut parameter'))
       return
 
     skip_id = re.search('^id:(\\d+)$',  skip)
     skip_re = re.search('^(\d+):(.+)$', skip)
     if skip_id:
-      skip = await self.bot.get_message(ctx.message.channel, skip_id.group(1))
+      skip = await ctx.message.channel.get_message(int(skip_id.group(1)))
     elif skip_re:
       skip   = int(skip_re.group(1))
       skip_re = re.compile(skip_re.group(2))
     elif not skip or re.search('^\d+$', skip):
       skip = int(skip or '0')
     else:
-      await self.bot.say(error('bad skip parameter'))
+      await ctx.send(error('bad skip parameter'))
       return
 
     if not cut or (type(cut) == int and cut < 1): # can't cut no messages
-      await self.bot.say('umm... no')
+      await ctx.send('umm... no')
       return
 
     # store info in easier to access variables
-    aid  = ctx.message.author.id
     chan = ctx.message.channel
-    cid  = chan.id
     bef  = ctx.message.timestamp
+    aid  = str(ctx.message.author.id)
+    cid  = str(chan.id)
 
     # delete the original `.cut` message(not part of cutting)
     # also sorta serves as confirmation that messages have been cut
-    await self.bot.delete_message(ctx.message)
+    await ctx.message.delete()
 
     # if messages should be skipped when cutting
     # save the timestamp of the oldest message
     if skip:
       if type(skip) == int:
-        run = lambda : self.bot.logs_from(chan, skip, reverse=True)
+        run = lambda : chan.history(limit=skip, reverse=True)
       else:
-        run = lambda : self.bot.logs_from(chan, after=skip, reverse=True)
+        run = lambda : chan.history(after=skip, reverse=True)
 
       async for m in run():
         if skip_re and not skip_re.search(m.content):
@@ -430,9 +445,9 @@ class Server:
     #store true in position 0 of list if channel is a nsfw channel
     logs = ['nsfw' in chan.name.lower()]
     if type(cut) == int:
-      run = lambda : self.bot.logs_from(chan,cut,before=bef,reverse=True)
+      run = lambda : chan.history(limit=cut, before=bef, reverse=True)
     else:
-      run = lambda : self.bot.logs_from(chan,after=cut,before=bef,reverse=True)
+      run = lambda : chan.history(after=cut, before=bef, reverse=True)
 
     async for m in run():
       if in_re and in_re.search(m.content):
@@ -445,7 +460,7 @@ class Server:
     self.cut[aid] = logs
 
   @perms.has_perms(manage_messages=True)
-  @commands.command(name='paste', pass_context=True)
+  @commands.command(name='paste')
   async def _paste(self, ctx):
     '''
     paste cutted messages to current channel
@@ -455,20 +470,20 @@ class Server:
     see .cut
     '''
     # get messages that were cut and other variables
-    aid  = ctx.message.author.id
+    aid  = str(ctx.message.author.id)
     chan = ctx.message.channel
     logs = self.cut.pop(aid, [])
 
     # if nothing was cut, stop
     if not logs:
-      await self.bot.say('You have not cut anything')
+      await ctx.send('You have not cut anything')
       return
 
     # it messages were cut in a nsfw channel,
     #   do not paste unless this is a nsfw channel
     # NOTE: cutting/pasting to/from PMs is not possible(for now)
     if logs[0] and 'nsfw' not in chan.name.lower():
-      await self.bot.say('That which hath been cut in nsfw, ' + \
+      await ctx.send('That which hath been cut in nsfw, ' + \
                          'mustn\'t be pasted in such a place'
       )
       return
@@ -477,7 +492,7 @@ class Server:
     logs = logs[1:]
 
     # delete the `.paste` message
-    await self.bot.delete_message(ctx.message)
+    await ctx.message.delete()
 
     # compress the messages - many messages can be squished into 1 big message
     # but ensure that output messages do not exceede the discord message limit
@@ -522,9 +537,9 @@ class Server:
     for mes in out:
       if type(mes) == str:
         if mes:
-          await self.bot.say(mes)
+          await ctx.send(mes)
       else:                                   # if it's an embed, n
-        await self.bot.say(embed=EmWrap(mes)) #   it needs to be wrapped
+        await ctx.send(embed=EmWrap(mes)) #   it needs to be wrapped
 
     # once all messages have been pasted, delete(since cut) the old ones
 
@@ -534,22 +549,22 @@ class Server:
       if len(logs) > 1:      #   if more than one left to delete and not old,
         if not old:          #     attempt batch delete [2-100] messages
           try:
-            await self.bot.delete_messages(logs[:100])
+            await chan.delete_messages(logs[:100])
           except:            #   if problem when batch deleting
             old = True       #     then the messages must be old
         if old:              # if old, traverse and delete individually
           for entry in logs[:100]:
-            await self.bot.delete_message(entry)
+            await entry.delete()
         logs = logs[100:]
       else:                   # if only one message, delete individually
-        await self.bot.delete_message(logs[0])
+        await logs[0].delete()
         logs.remove(logs[0])
 
     # remove cut entry from dict of cuts
     if aid in self.cut:
       del self.cut[aid]
 
-  @commands.command(name='topic', pass_context=True)
+  @commands.command(name='topic')
   async def _topic(self, ctx, *, new_topic = ''):
     """manage topic
 
@@ -564,23 +579,23 @@ class Server:
       #   change it if user has the permisssions to do so
       #   or tell user that they can't do that
       if perms.check_permissions(ctx.message, manage_channels=True):
-        await self.bot.edit_channel(c, topic = new_topic)
-        await self.bot.say(ok('Topic for #{} has been changed'.format(c.name)))
+        await c.edit(topic = new_topic)
+        await ctx.send(ok('Topic for #{} has been changed'.format(c.name)))
       else:
-        await self.bot.say(
+        await ctx.send(
            error('You cannot change the topic for #{}'.format(c.name))
         )
     elif c.topic:
       # if no topic has been passed,
       #   say the topic
-      await self.bot.say('Topic for #{}: `{}`'.format(c.name, c.topic))
+      await ctx.send('Topic for #{}: `{}`'.format(c.name, c.topic))
     else:
       # if not topic in channel,
       #   say so
-      await self.bot.say('#{} has no topic'.format(c.name))
+      await ctx.send('#{} has no topic'.format(c.name))
 
   @perms.has_perms(manage_roles=True)
-  @commands.command(name='timeout_send', aliases=['ts'], pass_context=True)
+  @commands.command(name='timeout_send', aliases=['ts'])
   async def _timeout_send(self, ctx, member: discord.Member, time: float = 300):
     """puts a member in timeout for a duration(default 5 min)
 
@@ -589,26 +604,26 @@ class Server:
     heap = self.bot.get_cog('HeapCog')
     if not perms.is_owner() and \
       ctx.message.author.server_permissions < member.server_permissions:
-      await self.bot.say('Can\'t send higher ranking members to timeout')
+      await ctx.send('Can\'t send higher ranking members to timeout')
       return
 
-    server  = ctx.message.server
+    server  = ctx.message.guild
     channel = ctx.message.channel
 
     if perms.in_group('timeout') and not perms.is_owner():
-      await self.bot.say('You\'re in timeout... No.')
+      await ctx.send('You\'re in timeout... No.')
       return
 
-    if not ctx.message.server:
-      await self.bot.say('not in a server at the moment')
+    if not ctx.message.guild:
+      await ctx.send('not in a server at the moment')
       return
 
     if time < 10:
-      await self.bot.say('And what would the point of that be?')
+      await ctx.send('And what would the point of that be?')
       return
 
     if time > 10000:
-      await self.bot.say('Too long, at this point consider banning them')
+      await ctx.send('Too long, at this point consider banning them')
       return
 
     criteria = lambda m: re.search('(?i)^time?[ _-]?out.*', m.name)
@@ -625,7 +640,7 @@ class Server:
         if obj == timeout_obj:
           heap.pop(index)
           break
-      await self.bot.say(
+      await ctx.send(
         'There was an error sending {}\'s to timeout \n({}{}\n)'.format(
           member.name,
           '\n  - do I have permission to manage roles(and possibly channels)?',
@@ -637,25 +652,25 @@ class Server:
       #raise
 
   @perms.has_perms(manage_roles=True)
-  @commands.command(name='timeout_end', aliases=['te'], pass_context=True)
+  @commands.command(name='timeout_end', aliases=['te'])
   async def _timeout_end(self, ctx, member: discord.Member):
     """removes a member from timeout
 
     usage `.timeout end @member`
     """
-    server  = ctx.message.server
+    server  = ctx.message.guild
     channel = ctx.message.channel
 
     if perms.in_group('timeout') and not perms.is_owner():
-      await self.bot.say('You\'re in timeout... No.')
+      await ctx.send('You\'re in timeout... No.')
       return
 
-    if not ctx.message.server:
-      await self.bot.say('not in a server at the moment')
+    if not ctx.message.guild:
+      await ctx.send('not in a server at the moment')
       return
 
     # test timeout object for comparison
-    test  = namedtuple({'server_id':server.id, 'user_id':member.id})
+    test  = namedtuple({'server_id':str(server.id), 'user_id':str(member.id)})
     index = 0 # inext is used to more efficently pop from heap
 
     # error message in case ending timeout fails
@@ -672,11 +687,11 @@ class Server:
         try:
           await timeout.end(self.bot, index)  #     attempt to end
         except:
-          await self.bot.say(error_msg)       #     if error when ending, report
+          await ctx.send(error_msg)       #     if error when ending, report
         return
       index += 1                              #   not found increment index
     else:                                     # not found at all, report
-      await self.bot.say('{} is not in timeout...'.format(member.name))
+      await ctx.send('{} is not in timeout...'.format(member.name))
       return
 
   # checks timeouts and restores perms when timout expires

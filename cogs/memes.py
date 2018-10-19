@@ -2,6 +2,7 @@
 
 import re
 import asyncio
+import discord
 import logging
 import os.path
 import tempfile
@@ -179,7 +180,7 @@ class MemeGenerator:
 
     self.meme.__dict__['help'] = doc
 
-  @commands.command(pass_context=True, aliases=['memes'])
+  @commands.command(aliases=['memes'])
   async def meme(self, ctx, *, text : str):
     """
     Adds text to images
@@ -195,10 +196,10 @@ class MemeGenerator:
     cfg = self.conf.get('memes', {}).get(name, None)
 
     if not cfg:
-      await self.bot.say(error('Could not find image'))
+      await ctx.send(error('Could not find image'))
       return
     if not text:
-      await self.bot.say(error('Are you trying to get an empty image?'))
+      await ctx.send(error('Are you trying to get an empty image?'))
       return
 
     temp = tempfile.NamedTemporaryFile(suffix=".png")
@@ -210,7 +211,7 @@ class MemeGenerator:
 
     write_image(text, temp.name, **cfg)
 
-    await self.bot.send_file(ctx.message.channel, temp.name)
+    await ctx.send(file=discord.File(temp.name))
 
     temp.close()
 

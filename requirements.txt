@@ -1,4 +1,4 @@
-discord.py[voice]
+https://github.com/Rapptz/discord.py/archive/rewrite.zip#egg=discord.py[voice]
 apng
 arrow
 GitPython
@@ -12,3 +12,4 @@ monthdelta
 embypy>=0.3.2.0
 matplotlib
 networkx
+Pillow

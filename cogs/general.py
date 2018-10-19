@@ -37,33 +37,35 @@ class General:
 
 
   @commands.command(hidden=True)
-  async def ping(self):
+  async def ping(self, ctx):
     """Pong."""
-    await self.bot.say("Pong.")
+    await ctx.send("Pong.")
 
-  @commands.command(pass_context=True)
+  @commands.command()
   async def time(self, ctx, first=''):
     '''remind people to hurry up'''
-    say = lambda msg: self.bot.send_message(ctx.message.channel, msg)
+    say = lambda msg: ctx.message.channel.send_message(msg)
     if random.randrange(50) or not first.startswith('@'):
       now = datetime.now().replace(microsecond=0)
       await say(now.isoformat().replace('T', ' '))
     else:
-      await self.bot.send_typing(ctx.message.channel)
+      await ctx.message.channel.trigger_typing()
       await asyncio.sleep(1.2)
       await say('ゲネラルリベラル')
+      await ctx.message.channel.trigger_typing()
       await asyncio.sleep(0.4)
       await say('デフレイスパイラル')
+      await ctx.message.channel.trigger_typing()
       await asyncio.sleep(0.5)
       await say('ナチュラルミネラル')
+      await ctx.message.channel.trigger_typing()
       await asyncio.sleep(0.2)
       await say('さあお出で' + (': '+first if first else ''))
 
-  @commands.command(pass_context=True)
+  @commands.command()
   async def invite(self, ctx):
     '''reply with a link that allows this bot to be invited'''
-    await self.bot.send_message(
-      ctx.message.channel,
+    await ctx.message.channel.send_message(
       f'https://discordapp.com/oauth2/authorize?client_id={self.bot.user.id}'+
       '&permissions=305260592&scope=bot'
     )
@@ -115,10 +117,10 @@ class General:
           rep = rep.replace(j, random.choice(j[1:-1].split("|")))
         msg = re.sub("(?i){}".format(i[0]), rep, message.content)
         if rep:
-          await self.bot.send_message(message.channel, msg)
+          await message.channel.send_message(msg)
         return
 
-  @commands.command(name='roll', aliases=['r', 'clench'], pass_context=True)
+  @commands.command(name='roll', aliases=['r', 'clench'])
   async def _roll(self, ctx, *dice):
     """rolls dice given pattern [Nd]S[(+|-)C]
 
@@ -135,20 +137,20 @@ class General:
       message += code(roll + f'\nTotal: {total}')
     else:
       message += inline(roll)
-    await self.bot.say(message)
+    await ctx.send(message)
 
   @commands.command(name="8ball", aliases=["8"])
-  async def _8ball(self, *, question : str):
+  async def _8ball(self, ctx, *, question : str):
     """Ask 8 ball a question
 
     Question must end with a question mark.
     """
     if question.endswith("?") and question != "?":
-      await self.bot.say("`" + random.choice(self.conf['8-ball']) + "`")
+      await ctx.send("`" + random.choice(self.conf['8-ball']) + "`")
     else:
-      await self.bot.say("That doesn't look like a question.")
+      await ctx.send("That doesn't look like a question.")
 
-  @commands.group(aliases=['t', 'td'], pass_context=True)
+  @commands.group(aliases=['t', 'td'])
   async def todo(self, ctx):
     '''
     manages user TODO list
@@ -157,59 +159,59 @@ class General:
     if ctx.invoked_subcommand is None:
       await self._td_list(ctx)
 
-  @todo.command(name='list', aliases=['l', 'ls'], pass_context=True)
+  @todo.command(name='list', aliases=['l', 'ls'])
   async def _td_list_wp(self, ctx):
     '''
     prints your complete todo list
     '''
     await self._td_list(ctx)
 
-  @todo.command(name='add', aliases=['a', 'insert', 'i'], pass_context=True)
+  @todo.command(name='add', aliases=['a', 'insert', 'i'])
   async def _td_add(self, ctx, *, task : str):
     '''
     adds a new task to your todo list
     '''
-    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    todos = self.conf['todo'].get(str(ctx.message.author.id), [])
     todos.append([False, task])
-    self.conf['todo'][ctx.message.author.id] = todos
+    self.conf['todo'][str(ctx.message.author.id)] = todos
     self.conf.save()
-    await self.bot.say(ok())
+    await ctx.send(ok())
 
-  @todo.command(name='done', aliases=['d', 'complete', 'c'], pass_context=True)
+  @todo.command(name='done', aliases=['d', 'complete', 'c'])
   async def _td_done(self, ctx, *, index : int):
     '''
     sets/unsets a task as complete
     Note: indicies start at 1
     '''
-    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    todos = self.conf['todo'].get(str(ctx.message.author.id), [])
     if len(todos) < index or index <= 0:
-      await self.bot.say(error('Invalid index'))
+      await ctx.send(error('Invalid index'))
     else:
       index -= 1
       todos[index][0] = not todos[index][0]
-      self.conf['todo'][ctx.message.author.id] = todos
+      self.conf['todo'][str(ctx.message.author.id)] = todos
       self.conf.save()
-      await self.bot.say(ok())
+      await ctx.send(ok())
 
-  @todo.command(name='remove', aliases=['rem', 'rm', 'r'], pass_context=True)
+  @todo.command(name='remove', aliases=['rem', 'rm', 'r'])
   async def _td_remove(self, ctx, *, index : int):
     '''
     remove a task from your todo list
     Note: indicies start at 1
     '''
-    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    todos = self.conf['todo'].get(str(ctx.message.author.id), [])
     if len(todos) < index or index <= 0:
-      await self.bot.say(error('Invalid index'))
+      await ctx.send(error('Invalid index'))
     else:
       task = todos.pop(index - 1)
-      self.conf['todo'][ctx.message.author.id] = todos
+      self.conf['todo'][str(ctx.message.author.id)] = todos
       self.conf.save()
-      await self.bot.say(ok('Removed task #{}'.format(index)))
+      await ctx.send(ok('Removed task #{}'.format(index)))
 
   async def _td_list(self, ctx):
-    todos = self.conf['todo'].get(ctx.message.author.id, [])
+    todos = self.conf['todo'].get(str(ctx.message.author.id), [])
     if not todos:
-      await self.bot.send_message(ctx.message.channel, 'No TODOs found.')
+      await ctx.message.channel.send_message('No TODOs found.')
     else:
       #TODO - ensure that the outgoing message is not too long
       msg     = 'TODO:\n'
@@ -221,24 +223,22 @@ class General:
           msg += done.format(i, todo[1])
         else:
           msg += working.format(i, todo[1])
-      await self.bot.send_message(ctx.message.channel, msg)
+      await ctx.message.channel.send_message(msg)
 
-  @commands.group(aliases=["sw"], pass_context=True)
+  @commands.group(aliases=["sw"])
   async def stopwatch(self, ctx):
     """
     manages user stopwatch
     starts/stops/unpauses (depending on context)
     """
     if ctx.invoked_subcommand is None:
-      aid = ctx.message.author.id
+      aid = str(ctx.message.author.id)
       if aid in self.stopwatches and self.stopwatches[aid][0]:
         await self._sw_stop(ctx)
       else:
         await self._sw_start(ctx)
 
-  @stopwatch.command(name='start',
-                     aliases=['unpause','u','resume','r'],
-                     pass_context=True)
+  @stopwatch.command(name='start', aliases=['unpause','u','resume','r'])
   async def _sw_start_wrap(self, ctx):
     """
     unpauses or creates new stopwatch
@@ -246,20 +246,20 @@ class General:
     await self._sw_start(ctx)
 
   async def _sw_start(self, ctx):
-    aid = ctx.message.author.id
+    aid = str(ctx.message.author.id)
     tme = ctx.message.timestamp.timestamp()
     if aid in self.stopwatches and self.stopwatches[aid][0]:
-      await self.bot.send_message(ctx.message.channel,
+      await ctx.message.channel.send_message(
                                   'You\'ve already started a stopwatch.'
       )
     elif aid in self.stopwatches:
       self.stopwatches[aid][0] = tme
-      await self.bot.send_message(ctx.message.channel, 'Stopwatch resumed.')
+      await ctx.message.channel.send_message('Stopwatch resumed.')
     else:
       self.stopwatches[aid] = [tme, 0]
-      await self.bot.send_message(ctx.message.channel, 'Stopwatch started.')
+      await ctx.message.channel.send_message('Stopwatch started.')
 
-  @stopwatch.command(name='stop', aliases=['end','e'], pass_context=True)
+  @stopwatch.command(name='stop', aliases=['end','e'])
   async def _sw_stop_wrap(self, ctx):
     """
     prints time and deletes timer
@@ -269,7 +269,7 @@ class General:
     await self._sw_stop(ctx)
 
   async def _sw_stop(self, ctx):
-    aid = ctx.message.author.id
+    aid = str(ctx.message.author.id)
     now = ctx.message.timestamp.timestamp()
     old = self.stopwatches.pop(aid, None)
     if old:
@@ -282,15 +282,15 @@ class General:
       for lap in zip(range(1,len(old)), old[2:]):
         msg += '\nLap {0:03} - {1}'.format(*lap)
       msg += '```'
-      await self.bot.send_message(ctx.message.channel, msg)
+      await ctx.message.channel.send_message(msg)
     else:
-      await self.bot.send_message(ctx.message.channel,
+      await ctx.message.channel.send_message(
                                   'No stop watches started, cannot stop.'
       )
 
-  @stopwatch.command(name='status', aliases=['look','peak'], pass_context=True)
+  @stopwatch.command(name='status', aliases=['look','peak'])
   async def _sw_status(self, ctx):
-    aid = ctx.message.author.id
+    aid = str(ctx.message.author.id)
     now = ctx.message.timestamp.timestamp()
     if aid in self.stopwatches:
       old = self.stopwatches[aid]
@@ -307,20 +307,20 @@ class General:
       for lap in zip(range(1,len(old)), old[2:]):
         msg += '\nLap {0:03} - {1}'.format(*lap)
       msg += '```'
-      await self.bot.send_message(ctx.message.channel, msg)
+      await ctx.message.channel.send_message(msg)
     else:
-      await self.bot.send_message(ctx.message.channel,
+      await ctx.message.channel.send_message(
                                   'No stop watches started, cannot look.'
       )
 
-  @stopwatch.command(name='lap', aliases=['l'], pass_context=True)
+  @stopwatch.command(name='lap', aliases=['l'])
   async def _sw_lap(self, ctx):
     """
     prints time
 
     does not pause, does not resume, does not delete
     """
-    aid = ctx.message.author.id
+    aid = str(ctx.message.author.id)
     now = ctx.message.timestamp.timestamp()
     if aid in self.stopwatches:
       old = self.stopwatches[aid]
@@ -329,30 +329,30 @@ class General:
       else:
         tme = old[1]
       tme   = str(timedelta(seconds=tme))
-      await self.bot.say("Lap #{:03} time: **{}**".format(len(old)-1, tme))
+      await ctx.send("Lap #{:03} time: **{}**".format(len(old)-1, tme))
       if self.stopwatches[aid][-1] != tme:
         self.stopwatches[aid].append(tme)
     else:
-      await self.bot.say('No stop watches started, cannot lap.')
+      await ctx.send('No stop watches started, cannot lap.')
 
-  @stopwatch.command(name='pause', aliases=['p','hold','h'], pass_context=True)
+  @stopwatch.command(name='pause', aliases=['p','hold','h'])
   async def _sw_pause(self, ctx):
     """
     pauses the stopwatch
 
     Also prints current time, does not delete
     """
-    aid = ctx.message.author.id
+    aid = str(ctx.message.author.id)
     now = ctx.message.timestamp.timestamp()
     if aid in self.stopwatches and self.stopwatches[aid][0]:
       old = now - self.stopwatches[aid][0] + self.stopwatches[aid][1]
       self.stopwatches[aid] = [0, old]
       old = str(timedelta(seconds=old))
-      await self.bot.say("Stopwatch paused: **{}**".format(old))
+      await ctx.send("Stopwatch paused: **{}**".format(old))
     elif aid in self.stopwatches:
-      await self.bot.say('Stop watch already paused.')
+      await ctx.send('Stop watch already paused.')
     else:
-      await self.bot.say('No stop watches started, cannot pause.')
+      await ctx.send('No stop watches started, cannot pause.')
 
   def rolls(self, dice):
     out = []
@@ -396,7 +396,7 @@ class General:
       out.append('{}: {}'.format(roll, message))
     return (gobal_total, out)
 
-  @commands.command(pass_context=True, aliases=['c', 'choice'])
+  @commands.command(aliases=['c', 'choice'])
   async def choose(self, ctx, *, choices):
     """Chooses a value from a comma seperated list"""
     choices     = split(choices)
@@ -414,9 +414,9 @@ class General:
 
     message  = ctx.message.author.mention + ':\n'
     message += inline(choice)
-    await self.bot.say(message)
+    await ctx.send(message)
 
-  @commands.command(name='remindme', pass_context=True, aliases=['remind'])
+  @commands.command(name='remindme', aliases=['remind'])
   async def _add_reminder(self, ctx, *, message : str):
     '''
     adds a reminder
@@ -442,8 +442,8 @@ class General:
     .remind [me] end <id>
     '''
     heap    = self.bot.get_cog('HeapCog')
-    author  = ctx.message.author.id
-    channel = ctx.message.channel.id
+    author  = str(ctx.message.author.id)
+    channel = str(ctx.message.channel.id)
     match   = re.match(r'(?i)^(me\s+)?(remove|end|stop)\s+(\d+)', message)
 
     if match:
@@ -453,23 +453,23 @@ class General:
             and item.reminder_id == rid \
             and item.user_id == author:
           heap.pop(index)
-          await self.bot.say(ok(f'Message with id {rid} has been removed'))
+          await ctx.send(ok(f'Message with id {rid} has been removed'))
           return
       else:
-        await self.bot.say(ok(f'Could not find message with id {rid}'))
+        await ctx.send(ok(f'Could not find message with id {rid}'))
     else:
       r = Reminder(channel, author, message)
       heap.push(r)
       await r.begin(self.bot)
 
-  @commands.command(pass_context=True, aliases=['a', 'ask'])
+  @commands.command(, aliases=['a', 'ask'])
   async def question(self, ctx):
     '''Answers a question with yes/no'''
     message = ctx.message.author.mention + ':\n'
     message += inline(random.choice(['yes', 'no']))
-    await self.bot.say(message)
+    await ctx.send(message)
 
-  @commands.command(pass_context=True)
+  @commands.command()
   async def poll(self, ctx, *, question):
     '''
     Starts a poll
@@ -478,20 +478,21 @@ class General:
     poll stop|end
     '''
     heap = self.bot.get_cog('HeapCog')
+    cid  = str(ctx.message.channel.id)
 
     if question.lower().strip() in ['end', 'stop']:
       for index,poll in enumerate(heap):
-        if isinstance(poll, Poll) and poll.channel_id == ctx.message.channel.id:
+        if isinstance(poll, Poll) and poll.channel_id == cid:
           heap.pop(index)
           await poll.end(self.bot)
           break
       else:
-        await self.bot.say('There is no poll active in this channel')
+        await ctx.send('There is no poll active in this channel')
       return
 
     match = re.search(r'^(.*?\?)\s*(.*?)$', question)
     if not match:
-      await self.bot.say('Question could not be found.')
+      await ctx.send('Question could not be found.')
       return
 
     options  = split(match.group(2))
@@ -501,7 +502,7 @@ class General:
 
     for item in heap:
       if poll == item:
-        await self.bot.say('There is a poll active in this channel already')
+        await ctx.send('There is a poll active in this channel already')
         return
     heap.push(poll)
     await poll.begin(self.bot)

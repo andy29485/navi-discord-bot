@@ -152,8 +152,8 @@ class AZ:
         cont = re.sub(pat, rep, cont)
 
     if send:
-      await bot.delete_message(message)
-      await bot.send_message(chan, f'<{auth}> {cont}')
+      await message.delete()
+      await chan.send(f'<{auth}> {cont}')
 
   async def repeat(self, bot, message):
     chan = message.channel
@@ -168,7 +168,7 @@ class AZ:
       data = [message.content.lower(), 1]
 
     if data[1] == self.conf.get('repeat_after', 3):
-      await bot.send_message(chan, message.content)
+      await chan.send(message.content)
       data[1] = 0
 
     self.last[chan] = data

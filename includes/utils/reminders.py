@@ -15,8 +15,8 @@ class Reminder(heap.HeapNode):
   def __init__(self, channel_id, user_id, message,
                end_time=0, times=[],
                command=False, reminder_id=0):
-    self.user_id     = getattr(user_id,    'id',    user_id)
-    self.channel_id  = getattr(channel_id, 'id', channel_id)
+    self.user_id     = str(getattr(user_id,    'id',    user_id))
+    self.channel_id  = str(getattr(channel_id, 'id', channel_id))
     self.message     = message
     self.end_time    = end_time
     self.times       = times
@@ -77,7 +77,7 @@ class Reminder(heap.HeapNode):
 
   async def end(self, bot):
     chan = bot.get_channel(self.channel_id)
-    serv = chan and chan.server
+    serv = chan and chan.guild
     user = chan and dh.get_user(serv, self.user_id)
 
     if not chan:
@@ -87,7 +87,7 @@ class Reminder(heap.HeapNode):
 
     if self.command:
       member = {
-        'id':            user.id,
+        'id':            str(user.id),
         'username':      user.name,
         'avatar':        user.avatar,
         'discriminator': user.discriminator
@@ -100,11 +100,11 @@ class Reminder(heap.HeapNode):
         attachments=[],
         reactions=[],
         type=0,
-        channel_id=chan.id,
+        channel_id=str(chan.id),
       )
       await bot.process_commands(msg)
     else:
-      await bot.send_message(chan, self.get_message(user))
+      await chan.send(self.get_message(user))
     if self.times:
       next_rem = Reminder(
         self.channel_id,

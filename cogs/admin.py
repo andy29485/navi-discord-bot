@@ -22,49 +22,49 @@ class Admin:
 
   @commands.command(hidden=True)
   @perms.is_owner()
-  async def load(self, *, module : str):
+  async def load(self, ctx, *, module : str):
     """Loads a module."""
     try:
       self.bot.load_extension(module)
     except Exception as e:
-      await self.bot.say('\N{PISTOL}')
-      await self.bot.say('{}: {}'.format(type(e).__name__, e))
+      await ctx.send('\N{PISTOL}')
+      await ctx.send('{}: {}'.format(type(e).__name__, e))
     else:
-      await self.bot.say(formatter.ok())
+      await ctx.send(formatter.ok())
 
   @commands.command(hidden=True)
   @perms.is_owner()
-  async def unload(self, *, module : str):
+  async def unload(self, ctx, *, module : str):
     """Unloads a module."""
     try:
       self.bot.unload_extension(module)
     except Exception as e:
-      await self.bot.say('\N{PISTOL}')
-      await self.bot.say('{}: {}'.format(type(e).__name__, e))
+      await ctx.send('\N{PISTOL}')
+      await ctx.send('{}: {}'.format(type(e).__name__, e))
     else:
-      await self.bot.say(formatter.ok())
+      await ctx.send(formatter.ok())
 
   @commands.command(name='reload', hidden=True)
   @perms.is_owner()
-  async def _reload(self, *, module : str):
+  async def _reload(self, ctx, *, module : str):
     """Reloads a module."""
     try:
       self.bot.unload_extension(module)
       self.bot.load_extension(module)
     except Exception as e:
-      await self.bot.say('\N{PISTOL}')
-      await self.bot.say('{}: {}'.format(type(e).__name__, e))
+      await ctx.send('\N{PISTOL}')
+      await ctx.send('{}: {}'.format(type(e).__name__, e))
     else:
-      await self.bot.say(formatter.ok())
+      await ctx.send(formatter.ok())
 
   @commands.command(hidden=True)
   @perms.is_owner()
-  async def update(self):
+  async def update(self, ctx):
     loop = asyncio.get_event_loop()
     g = git.cmd.Git('.')
     await loop.run_in_executor(None,g.execute,['git','reset','HEAD~1','--hard'])
     await loop.run_in_executor(None,g.pull)
-    await self.bot.say(formatter.ok('restarting'))
+    await ctx.send(formatter.ok('restarting'))
     await self.bot.logout()
     loop.stop()
     #concurrent.futures.ProcessPoolExecutor().shutdown()
@@ -72,19 +72,19 @@ class Admin:
 
   @commands.command(hidden=True)
   @perms.is_owner()
-  async def debug_on(self):
+  async def debug_on(self, ctx):
     logging.getLogger('navi').setLevel(logging.DEBUG)
-    await self.bot.say(formatter.ok())
+    await ctx.send(formatter.ok())
 
   @commands.command(hidden=True)
   @perms.is_owner()
-  async def debug_off(self):
+  async def debug_off(self, ctx):
     logging.getLogger('navi').setLevel(logging.INFO)
-    await self.bot.say(formatter.ok())
+    await ctx.send(formatter.ok())
 
   @commands.command(hidden=True)
   @perms.is_owner()
-  async def reboot(self):
+  async def reboot(self, ctx):
     loop = asyncio.get_event_loop()
     await self.bot.logout()
     loop.stop()
@@ -93,7 +93,7 @@ class Admin:
     sys.exit()
 
 
-  @commands.command(pass_context=True, hidden=True)
+  @commands.command(hidden=True)
   @perms.is_owner()
   async def debug(self, ctx, *, code : str):
     """Evaluates code."""
@@ -104,7 +104,7 @@ class Admin:
       'bot':     self.bot,
       'ctx':     ctx,
       'message': ctx.message,
-      'server':  ctx.message.server,
+      'server':  ctx.message.guild,
       'channel': ctx.message.channel,
       'author':  ctx.message.author
     }
@@ -116,10 +116,10 @@ class Admin:
       if inspect.isawaitable(result):
         result = await result
     except Exception as e:
-      await self.bot.say(formatter.code(type(e).__name__ + ': ' + str(e)))
+      await ctx.send(formatter.code(type(e).__name__ + ': ' + str(e)))
       return
 
-    await self.bot.say(formatter.code(result, 'py'))
+    await ctx.send(formatter.code(result, 'py'))
 
 def setup(bot):
   bot.add_cog(Admin(bot))

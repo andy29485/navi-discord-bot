@@ -11,13 +11,13 @@ class RegexCog:
     self.bot   = bot
     self.regex = RegexRes()
 
-  @commands.group(pass_context=True)
+  @commands.group()
   async def rep(self, ctx):
     """Manage replacements
     Uses a regex to replace text from users
     """
     message = None
-    if self.regex.is_banned(ctx.message.author.id):
+    if self.regex.is_banned(str(ctx.message.author.id)):
       message = formatter.error('No ')+':poi:'
       ctx.invoked_subcommand = None
     if ctx.invoked_subcommand is None:
@@ -25,31 +25,31 @@ class RegexCog:
                  'try: `.rep list`, `.rep add`, or `.rep remove` instead'
 
     if message:
-      await self.bot.say(formatter.error(message))
+      await ctx.send(formatter.error(message))
 
-  @rep.command(name='add', pass_context=True)
+  @rep.command(name='add')
   async def _add(self, ctx, *, regex):
     """adds a new replacement
     Format `s/old/new/`
     """
-    await self.bot.say(self.regex.add(regex, ctx.message.author.id))
+    await ctx.send(self.regex.add(regex, str(ctx.message.author.id)))
 
-  @rep.command(name='edit', pass_context=True)
+  @rep.command(name='edit')
   async def _edit(self, ctx, *, regex):
     """edits an existing replacement
     Format `s/old/new/`
     """
-    await self.bot.say(self.regex.edit(regex, ctx.message.author.id))
+    await ctx.send(self.regex.edit(regex, str(ctx.message.author.id)))
 
-  @rep.command(name='remove', aliases=['rm'], pass_context=True)
+  @rep.command(name='remove', aliases=['rm'])
   async def _rm(self, ctx, *, pattern):
     """remove an existing replacement"""
-    await self.bot.say(self.regex.rm(regex, ctx.message.author.id))
+    await ctx.send(self.regex.rm(regex, str(ctx.message.author.id)))
 
   @rep.command(name='list', aliases=['ls'])
-  async def _ls(self):
+  async def _ls(self, ctx):
     """list existing replacements"""
-    await self.bot.say(self.regex.ls())
+    await ctx.send(self.regex.ls())
 
   async def replace(self, message):
     if message.author.bot:
@@ -61,7 +61,7 @@ class RegexCog:
 
     m = self.regex.replace(message.content)
     if m:
-      await self.bot.send_message(message.channel, '*'+m)
+      await message.channel.send('*'+m)
 
 def setup(bot):
   reg = RegexCog(bot)

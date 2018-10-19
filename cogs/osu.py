@@ -43,9 +43,9 @@ class Osu:
         beatmap = await self.api.get_beatmaps(beatmapset_id=bid)
         em = await self.osu_embed(beatmap)
         if not em:
-          self.bot.send_message(chan, 'could not find beatmap')
+          chan.send_message('could not find beatmap')
         else:
-          await self.bot.send_message(chan, embed=em)
+          await chan.send_message(embed=em)
       else:
         continue
       break
@@ -55,9 +55,9 @@ class Osu:
         beatmap = await self.api.get_beatmaps(beatmap_id=bid)
         em = await self.osu_embed(beatmap[0])
         if not em:
-          self.bot.send_message(chan, 'could not find beatmap')
+          chan.send_message('could not find beatmap')
         else:
-          await self.bot.send_message(chan, embed=em)
+          await chan.send_message(embed=em)
       else:
         continue
       break
@@ -67,86 +67,86 @@ class Osu:
         user = await self.api.get_user(int(uid))
         em = await self.osu_embed(user[0])
         if not em:
-          self.bot.send_message(chan, 'could not find user')
+          chan.send_message('could not find user')
         else:
-          await self.bot.send_message(chan, embed=em)
+          await chan.send_message(embed=em)
       else:
         continue
       break
 
-  @commands.group(name='osu', aliases=["o"], pass_context=True)
+  @commands.group(name='osu', aliases=["o"])
   async def _osu(self, ctx):
     """
     manages osu stuff
     """
     if ctx.invoked_subcommand is None:
-      await self.bot.say(formatter.error("Please specify valid subcommand"))
+      await ctx.send(formatter.error("Please specify valid subcommand"))
 
-  @_osu.command(name='recent', aliases=['r', 'last'], pass_context=True)
+  @_osu.command(name='recent', aliases=['r', 'last'])
   async def _recent(self, ctx, osu_username : str =''):
     """
     shows last played map for a user
     if no user is specified, shows your last played item
     """
-    auth = ctx.message.author.id
+    auth = str(ctx.message.author.id)
     if osu_username:
       user = osu_username
     elif auth in self.conf['watched-users']:
       user = self.conf['watched-users'][auth]['uid']
     else:
-      await self.bot.say('No user specified, nor are you linked to an OSU user')
+      await ctx.send('No user specified, nor are you linked to an OSU user')
       return
 
     user = await self.api.get_user(user)
     if not user:
-      await self.bot.say('Could not find user with matching name')
+      await ctx.send('Could not find user with matching name')
       return
     user = user[0]
 
     last = await self.api.get_user_recent(user.user_id, limit=50)
     last = [l for l in last if (not l.perfect) or (l.rank in 'SX')]
     if not last:
-      await self.bot.say(f'No recent play history for {user.username}')
+      await ctx.send(f'No recent play history for {user.username}')
       return
 
     em = await self.osu_embed(last[0])
-    await self.bot.say(embed=em)
+    await ctx.send(embed=em)
 
-  @_osu.command(name='disconnect', aliases=['u', 'unlink'], pass_context=True)
+  @_osu.command(name='disconnect', aliases=['u', 'unlink'])
   async def _osu_delink(self, ctx):
     """
     Unlinks a channel from watching an osu account
     """
-    auth = ctx.message.author.id
-    chan = ctx.message.channel.id
+    auth = str(ctx.message.author.id)
+    chan = str(ctx.message.channel.id)
 
     if auth not in self.conf['watched-users']:
-      await self.bot.say("You arn't linked to an OSU account yet")
+      await ctx.send("You arn't linked to an OSU account yet")
       return
 
     if chan not in self.conf['watched-users'][auth]['chans']:
-      await self.bot.say('This channel is not linked to your account')
+      await ctx.send('This channel is not linked to your account')
       return
 
     self.conf['watched-users'][auth]['chans'].remove(chan)
     self.conf.save()
 
-    await self.bot.say(formatter.ok("Channel is now unlinked"))
+    await ctx.send(formatter.ok("Channel is now unlinked"))
 
-  @_osu.command(name='connect', aliases=['c', 'link'], pass_context=True)
+  @_osu.command(name='connect', aliases=['c', 'link'])
   async def _osu_link(self, ctx, osu_username = '', top_scores : int = 50):
     """
     Links a discord user account to an osu account
     osu_username - the username that you go by on https://osu.ppy.sh
     top_scores   - the top scores to report from latest [0, 100]
     """
-    auth = ctx.message.author.id
-    chan = ctx.message.channel.id
+    auth = str(ctx.message.author.id)
+    chan = str(ctx.message.channel.id)
 
     user = self.conf['watched-users'].get(auth, {}).get('uid', None)
     user = await self.api.get_user(osu_username or user)
     if not user:
-      await self.bot.say('could not find user')
+      await ctx.send('could not find user')
       return
 
     top_scores = max(0, min(100, top_scores))
@@ -172,9 +172,7 @@ class Osu:
               'last':  best
       }
     self.conf.save()
-    await self.bot.say(
-        formatter.ok(f'you are now linked to: {name}')
-    )
+    await ctx.send(formatter.ok(f'you are now linked to: {name}'))
 
   async def check_scores(self):
     while self == self.bot.get_cog('Osu'):
@@ -197,7 +195,7 @@ class Osu:
               for chan_id in chans:
                 try:
                   chan = self.bot.get_channel(chan_id)
-                  await self.bot.send_message(chan, embed=em)
+                  await chan.send_message(embed=em)
                 except:
                   logger.exception('issue with send %s', str(em.to_dict()))
               break

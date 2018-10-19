@@ -77,7 +77,7 @@ bot = commands.Bot(command_prefix=prefix, description=description,
                    pm_help=None,          help_attrs=help_attrs
 )
 
-@bot.async_event
+@bot.event
 async def on_ready():
   # attempt to load up cogs
   for cog in starting_cogs:
@@ -99,27 +99,27 @@ async def on_ready():
   # Set help command dialogue
   await bot.change_presence(game=discord.Game(name=f'{prefix[0]}help'))
 
-@bot.async_event
+@bot.event
 async def on_command_error(error, ctx):
   msg = ctx.message
   if isinstance(error, commands.NoPrivateMessage):
-    await bot.send_message(msg.author, formatter.error(
-        'This command cannot be used in private messages.')
-    )
+    await msg.author.send(formatter.error(
+        'This command cannot be used in private messages.'
+    ))
   elif isinstance(error, commands.DisabledCommand):
-    await bot.send_message(msg.channel, formatter.error(
-        'Sorry. This command is disabled and cannot be used.')
-    )
+    await msg.channel.send(formatter.error(
+        'Sorry. This command is disabled and cannot be used.'
+    ))
   elif isinstance(error, commands.CommandInvokeError):
-    await bot.send_message(msg.channel,formatter.error(
-        'Command error: {}'.format(error))
-    )
+    await msg.channel.send(formatter.error(
+        'Command error: {}'.format(error)
+    ))
   elif isinstance(error, commands.errors.CheckFailure):
-    await bot.send_message(msg.channel, formatter.error(
-      'Sorry you have insufficient permissions to run that command.')
-    )
+    await msg.channel.send(formatter.error(
+      'Sorry you have insufficient permissions to run that command.'
+    ))
   else:
-    await bot.send_message(msg.channel, formatter.error(str(error)))
+    await msg.channel.send(formatter.error(str(error)))
 
   e_tb  = traceback.format_exception(
     error.__class__, error, error.__traceback__
@@ -129,29 +129,29 @@ async def on_command_error(error, ctx):
     lines.extend(line.rstrip('\n').splitlines())
   logger.error(f'<{msg.author.name}> {msg.content}: %s','\n'.join(lines))
 
-@bot.async_event
+@bot.event
 async def on_resumed():
   print('resuming...')
 
-@bot.async_event
+@bot.event
 async def on_command(command, ctx):
   msg = ctx.message
   chan = None
   if ctx.message.channel.is_private:
     chan = 'PM'
   else:
-    chan = '#{0.channel.name} ({0.server.name})'.format(msg)
+    chan = '#{0.channel.name} ({0.guild.name})'.format(msg)
 
   logger.info('{0.author.name} in {1}: {0.content}'.format(msg, chan))
 
-@bot.async_event
+@bot.event
 async def on_message(message):
   if message.author.bot:
     return
 
   # check if user is not the ignore list
   perms = Config('configs/perms.json')
-  if message.author.id in perms.get('ignore', []):
+  if str(message.author.id) in perms.get('ignore', []):
     return
 
   # check if command is a valid one

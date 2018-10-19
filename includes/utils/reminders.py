@@ -15,8 +15,8 @@ class Reminder(heap.HeapNode):
   def __init__(self, channel_id, user_id, message,
                end_time=0, times=[],
                command=False, reminder_id=0):
-    self.user_id     = str(getattr(user_id,    'id',    user_id))
-    self.channel_id  = str(getattr(channel_id, 'id', channel_id))
+    self.user_id     = getattr(user_id,    'id',    user_id)
+    self.channel_id  = getattr(channel_id, 'id', channel_id)
     self.message     = message
     self.end_time    = end_time
     self.times       = times
@@ -28,7 +28,7 @@ class Reminder(heap.HeapNode):
 
   @staticmethod
   def from_dict(dct):
-    chan        = dct.get('channel_id')
+    chan        = int(dct.get('channel_id'))
     mesg        = dct.get('message')
     user        = dct.get('user_id')
     end_time    = dct.get('end_time')
@@ -101,7 +101,7 @@ class Reminder(heap.HeapNode):
         attachments=[],
         reactions=[],
         type=0,
-        channel_id=str(chan.id),
+        channel_id=chan.id,
       )
       await bot.process_commands(msg)
     else:

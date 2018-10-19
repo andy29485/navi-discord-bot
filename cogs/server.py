@@ -419,7 +419,7 @@ class Server:
 
     # store info in easier to access variables
     chan = ctx.message.channel
-    bef  = ctx.message.timestamp
+    bef  = ctx.message.created_at
     aid  = str(ctx.message.author.id)
     cid  = str(chan.id)
 
@@ -438,7 +438,7 @@ class Server:
       async for m in run():
         if skip_re and not skip_re.search(m.content):
           continue
-        bef = m.timestamp
+        bef = m.created_at
         break
 
     # save the logs to a list

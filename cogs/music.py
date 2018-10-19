@@ -136,7 +136,7 @@ class Music:
   async def music(self, ctx):
     """Manage music player stuff"""
     if ctx.invoked_subcommand is None:
-      await self.bot.say(error("Please specify valid subcommand"))
+      await ctx.send(error("Please specify valid subcommand"))
 
   @music.command(pass_context=True, aliases=['u', 'reload'])
   async def update(self, ctx):
@@ -144,7 +144,7 @@ class Music:
     for item in ('playlists', 'songs', 'albums', 'artists'):
       await getattr(self.conn, item+'_force')
 
-    await self.bot.say(ok('database reloaded '))
+    await ctx.send(ok('database reloaded '))
 
   @music.command()
   async def summon(self, ctx, *, channel: discord.VoiceChannel = None):
@@ -247,7 +247,7 @@ class Music:
     items = await self._search(search, albm)
 
     if not items:
-      await self.bot.say(error('could not find song'))
+      await ctx.send(error('could not find song'))
       return False
 
     # pick display item (for "Queued: ..." message)

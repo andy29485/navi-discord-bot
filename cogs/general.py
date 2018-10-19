@@ -49,18 +49,18 @@ class General:
       now = datetime.now().replace(microsecond=0)
       await say(now.isoformat().replace('T', ' '))
     else:
-      await ctx.message.channel.trigger_typing()
-      await asyncio.sleep(1.2)
-      await say('ゲネラルリベラル')
-      await ctx.message.channel.trigger_typing()
-      await asyncio.sleep(0.4)
-      await say('デフレイスパイラル')
-      await ctx.message.channel.trigger_typing()
-      await asyncio.sleep(0.5)
-      await say('ナチュラルミネラル')
-      await ctx.message.channel.trigger_typing()
-      await asyncio.sleep(0.2)
-      await say('さあお出で' + (': '+first if first else ''))
+      async with ctx.typing():
+        await asyncio.sleep(1.2)
+        await say('ゲネラルリベラル')
+      async with ctx.typing():
+        await asyncio.sleep(0.4)
+        await say('デフレイスパイラル')
+      async with ctx.typing():
+        await asyncio.sleep(0.5)
+        await say('ナチュラルミネラル')
+      async with ctx.typing():
+        await asyncio.sleep(0.2)
+        await say('さあお出で' + (': '+first if first else ''))
 
   @commands.command()
   async def invite(self, ctx):

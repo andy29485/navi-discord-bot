@@ -73,7 +73,8 @@ class Reminder(heap.HeapNode):
             break
         else:
           break
-    await bot.say(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
+    chan = bot.get_channel(self.channel_id)
+    await chan.send(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
 
   async def end(self, bot):
     chan = bot.get_channel(self.channel_id)

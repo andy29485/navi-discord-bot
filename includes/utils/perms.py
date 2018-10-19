@@ -3,6 +3,7 @@
 import logging
 from discord.ext import commands
 import discord.utils
+import discord.abc.GuildChannel as GC
 from includes.utils.config import Config
 
 logger = logging.getLogger('navi.perms')
@@ -65,7 +66,7 @@ def check_permissions(msg, **perms):
 def pm_or_permissions(ctx, **perms):
   # http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
   chan = ctx.message.channel
-  return chan.is_private or check_permissions(ctx.message, **perms)
+  return (not isinstance(chan, GC)) or check_permissions(ctx.message, **perms)
 
 def role_or_permissions(ctx, check, **perms):
   # http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
@@ -74,7 +75,7 @@ def role_or_permissions(ctx, check, **perms):
 
   chan   = ctx.message.channel
   author = ctx.message.author
-  if chan.is_private:
+  if not isinstance(chan, GC):
     return False # can't have roles in PMs
 
   role = discord.utils.find(check, author.roles)

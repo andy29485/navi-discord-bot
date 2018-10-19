@@ -11,6 +11,7 @@ import aiohttp
 import datetime
 import re, sys, os
 import traceback
+import discord.abc.GuildChannel as GC
 
 from cogs import *
 from includes.utils.config import Config
@@ -97,8 +98,7 @@ async def on_ready():
     bot.uptime = datetime.datetime.utcnow()
 
   # Set help command dialogue
-  help = discord.Activity(name=f'{prefix[0]}help')
-  await bot.change_presence(activity=help)
+  await bot.change_presence(activity=discord.Game(f'{prefix[0]}help'))
 
 @bot.event
 async def on_command_error(error, ctx):
@@ -138,7 +138,7 @@ async def on_resumed():
 async def on_command(command, ctx):
   msg = ctx.message
   chan = None
-  if ctx.message.channel.is_private:
+  if (not isinstance(chan, GC)):
     chan = 'PM'
   else:
     chan = '#{0.channel.name} ({0.guild.name})'.format(msg)

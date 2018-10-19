@@ -134,9 +134,9 @@ class Music:
 
   @commands.group(pass_context=True, aliases=['m'])
   async def music(self, ctx):
-  """Manage music player stuff"""
-  if ctx.invoked_subcommand is None:
-    await self.bot.say(error("Please specify valid subcommand"))
+    """Manage music player stuff"""
+    if ctx.invoked_subcommand is None:
+      await self.bot.say(error("Please specify valid subcommand"))
 
   @music.command(pass_context=True, aliases=['u', 'reload'])
   async def update(self, ctx):

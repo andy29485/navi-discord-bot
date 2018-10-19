@@ -462,7 +462,7 @@ class General:
       heap.push(r)
       await r.begin(self.bot)
 
-  @commands.command(, aliases=['a', 'ask'])
+  @commands.command(aliases=['a', 'ask'])
   async def question(self, ctx):
     '''Answers a question with yes/no'''
     message = ctx.message.author.mention + ':\n'

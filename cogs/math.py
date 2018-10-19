@@ -5,6 +5,7 @@ import includes.utils.format as formatter
 from includes.utils import perms
 from includes.math import Math
 import asyncio
+import discord
 
 class MathCog:
   def __init__(self, bot):

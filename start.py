@@ -97,7 +97,8 @@ async def on_ready():
     bot.uptime = datetime.datetime.utcnow()
 
   # Set help command dialogue
-  await bot.change_presence(game=discord.Game(name=f'{prefix[0]}help'))
+  help = discord.Activity(name=f'{prefix[0]}help')
+  await bot.change_presence(activity=help)
 
 @bot.event
 async def on_command_error(error, ctx):

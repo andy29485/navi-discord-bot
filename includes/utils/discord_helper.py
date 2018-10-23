@@ -287,14 +287,14 @@ def get_user(server, search_param, function=None):
     server = server.guild
 
   if type(search_param) == int or re.match(r'\d+$', search_param):
-    user = server.get_member(str(search_param))
+    user = server.get_member(int(search_param))
     if user and (not function or function(user)):
       return user
 
   match = id_pattern.match(search_param)
   try:
     if match:
-      user = server.get_member(match.group(1))
+      user = server.get_member(int(match.group(1)))
       if user and (not function or function(user)):
         return user
   except:
@@ -368,7 +368,7 @@ def get_channel(server, search_param, function=None):
 
   if server:
     chans = server.channels
-    chan  = server.get_channel(search_param)
+    chan  = server.get_channel(int(search_param))
     if chan:
       return chan
 

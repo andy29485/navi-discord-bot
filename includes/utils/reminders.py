@@ -15,8 +15,8 @@ class Reminder(heap.HeapNode):
   def __init__(self, channel_id, user_id, message,
                end_time=0, times=[],
                command=False, reminder_id=0):
-    self.user_id     = getattr(user_id,    'id',    user_id)
-    self.channel_id  = getattr(channel_id, 'id', channel_id)
+    self.user_id     = int(getattr(user_id,    'id',    user_id))
+    self.channel_id  = int(getattr(channel_id, 'id', channel_id))
     self.message     = message
     self.end_time    = end_time
     self.times       = times
@@ -28,9 +28,9 @@ class Reminder(heap.HeapNode):
 
   @staticmethod
   def from_dict(dct):
+    user        = int(dct.get('user_id'))
     chan        = int(dct.get('channel_id'))
     mesg        = dct.get('message')
-    user        = dct.get('user_id')
     end_time    = dct.get('end_time')
     times       = dct.get('times', [])
     command     = dct.get('command', False)
@@ -41,8 +41,8 @@ class Reminder(heap.HeapNode):
   def to_dict(self):
     return {
       '__reminder__': True,
-      'channel_id'  : self.channel_id,
-      'user_id'     : self.user_id,
+      'user_id'     : int(self.user_id),
+      'channel_id'  : int(self.channel_id),
       'message'     : self.message,
       'end_time'    : self.end_time,
       'times'       : self.times,
@@ -87,14 +87,14 @@ class Reminder(heap.HeapNode):
 
     if self.command:
       member = {
-        'id':            str(user.id),
+        'id':            int(user.id),
         'username':      user.name,
         'avatar':        user.avatar,
         'discriminator': user.discriminator
       }
       msg = Message(
         content=self.message,
-        id='',
+        id=0,
         channel=chan,
         author=member,
         attachments=[],

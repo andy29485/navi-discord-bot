@@ -16,10 +16,10 @@ class Timeout(heap.HeapNode):
     roles.insert(0, None)
 
     self.end_time   =  end_time
-    self.channel_id =  str(getattr(chan,    'id',  chan))
-    self.server_id  =  str(getattr(serv,    'id',  serv))
-    self.user_id    =  str(getattr(user,    'id',  user))
-    self.roles      = [str(getattr(role,    'id',  role))
+    self.channel_id =  int(getattr(chan,    'id',  chan))
+    self.server_id  =  int(getattr(serv,    'id',  serv))
+    self.user_id    =  int(getattr(user,    'id',  user))
+    self.roles      = [int(getattr(role,    'id',  role))
            for role in getattr(user, 'roles', roles)
     ]
 
@@ -28,11 +28,11 @@ class Timeout(heap.HeapNode):
 
   @staticmethod
   def from_dict(dct):
-    chan     = dct.get('channel_id')
-    serv     = dct.get('server_id')
-    user     = dct.get('user_id')
-    end_time = dct.get('end_time')
-    roles    = dct.get('roles')
+    chan     = int(dct.get('channel_id'))
+    serv     = int(dct.get('server_id'))
+    user     = int(dct.get('user_id'))
+    end_time = int(dct.get('end_time'))
+    roles    = int(dct.get('roles'))
 
     return Timeout(constr, chan, serv, user, end_time, roles)
 
@@ -42,11 +42,11 @@ class Timeout(heap.HeapNode):
     used for exporting to json
     '''
     d = {'__timeout__':True}
-    d['channel_id'] = self.channel_id
-    d['server_id']  = self.server_id
-    d['user_id']    = self.user_id
-    d['roles']      = self.roles
-    d['end_time']   = self.end_time
+    d['channel_id'] = int(self.channel_id)
+    d['server_id']  = int(self.server_id)
+    d['user_id']    = int(self.user_id)
+    d['roles']      = int(self.roles)
+    d['end_time']   = int(self.end_time)
     return d
 
   # ==

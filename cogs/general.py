@@ -472,7 +472,7 @@ class General:
     poll stop|end
     '''
     heap = self.bot.get_cog('HeapCog')
-    cid  = str(ctx.message.channel.id)
+    cid  = int(ctx.message.channel.id)
 
     if question.lower().strip() in ['end', 'stop']:
       for index,poll in enumerate(heap):

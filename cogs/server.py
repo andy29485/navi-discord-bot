@@ -670,7 +670,7 @@ class Server:
       return
 
     # test timeout object for comparison
-    test  = namedtuple({'server_id':str(server.id), 'user_id':str(member.id)})
+    test  = namedtuple({'server_id':int(server.id), 'user_id':int(member.id)})
     index = 0 # inext is used to more efficently pop from heap
 
     # error message in case ending timeout fails

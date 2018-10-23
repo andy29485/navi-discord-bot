@@ -14,7 +14,7 @@ class Poll(heap.HeapNode):
   def __init__(self, question, opts, channel, sleep, timeout=0):
     self.options    = {}
     self.question   = question
-    self.channel_id = str(getattr(channel, 'id', channel))
+    self.channel_id = int(getattr(channel, 'id', channel))
     self.end_time   = timeout if timeout else sleep + time.time()
 
     for opt in opts:
@@ -22,10 +22,10 @@ class Poll(heap.HeapNode):
 
   @staticmethod
   def from_dict(dct):
-    question   = dct.get('question')
-    options    = dct.get('options')
-    channel_id = dct.get('channel_id')
-    end_time   = dct.get('end_time')
+    question   =     dct.get('question')
+    options    =     dct.get('options')
+    channel_id = int(dct.get('channel_id'))
+    end_time   =     dct.get('end_time')
 
     return Poll(question, options, channel_id, 0, end_time)
 
@@ -34,7 +34,7 @@ class Poll(heap.HeapNode):
       '__poll__'   : True,
       'question'   : self.question,
       'options'    : self.options,
-      'channel_id' : self.channel_id,
+      'channel_id' : int(self.channel_id),
       'end_time'   : self.end_time
     }
 

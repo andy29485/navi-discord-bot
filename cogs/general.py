@@ -448,9 +448,9 @@ class General:
     author  = str(ctx.message.author.id)
     channel = str(ctx.message.channel.id)
     match   = re.match(r'(?i)^(me\s+)?(remove|end|stop)\s+(\d+)', message)
-
-    async with ctx.typing():
-      if match:
+    
+    if match:
+      async with ctx.typing():
         rid = int(match.group(3))
         for index,item in enumerate(heap):
           if type(item) == Reminder \
@@ -461,9 +461,9 @@ class General:
             return
         else:
           await ctx.send(ok(f'Could not find message with id {rid}'))
-      else:
-        r = Reminder(channel, author, message)
-        await heap.push(r, ctx)
+    else:
+      r = Reminder(channel, author, message)
+      await heap.push(r, ctx)
 
   @commands.command(aliases=['a', 'ask'])
   async def question(self, ctx):

@@ -74,7 +74,8 @@ class Reminder(heap.HeapNode):
         else:
           break
     if ctx:
-      await ctx.send(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
+      async with ctx.typing():
+        await ctx.send(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
 
   async def end(self, bot):
     chan = bot.get_channel(self.channel_id)

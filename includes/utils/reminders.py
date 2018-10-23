@@ -73,7 +73,8 @@ class Reminder(heap.HeapNode):
             break
         else:
           break
-    await ctx.send(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
+    if ctx:
+      await ctx.send(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
 
   async def end(self, bot):
     chan = bot.get_channel(self.channel_id)
@@ -116,7 +117,7 @@ class Reminder(heap.HeapNode):
         self.reminder_id
       )
       if next_rem.time_left > 600:
-        self.heap.push(next_rem)
+        await self.heap.push(next_rem)
 
   def get_message(self, user):
     return f'{user.mention}: {self.message} (id: {self.reminder_id})'

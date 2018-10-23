@@ -187,33 +187,33 @@ class MemeGenerator:
 
     Valid names so far:
     """
+    async with ctx.typing():
+      match = MemeGenerator.pattern.match(text)
+      name  = match.group(1).lower() if match else text
+      text  = match.group(2) if match else ''
+      text  = ' '.join(dh.remove_comments(text.split()))
 
-    match = MemeGenerator.pattern.match(text)
-    name  = match.group(1).lower() if match else text
-    text  = match.group(2) if match else ''
-    text  = ' '.join(dh.remove_comments(text.split()))
+      cfg = self.conf.get('memes', {}).get(name, None)
 
-    cfg = self.conf.get('memes', {}).get(name, None)
+      if not cfg:
+        await ctx.send(error('Could not find image'))
+        return
+      if not text:
+        await ctx.send(error('Are you trying to get an empty image?'))
+        return
 
-    if not cfg:
-      await ctx.send(error('Could not find image'))
-      return
-    if not text:
-      await ctx.send(error('Are you trying to get an empty image?'))
-      return
+      temp = tempfile.NamedTemporaryFile(suffix=".png")
 
-    temp = tempfile.NamedTemporaryFile(suffix=".png")
+      if 'font' not in cfg:
+        cfg['font'] = self.conf.get('font', '')
+      if 'path' not in cfg:
+        cfg['path'] = self.conf.get('path', '')
 
-    if 'font' not in cfg:
-      cfg['font'] = self.conf.get('font', '')
-    if 'path' not in cfg:
-      cfg['path'] = self.conf.get('path', '')
+      write_image(text, temp.name, **cfg)
 
-    write_image(text, temp.name, **cfg)
+      await ctx.send(file=discord.File(temp.name))
 
-    await ctx.send(file=discord.File(temp.name))
-
-    temp.close()
+      temp.close()
 
 
 def setup(bot):

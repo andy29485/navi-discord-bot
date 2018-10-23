@@ -32,22 +32,24 @@ class General:
     if '8-ball' not in self.conf:
       self.conf['8-ball'] = []
     for rem in self.conf.pop('reminders', []):
-      heap.push(rem)
+      self.loop.run_until_complete(heap.push(rem, None))
     self.conf.save()
 
 
   @commands.command(hidden=True)
   async def ping(self, ctx):
     """Pong."""
-    await ctx.send("Pong.")
+    async with ctx.typing():
+      await ctx.send("Pong.")
 
   @commands.command()
   async def time(self, ctx, first=''):
     '''remind people to hurry up'''
     say = lambda msg: ctx.send(msg)
     if random.randrange(50) or not first.startswith('@'):
-      now = datetime.now().replace(microsecond=0)
-      await say(now.isoformat().replace('T', ' '))
+      async with ctx.typing():
+        now = datetime.now().replace(microsecond=0)
+        await say(now.isoformat().replace('T', ' '))
     else:
       async with ctx.typing():
         await asyncio.sleep(1.2)
@@ -130,14 +132,15 @@ class General:
     """
     loop = asyncio.get_event_loop()
 
-    total,roll = await loop.run_in_executor(None, self.rolls, dice)
-    roll = '\n'.join(roll)
-    message = ctx.message.author.mention + ':\n'
-    if '\n' in roll:
-      message += code(roll + f'\nTotal: {total}')
-    else:
-      message += inline(roll)
-    await ctx.send(message)
+    async with ctx.typing():
+      total,roll = await loop.run_in_executor(None, self.rolls, dice)
+      roll = '\n'.join(roll)
+      message = ctx.message.author.mention + ':\n'
+      if '\n' in roll:
+        message += code(roll + f'\nTotal: {total}')
+      else:
+        message += inline(roll)
+      await ctx.send(message)
 
   @commands.command(name="8ball", aliases=["8"])
   async def _8ball(self, ctx, *, question : str):
@@ -145,10 +148,11 @@ class General:
 
     Question must end with a question mark.
     """
-    if question.endswith("?") and question != "?":
-      await ctx.send("`" + random.choice(self.conf['8-ball']) + "`")
-    else:
-      await ctx.send("That doesn't look like a question.")
+    async with ctx.typing():
+      if question.endswith("?") and question != "?":
+        await ctx.send("`" + random.choice(self.conf['8-ball']) + "`")
+      else:
+        await ctx.send("That doesn't look like a question.")
 
   @commands.group(aliases=['t', 'td'])
   async def todo(self, ctx):
@@ -157,25 +161,28 @@ class General:
     Note: if no sub-command is specified, TODOs will be listed
     '''
     if ctx.invoked_subcommand is None:
-      await self._td_list(ctx)
+      async with ctx.typing():
+        await self._td_list(ctx)
 
   @todo.command(name='list', aliases=['l', 'ls'])
   async def _td_list_wp(self, ctx):
     '''
     prints your complete todo list
     '''
-    await self._td_list(ctx)
+    async with ctx.typing():
+      await self._td_list(ctx)
 
   @todo.command(name='add', aliases=['a', 'insert', 'i'])
   async def _td_add(self, ctx, *, task : str):
     '''
     adds a new task to your todo list
     '''
-    todos = self.conf['todo'].get(str(ctx.message.author.id), [])
-    todos.append([False, task])
-    self.conf['todo'][str(ctx.message.author.id)] = todos
-    self.conf.save()
-    await ctx.send(ok())
+    async with ctx.typing():
+      todos = self.conf['todo'].get(str(ctx.message.author.id), [])
+      todos.append([False, task])
+      self.conf['todo'][str(ctx.message.author.id)] = todos
+      self.conf.save()
+      await ctx.send(ok())
 
   @todo.command(name='done', aliases=['d', 'complete', 'c'])
   async def _td_done(self, ctx, *, index : int):
@@ -183,15 +190,16 @@ class General:
     sets/unsets a task as complete
     Note: indicies start at 1
     '''
-    todos = self.conf['todo'].get(str(ctx.message.author.id), [])
-    if len(todos) < index or index <= 0:
-      await ctx.send(error('Invalid index'))
-    else:
-      index -= 1
-      todos[index][0] = not todos[index][0]
-      self.conf['todo'][str(ctx.message.author.id)] = todos
-      self.conf.save()
-      await ctx.send(ok())
+    async with ctx.typing():
+      todos = self.conf['todo'].get(str(ctx.message.author.id), [])
+      if len(todos) < index or index <= 0:
+        await ctx.send(error('Invalid index'))
+      else:
+        index -= 1
+        todos[index][0] = not todos[index][0]
+        self.conf['todo'][str(ctx.message.author.id)] = todos
+        self.conf.save()
+        await ctx.send(ok())
 
   @todo.command(name='remove', aliases=['rem', 'rm', 'r'])
   async def _td_remove(self, ctx, *, index : int):
@@ -199,14 +207,15 @@ class General:
     remove a task from your todo list
     Note: indicies start at 1
     '''
-    todos = self.conf['todo'].get(str(ctx.message.author.id), [])
-    if len(todos) < index or index <= 0:
-      await ctx.send(error('Invalid index'))
-    else:
-      task = todos.pop(index - 1)
-      self.conf['todo'][str(ctx.message.author.id)] = todos
-      self.conf.save()
-      await ctx.send(ok('Removed task #{}'.format(index)))
+    async with ctx.typing():
+      todos = self.conf['todo'].get(str(ctx.message.author.id), [])
+      if len(todos) < index or index <= 0:
+        await ctx.send(error('Invalid index'))
+      else:
+        task = todos.pop(index - 1)
+        self.conf['todo'][str(ctx.message.author.id)] = todos
+        self.conf.save()
+        await ctx.send(ok('Removed task #{}'.format(index)))
 
   async def _td_list(self, ctx):
     todos = self.conf['todo'].get(str(ctx.message.author.id), [])
@@ -440,21 +449,21 @@ class General:
     channel = str(ctx.message.channel.id)
     match   = re.match(r'(?i)^(me\s+)?(remove|end|stop)\s+(\d+)', message)
 
-    if match:
-      rid = int(match.group(3))
-      for index,item in enumerate(heap):
-        if type(item) == Reminder \
-            and item.reminder_id == rid \
-            and item.user_id == author:
-          heap.pop(index)
-          await ctx.send(ok(f'Message with id {rid} has been removed'))
-          return
+    async with ctx.typing():
+      if match:
+        rid = int(match.group(3))
+        for index,item in enumerate(heap):
+          if type(item) == Reminder \
+              and item.reminder_id == rid \
+              and item.user_id == author:
+            heap.pop(index)
+            await ctx.send(ok(f'Message with id {rid} has been removed'))
+            return
+        else:
+          await ctx.send(ok(f'Could not find message with id {rid}'))
       else:
-        await ctx.send(ok(f'Could not find message with id {rid}'))
-    else:
-      r = Reminder(channel, author, message)
-      heap.push(r)
-      await r.begin(ctx)
+        r = Reminder(channel, author, message)
+        await heap.push(r, ctx)
 
   @commands.command(aliases=['a', 'ask'])
   async def question(self, ctx):
@@ -498,8 +507,7 @@ class General:
       if poll == item:
         await ctx.send('There is a poll active in this channel already')
         return
-    heap.push(poll)
-    await poll.begin(self.bot)
+    await heap.push(poll, ctx)
 
 def split(choices):
   choices = re.split(r'(?i)\s*(?:,|\bor\b)\s*', choices)

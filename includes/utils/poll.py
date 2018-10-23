@@ -51,11 +51,11 @@ class Poll(heap.HeapNode):
   def __gt__(self, other):
     return self.end_time > other.end_time
 
-  async def begin(self, bot):
+  async def begin(self, ctx):
     message = 'Poll stated: \"{}\"\n{}'.format(self.question,
                                                '\n'.join(self.options)
     )
-    await bot.say(formatter.escape_mentions(message))
+    await ctx.say(formatter.escape_mentions(message))
 
   async def end(self, bot):
     chan = bot.get_channel(self.channel_id)

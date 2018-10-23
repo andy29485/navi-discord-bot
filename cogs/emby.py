@@ -61,13 +61,14 @@ class Emby:
   @emby.command(name='lookup', aliases=['info', 'i'])
   async def _info(self, ctx, *, item_ids = ''):
     """print emby server info, or an embed for each item id"""
-    for item_id in item_ids.split():
-      item = await self.conn.info(item_id)
-      em   = await emby_helper.makeEmbed(item)
-      await ctx.message.channel.send(embed=em)
-    if not item_ids:
-      info = await self.conn.info()
-      await ctx.send(info)
+    async with ctx.typing():
+      for item_id in item_ids.split():
+        item = await self.conn.info(item_id)
+        em   = await emby_helper.makeEmbed(item)
+        await ctx.message.channel.send(embed=em)
+      if not item_ids:
+        info = await self.conn.info()
+        await ctx.send(info)
 
   @emby.command(name='watch', aliases=['w'])
   async def _watch(self, ctx, *, item_ids = ''):
@@ -110,26 +111,27 @@ class Emby:
     (ignoring the number)
     """
 
-    match = re.search(r'^(\d)+\s+(\S.*)$', query)
-    if not query:
-      await ctx.send(formatter.error('missing query'))
-      return
-    elif match:
-      num   = int(match.group(1))
-      query = match.group(2)
-    else:
-      num   = 1
+    async with ctx.typing():
+      match = re.search(r'^(\d)+\s+(\S.*)$', query)
+      if not query:
+        await ctx.send(formatter.error('missing query'))
+        return
+      elif match:
+        num   = int(match.group(1))
+        query = match.group(2)
+      else:
+        num   = 1
 
-    results = await self.conn.search(query)
-    results = [i for i in results if issubclass(type(i), EmbyObject)]
-    if not results:
-      await ctx.send('No results found')
-      return
+      results = await self.conn.search(query)
+      results = [i for i in results if issubclass(type(i), EmbyObject)]
+      if not results:
+        await ctx.send('No results found')
+        return
 
-    for result in results[:num]:
-      await result.update()
-      em = await emby_helper.makeEmbed(result)
-      await ctx.message.channel.send(embed=em)
+      for result in results[:num]:
+        await result.update()
+        em = await emby_helper.makeEmbed(result)
+        await ctx.message.channel.send(embed=em)
 
   async def on_socket_message(self, message):
     if message['MessageType'] == 'LibraryChanged':

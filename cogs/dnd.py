@@ -24,7 +24,8 @@ class DnD:
     # example `.echo hello world!`
     #   ctx.message.content           # the full message `.echo hello world`
     #   entire_message                # `hello world!`
-    await ctx.send(f'<{ctx.message.author.name}> {entire_message}')
+    async with ctx.typing():
+      await ctx.send(f'<{ctx.message.author.name}> {entire_message}')
 
 def setup(bot):
   d = DnD(bot)

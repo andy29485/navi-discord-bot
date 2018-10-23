@@ -40,7 +40,7 @@ class Server:
 
     heap = self.bot.get_cog('HeapCog')
     for rem in self.conf.pop('end_role', []):
-      heap.push(rem)
+      self.bot.loop.run_until_complete(heap.push(rem))
 
   @perms.pm_or_perms(manage_messages=True)
   @commands.command(name='prune')
@@ -359,8 +359,7 @@ class Server:
         guild_id
       )
 
-      self.bot.get_cog('HeapCog').push(role_end)
-      await role_end.begin(self.bot)
+      await self.bot.get_cog('HeapCog').push(role_end, self.bot)
 
   @perms.pm_or_perms(manage_messages=True)
   @commands.command(name='cut')
@@ -633,8 +632,7 @@ class Server:
 
     try:
       timeout_obj = Timeout(channel, server, member, time)
-      heap.push(timeout_obj)
-      await timeout_obj.begin(self.bot, to_role, to_chan)
+      await heap.push(timeout_obj, self.bot, to_role, to_chan)
     except:
       for index,obj in enumerate(heap):
         if obj == timeout_obj:

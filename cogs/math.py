@@ -15,31 +15,33 @@ class MathCog:
 
   @commands.command(pass_context=True, name='math')
   async def format(self, ctx, *, formula):
-    try:
-      f = lambda: self.math.renderLatex(
-          formula, fmt='png', backgroundcolor='white'
-      )
-      f = await self.bot.loop.run_in_executor(None, f)
-    except:
-      f = None
-    if f:
-      await ctx.send(file=discord.File(f, 'math.png'))
-    else:
-      await ctx.send(formatter.error('LaTeX syntax error'))
+    async with ctx.typing():
+      try:
+        f = lambda: self.math.renderLatex(
+            formula, fmt='png', backgroundcolor='white'
+        )
+        f = await self.bot.loop.run_in_executor(None, f)
+      except:
+        f = None
+      if f:
+        await ctx.send(file=discord.File(f, 'math.png'))
+      else:
+        await ctx.send(formatter.error('LaTeX syntax error'))
 
   @commands.command(pass_context=True)
   async def graph(self, ctx, *, parameters):
-    try:
-      f = lambda: self.math.renderGraph(
-          parameters, fmt='png', backgroundcolor='white'
-      )
-      f = await self.bot.loop.run_in_executor(None, f)
-    except:
-      f = None
-    if f:
-      await ctx.send(file=discord.File(f, 'graph.png'))
-    else:
-      await ctx.send(formatter.error('Graph rendering issue'))
+    async with ctx.typing():
+      try:
+        f = lambda: self.math.renderGraph(
+            parameters, fmt='png', backgroundcolor='white'
+        )
+        f = await self.bot.loop.run_in_executor(None, f)
+      except:
+        f = None
+      if f:
+        await ctx.send(file=discord.File(f, 'graph.png'))
+      else:
+        await ctx.send(formatter.error('Graph rendering issue'))
 
 def setup(bot):
   math = MathCog(bot)

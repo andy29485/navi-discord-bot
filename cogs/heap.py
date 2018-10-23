@@ -35,8 +35,9 @@ class HeapCog:
   def index(self, item):
     return self.conf['heap'].index(item)
 
-  def push(self, item):
+  async def push(self, item, *args, **kwargs):
     self.conf['heap'].push(item)
+    await item.begin(*args, **kwargs)
     self.conf.save()
 
   def pop(self, item):

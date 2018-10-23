@@ -23,40 +23,41 @@ class Quote:
     """Manage quotes"""
 
     if ctx.invoked_subcommand is None:
-      message = ctx.message.content
-      try:
-        index = int(ctx.subcommand_passed)
-        if index >= len(self.quotes_dict['quotes']):
-          await ctx.send(formatter.error(
-               'Quote {} does not exist'.format(index)
-          ))
-        else:
-          quote = self.quotes_dict['quotes'][index]
-          message = 'On {}:\n{}'.format(quote['date'],
-                                        formatter.code(quote['quote']))
-          await ctx.send(message)
-      except:
-        await ctx.send(self._random(message))
+      async with ctx.typing():
+        message = ctx.message.content
+        try:
+          index = int(ctx.subcommand_passed)
+          if index >= len(self.quotes_dict['quotes']):
+            await ctx.send(formatter.error(
+                 'Quote {} does not exist'.format(index)
+            ))
+          else:
+            quote = self.quotes_dict['quotes'][index]
+            message = 'On {}:\n{}'.format(quote['date'],
+                                          formatter.code(quote['quote']))
+            await ctx.send(message)
+        except:
+          await ctx.send(self._random(message))
 
   @quotes.command(name='add')
   async def _add(self, ctx, *, quote):
     """adds a quote"""
+    async with ctx.typing():
+      for i in self.quotes_dict['quotes']:
+        if quote.lower() == i['quote'].lower():
+          await ctx.send(formatter.error('Quote already exists'))
+          return
 
-    for i in self.quotes_dict['quotes']:
-      if quote.lower() == i['quote'].lower():
-        await ctx.send(formatter.error('Quote already exists'))
-        return
+      index = len(self.quotes_dict['quotes'])
+      date  = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+      self.quotes_dict['quotes'].append({
+          'id':     str(ctx.message.author.id),
+          'date':   date,
+          'quote':  quote,
+      })
+      self.quotes_dict.save()
 
-    index = len(self.quotes_dict['quotes'])
-    date  = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    self.quotes_dict['quotes'].append({
-        'id':     str(ctx.message.author.id),
-        'date':   date,
-        'quote':  quote,
-    })
-    self.quotes_dict.save()
-
-    await ctx.send(formatter.ok('quote added, index {}'.format(index)))
+      await ctx.send(formatter.ok('quote added, index {}'.format(index)))
 
   @quotes.command()
   async def random(self, ctx):
@@ -87,21 +88,21 @@ class Quote:
   @quotes.command(name='remove', aliases=['rm'])
   async def _rm(self, ctx, index : int):
     """remove an existing replacement by index"""
+    async with ctx.typing():
+      if index >= len(self.quotes_dict['quotes']):
+        await ctx.send(formatter.error(
+             'Quote {} does not exist'.format(index)
+        ))
+        return
 
-    if index >= len(self.quotes_dict['quotes']):
-      await ctx.send(formatter.error(
-           'Quote {} does not exist'.format(index)
-      ))
-      return
+      if str(ctx.message.author.id) != self.quotes_dict['quotes'][index]['id'] \
+         and not perms.check_permissions(ctx.message, manage_messages=True):
+          raise commands.errors.CheckFailure('Cannot delete')
 
-    if str(ctx.message.author.id) != self.quotes_dict['quotes'][index]['id'] \
-       and not perms.check_permissions(ctx.message, manage_messages=True):
-        raise commands.errors.CheckFailure('Cannot delete')
+      self.quotes_dict['quotes'].pop(index)
+      self.quotes_dict.save()
 
-    self.quotes_dict['quotes'].pop(index)
-    self.quotes_dict.save()
-
-    await ctx.send(formatter.ok())
+      await ctx.send(formatter.ok())
 
 def setup(bot):
   bot.add_cog(Quote(bot))

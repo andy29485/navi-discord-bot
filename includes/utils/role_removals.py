@@ -53,7 +53,7 @@ class RoleRemove(heap.HeapNode):
   def __gt__(self, other):
     return self.end_time > other.end_time
 
-  async def begin(self, bot):
+  async def begin(self, ctx):
     for index,role in enumerate(self.heap):
       if self is not role and self == role:
         self.heap.pop(index)

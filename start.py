@@ -87,6 +87,10 @@ async def on_ready():
     except Exception as e:
       print('Error loading {}\n{}: {}'.format(cog, type(e).__name__, e))
 
+  logger.info(
+    'bot started %s#%s (<@%d>)',
+    bot.user.name, bot.user.discriminator, bot.user.id
+  )
   # print "debug" info to the command line
   print('Logged in as:')
   print('Username: ' + bot.user.name + '#' +bot.user.discriminator)
@@ -99,6 +103,16 @@ async def on_ready():
 
   # Set help command dialogue
   await bot.change_presence(activity=discord.Game(f'{prefix[0]}help'))
+
+@bot.event
+async def on_error(ctx, error):
+  e_tb  = traceback.format_exception(
+    error.__class__, error, error.__traceback__
+  )
+  lines = []
+  for line in e_tb:
+    lines.extend(line.rstrip('\n').splitlines())
+  logger.error(f'Unknown error: %s','\n'.join(lines))
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -132,6 +146,7 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_resumed():
+  logger.info('resuming')
   print('resuming...')
 
 @bot.event

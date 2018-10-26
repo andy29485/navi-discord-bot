@@ -17,30 +17,12 @@ from cogs import *
 from includes.utils.config import Config
 import includes.utils.format as formatter
 
-starting_cogs = [
-  'cogs.heap',
-  'cogs.general',
-  'cogs.az',
-  'cogs.admin',
-  'cogs.internet',
-  'cogs.quotes',
-  'cogs.server',
-  'cogs.regex',
-  'cogs.groupme',
-  'cogs.dnd',
-  'cogs.emby',
-  'cogs.music',
-  'cogs.nsfw',
-  'cogs.games',
-  'cogs.osu',
-  'cogs.memes',
-  'cogs.math',
-]
-
 if not os.path.exists('configs'):
   makedirs('configs')
 if not os.path.exists('logs'):
   makedirs('logs')
+
+auth = Config('configs/auth.json')
 
 import logging
 from logging.handlers import TimedRotatingFileHandler
@@ -69,6 +51,17 @@ fh.suffix = '%Y-%m-%d.log'
 logger.addHandler(error_log)
 logger.addHandler(fh)
 
+# discordpy logging
+dlog = logging.getLogger('discord')
+dlog.setLevel(logging.INFO)
+dlog_h = logging.FileHandler(
+  filename='logs/discord.log',
+  encoding='utf-8',
+  mode='w'
+)
+dlog_h.setFormatter(logformat)
+dlog.addHandler(dlog_h)
+
 # setup bot information
 prefix = ['.']
 description = "Andy29485's bot"
@@ -81,7 +74,7 @@ bot = commands.Bot(command_prefix=prefix, description=description,
 @bot.event
 async def on_ready():
   # attempt to load up cogs
-  for cog in starting_cogs:
+  for cog in auth.get('cogs', []):
     try:
       bot.load_extension(cog)
     except Exception as e:
@@ -176,10 +169,15 @@ async def on_message(message):
 
 # load token and start bot
 #   if not token, ask
-auth = Config('configs/auth.json')
 while len(auth.get('token', '')) < 30:
   auth['token'] = input("Please enter bot's token: ")
   auth.save()
+
+if len(auth.get('cogs', [])) == 0:
+  is_cog = lambda fname: ord(fname[0]) <= ord('z') \
+                     and ord(fname[0]) >= ord('a') \
+                     and fname.endswith('.py')
+  auth['cogs'] = ['cogs.'+x[:-3] for x in os.listdir('cogs/') if is_cog(x)]
 
 #start bot
 bot.run(auth['token'])

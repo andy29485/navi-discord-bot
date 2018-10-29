@@ -145,7 +145,7 @@ async def on_resumed():
 @bot.event
 async def on_command(ctx):
   msg = ctx.message
-  chan = None
+  chan = msg.channel
   if (not isinstance(chan, GC)):
     chan = 'PM'
   else:

@@ -84,13 +84,15 @@ class Admin:
   async def debug_on(self, ctx):
     logging.getLogger('navi').setLevel(logging.DEBUG)
     logging.getLogger('discord').setLevel(logging.DEBUG)
+    logging.getLogger('asyncio').setLevel(logging.DEBUG)
     await ctx.send(formatter.ok())
 
   @commands.command(hidden=True)
   @perms.is_owner()
   async def debug_off(self, ctx):
     logging.getLogger('navi').setLevel(logging.INFO)
-    logging.getLogger('discord').setLevel(logging.INFO)
+    logging.getLogger('discord').setLevel(logging.WARNING)
+    logging.getLogger('asyncio').setLevel(logging.WARNING)
     await ctx.send(formatter.ok())
 
   @commands.command(hidden=True)

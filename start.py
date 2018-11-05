@@ -53,7 +53,7 @@ logger.addHandler(fh)
 
 # discordpy logging
 dlog = logging.getLogger('discord')
-dlog.setLevel(logging.INFO)
+dlog.setLevel(logging.WARNING)
 dlog_h = logging.FileHandler(
   filename='logs/discord.log',
   encoding='utf-8',
@@ -61,6 +61,17 @@ dlog_h = logging.FileHandler(
 )
 dlog_h.setFormatter(logformat)
 dlog.addHandler(dlog_h)
+
+# asyncio logging
+alog = logging.getLogger('asyncio')
+alog.setLevel(logging.WARNING)
+alog_h = logging.FileHandler(
+  filename='logs/asyncio.log',
+  encoding='utf-8',
+  mode='w'
+)
+alog_h.setFormatter(logformat)
+alog.addHandler(alog_h)
 
 # setup bot information
 prefix = ['.']

@@ -85,6 +85,7 @@ class Admin:
     logging.getLogger('navi').setLevel(logging.DEBUG)
     logging.getLogger('discord').setLevel(logging.DEBUG)
     logging.getLogger('asyncio').setLevel(logging.DEBUG)
+    ctx.bot.loop.set_debug(True)
     await ctx.send(formatter.ok())
 
   @commands.command(hidden=True)
@@ -93,6 +94,7 @@ class Admin:
     logging.getLogger('navi').setLevel(logging.INFO)
     logging.getLogger('discord').setLevel(logging.WARNING)
     logging.getLogger('asyncio').setLevel(logging.WARNING)
+    ctx.bot.loop.set_debug(False)
     await ctx.send(formatter.ok())
 
   @commands.command(hidden=True)

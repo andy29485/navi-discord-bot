@@ -52,16 +52,21 @@ class RegexCog:
     await ctx.send(self.regex.ls())
 
   async def replace(self, message):
+    logger.debug('regex rep start')
     if message.author.bot:
+      logger.debug('  ignoring message (reason: bot)')
       return
     if len(message.content.strip()) < 2:
+      logger.debug('  ignoring message (reason: too short)')
       return
     if message.content.strip()[0] in self.bot.command_prefix+['?', '$']:
+      logger.debug('  ignoring message (reason: possible command)')
       return
 
     m = self.regex.replace(message.content)
     if m:
       await message.channel.send('*'+m)
+    logger.debug('regex rep end')
 
 def setup(bot):
   reg = RegexCog(bot)

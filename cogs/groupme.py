@@ -110,10 +110,14 @@ class GroupMe:
     await ctx.send(formatter.ok())
 
   async def link_from_discord(self, message):
+    logger.debug('groupme bridge start')
+
     if message.author.bot:
+      logger.debug('  ignoring message (reason: bot)')
       return
 
     if message.content.startswith('.add_groupme_link'):
+      logger.debug('  ignoring message (reason: link command)')
       return
 
     try:
@@ -126,6 +130,8 @@ class GroupMe:
     except:
       #print(self.g_bots)
       pass
+
+    logger.debug('groupme bridge end')
 
   async def link_from_groupme(self, message, channels):
     try:

@@ -102,10 +102,14 @@ class AzCog:
         await ctx.send(url)
 
   async def repeat(self, message):
+    logger.debug('repeat message listener start')
     await self.az.repeat(self.bot, message)
+    logger.debug('repeat message listener end')
 
   async def censor(self, message):
+    logger.debug('censor message listener start')
     await self.az.censor(self.bot, message)
+    logger.debug('censor message listener end')
 
 def setup(bot):
   az = AzCog(bot)

@@ -166,17 +166,23 @@ async def on_command(ctx):
 
 @bot.event
 async def on_message(message):
+  logger.debug('global on message start')
+
   if message.author.bot:
+    logger.debug('  ignoring message (reason: bot)')
     return
 
   # check if user is not the ignore list
   perms = Config('configs/perms.json')
   if str(message.author.id) in perms.get('ignore', []):
+    logger.debug('  ignoring message (reason: user in ingore list)')
     return
+
 
   # check if command is a valid one
   if not re.search('^[\\.!\\?\\$]{2,}', message.content):
     await bot.process_commands(message)
+  logger.debug('global on message end')
 
 # load token and start bot
 #   if not token, ask

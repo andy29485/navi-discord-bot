@@ -33,7 +33,10 @@ class Osu:
     self.loop.create_task(self.check_scores())
 
   async def osu_info(self, message):
+    logger.debug('osu additional info helper start')
+
     if message.author.bot:
+      logger.debug('  ignoring message (reason: bot)')
       return
 
     chan = message.channel
@@ -73,6 +76,8 @@ class Osu:
       else:
         continue
       break
+
+    logger.debug('osu additional info helper end')
 
   @commands.group(name='osu', aliases=["o"])
   async def _osu(self, ctx):

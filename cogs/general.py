@@ -78,6 +78,7 @@ class General:
     mess = message.content
     loop = asyncio.get_event_loop()
 
+    logger.debug('tally start')
     #bots don't get a vote
     if user.bot:
       return
@@ -93,6 +94,8 @@ class General:
       if test_poll == poll:
         await loop.run_in_executor(None, poll.vote, user, mess)
 
+    logger.debug('tally end')
+
   async def respond(self, message):
     if message.author.bot:
       return
@@ -101,6 +104,8 @@ class General:
         message.content.strip()[0] in self.bot.command_prefix + ['$','?','!']:
       return
 
+
+    logger.debug('respond start')
     loop = asyncio.get_event_loop()
 
     for i in self.conf['responses']:
@@ -120,7 +125,8 @@ class General:
         msg = re.sub("(?i){}".format(i[0]), rep, message.content)
         if rep:
           await message.channel.send(msg)
-        return
+        break
+    logger.debug('respond start')
 
   @commands.command(name='roll', aliases=['r', 'clench'])
   async def _roll(self, ctx, *dice):
@@ -448,7 +454,7 @@ class General:
     author  = str(ctx.message.author.id)
     channel = str(ctx.message.channel.id)
     match   = re.match(r'(?i)^(me\s+)?(remove|end|stop)\s+(\d+)', message)
-    
+
     if match:
       async with ctx.typing():
         rid = int(match.group(3))

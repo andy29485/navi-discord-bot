@@ -32,13 +32,13 @@ times = {
 day_ex  = r'(\s*the)?\s*(?P<day>\d\d?)\s*(th|st|rd|nd)?(\s*of)?(?=[^a-z0-9:])'
 year_ex = r'\s*(-|,|of|in)?(\s*the\s*year)?(\s*of)?\s*(?P<year>\d{4})\b'
 dow_names = [ #monday=0,...,sunday=6
-  re.compile(f'(?i)^\\s*mon(day)?\\.({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*tue(s(day)?)?\\.({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*wed(nes(day)?)?\\.({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*thu(r(s(day)?)?)?\\.({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*fri(day)?\\.({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*sat(ur(day?))?\\.({day_ex})?\\b'),
-  re.compile(f'(?i)^\\s*sun(day)?\\.({day_ex})?\\b')
+  re.compile(f'(?i)^\\s*mon(day)?\\.?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*tue(s(day)?)?\\.?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*wed(nes(day)?)?\\.?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*thu(r(s(day)?)?)?\\.?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*fri(day)?\\.?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*sat(ur(day?))?\\.?({day_ex})?\\b'),
+  re.compile(f'(?i)^\\s*sun(day)?\\.?({day_ex})?\\b')
 ]
 month_names = [
   re.compile(f'(?i)({day_ex})\\s*jan(uary)?\\.?\\s*({year_ex})?'),

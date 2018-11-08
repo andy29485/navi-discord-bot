@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 import asyncio
+import logging
 from discord.ext import commands
 
 from includes.regex import Regex as RegexRes
 from includes.utils import format as formatter
+
+logger = logging.getLogger('navi.az')
 
 class RegexCog:
   def __init__(self, bot):

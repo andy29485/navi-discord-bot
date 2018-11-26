@@ -78,14 +78,20 @@ class Reminder(heap.HeapNode):
         await ctx.send(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
 
   async def end(self, bot):
+    logger.info('sending reminder for <@%s> to: <#%s> ',
+      self.user_id,
+      self.channel_id,
+    )
+
     chan = bot.get_channel(self.channel_id)
-    serv = chan and chan.guild
-    user = chan and dh.get_user(serv, self.user_id)
 
     if not chan:
       chan = self.channel_id
       logger.error(f'could not send message \"{self.message}\" to <#{chan}>')
       return
+
+    guild = chan and chan.guild
+    user  = chan and dh.get_user(guild, self.user_id)
 
     if self.command:
       member = {

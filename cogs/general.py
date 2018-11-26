@@ -111,11 +111,12 @@ class General:
     for i in self.conf['responses']:
       if re.search("(?i){}".format(i[0]), message.content):
         rep = i[1]
-        subs = {"\\{un\\}"         : message.author.name,
-                "\\{um\\}"         : message.author.mention,
-                "\\{ui\\}"         : message.author.mention,
-                "\\{situations\\}" : random.choice(self.conf['situations'])
-               }
+        subs = {
+          "\\{un\\}"         : message.author.name,
+          "\\{um\\}"         : message.author.mention,
+          "\\{ui\\}"         : message.author.mention,
+          "\\{situations\\}" : random.choice(self.conf['situations'])
+        }
         for j in re.findall("\\(.*?\\|.*?\\)", rep):
           rep = rep.replace(j, random.choice(j[1:-1].split("|")))
         for j in subs:

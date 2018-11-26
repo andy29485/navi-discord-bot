@@ -21,9 +21,12 @@ class HeapCog:
       heap_popped = False
       # if there are valid items that expired/expire soon, process them
       while self.conf['heap'].time_left < 2:
-        item = self.conf['heap'].pop()   # remove item from heap
-        await item.end(self.bot)         # perform its task
-        heap_popped = True               # signify that a save is needed
+        # remove item from heap
+        item = self.conf['heap'].pop()
+        logger.debug('popping item from heap (%s)', item.to_dict())
+
+        await item.end(self.bot)   # perform its task
+        heap_popped = True         # signify that a save is needed
 
       # only save heap to disk if an item was pop
       if heap_popped:

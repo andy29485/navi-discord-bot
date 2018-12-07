@@ -42,7 +42,7 @@ class Emby:
             chans = self.conf['watching'].get(t.id, [])
             for chan_id in chans:
               logger.debug('      sending to chan: %s', chan_id)
-              chan = self.bot.get_channel(chan_id)
+              chan = self.bot.get_channel(int(chan_id))
               em   = await emby_helper.makeEmbed(item, 'New item added: ')
               await chan.send(embed=em)
           except:

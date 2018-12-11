@@ -5,8 +5,8 @@ import discord
 import asyncio
 import logging
 import time
-import cogs.utils.heap as heap
-import cogs.utils.format as formatter
+import includes.utils.heap as heap
+import includes.utils.format as formatter
 
 logger = logging.getLogger('navi.poll')
 
@@ -14,7 +14,7 @@ class Poll(heap.HeapNode):
   def __init__(self, question, opts, channel, sleep, timeout=0):
     self.options    = {}
     self.question   = question
-    self.channel_id = getattr(channel, 'id', channel)
+    self.channel_id = int(getattr(channel, 'id', channel))
     self.end_time   = timeout if timeout else sleep + time.time()
 
     for opt in opts:
@@ -22,10 +22,10 @@ class Poll(heap.HeapNode):
 
   @staticmethod
   def from_dict(dct):
-    question   = dct.get('question')
-    options    = dct.get('options')
-    channel_id = dct.get('channel_id')
-    end_time   = dct.get('end_time')
+    question   =     dct.get('question')
+    options    =     dct.get('options')
+    channel_id = int(dct.get('channel_id'))
+    end_time   =     dct.get('end_time')
 
     return Poll(question, options, channel_id, 0, end_time)
 
@@ -34,7 +34,7 @@ class Poll(heap.HeapNode):
       '__poll__'   : True,
       'question'   : self.question,
       'options'    : self.options,
-      'channel_id' : self.channel_id,
+      'channel_id' : int(self.channel_id),
       'end_time'   : self.end_time
     }
 
@@ -51,24 +51,24 @@ class Poll(heap.HeapNode):
   def __gt__(self, other):
     return self.end_time > other.end_time
 
-  async def begin(self, bot):
+  async def begin(self, ctx):
     message = 'Poll stated: \"{}\"\n{}'.format(self.question,
                                                '\n'.join(self.options)
     )
-    await bot.say(formatter.escape_mentions(message))
+    await ctx.say(formatter.escape_mentions(message))
 
   async def end(self, bot):
     chan = bot.get_channel(self.channel_id)
-    await bot.send_message(chan, formatter.escape_mentions(self.results()))
+    await chan.send(formatter.escape_mentions(self.results()))
 
   def vote(self, user : discord.User, message):
     v = False
     for i in self.options:
       if not v and re.search(r'(?i)\b{}\b'.format(i), message):
-        self.options[i].add(user.id)
+        self.options[i].add(str(user.id))
         v = True
-      elif user.id in self.options[i]:
-        self.options[i].remove(user.id)
+      elif str(user.id) in self.options[i]:
+        self.options[i].remove(str(user.id))
 
   def results(self):
     out = ''

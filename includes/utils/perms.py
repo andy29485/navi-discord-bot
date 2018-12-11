@@ -3,7 +3,8 @@
 import logging
 from discord.ext import commands
 import discord.utils
-from cogs.utils.config import Config
+from discord.abc import GuildChannel as GC
+from includes.utils.config import Config
 
 logger = logging.getLogger('navi.perms')
 
@@ -15,9 +16,11 @@ config = Config('configs/perms.json')
 if 'owner' not in config:
   import re
   owner = ''
-  while not owner or not re.search('^\\d{15,}$', owner):
+  match = None
+  while not match:
     owner = input('please enter YOUR id(use `\\@NAME` to find yours): ')
-  config['owner'] = owner
+    match = re.search('^\s*<?@?(\\d{15,})>?\s*$', owner)
+  config['owner'] = match.group(1) if match else owner
   config.save()
 
 def is_owner():
@@ -32,15 +35,20 @@ def has_perms(**perms):
 def has_role_check(check, **perms):
   return commands.check(lambda ctx: role_or_permissions(ctx, check, **perms))
 
+def pm_or_perms(**perms):
+  return commands.check(lambda ctx: pm_or_permissions(ctx, **perms))
+
 def is_owner_check(message):
-  return message.author.id == config['owner']
+  if type(message) == str:
+    return message == config['owner']
+  return str(message.author.id) == str(config['owner'])
 
 def in_group_check(msg, group):
   if is_owner_check(msg):
     return True
 
   for num in config[group]:
-    if num == msg.author.id:
+    if str(num) == str(msg.author.id) or num == msg:
       return True
   return False
 
@@ -55,6 +63,11 @@ def check_permissions(msg, **perms):
                                                         value in perms.items()
   )
 
+def pm_or_permissions(ctx, **perms):
+  # http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
+  chan = ctx.message.channel
+  return (not isinstance(chan, GC)) or check_permissions(ctx.message, **perms)
+
 def role_or_permissions(ctx, check, **perms):
   # http://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions
   if check_permissions(ctx.message, **perms):
@@ -62,7 +75,7 @@ def role_or_permissions(ctx, check, **perms):
 
   chan   = ctx.message.channel
   author = ctx.message.author
-  if chan.is_private:
+  if not isinstance(chan, GC):
     return False # can't have roles in PMs
 
   role = discord.utils.find(check, author.roles)
@@ -70,8 +83,8 @@ def role_or_permissions(ctx, check, **perms):
 
 def is_in_servers(*server_ids):
   def predicate(ctx):
-    server = ctx.message.server
+    server = ctx.message.guild
     if not server:
       return False
-    return server.id in server_ids
+    return str(server.id) in (str(sid) for sid in server_ids)
   return commands.check(predicate)

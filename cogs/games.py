@@ -4,10 +4,10 @@ import asyncio
 import random
 import os
 import html
-from cogs.utils import perms
+from includes.utils import perms
 from discord.ext import commands
-from cogs.utils.config import Config
-from cogs.utils import format as formatter
+from includes.utils.config import Config
+from includes.utils import format as formatter
 
 class Games:
   def __init__(self, bot):
@@ -15,13 +15,13 @@ class Games:
     self.conf = Config('configs/games.json')
 
   @perms.is_owner()
-  @commands.command(pass_context=True, aliases=['faa'])
+  @commands.command(aliases=['faa'])
   async def fake_artist_add(self, ctx, *, themes):
     self.conf['fake_artist']['themes'].extend(themes.strip().split('\n'))
     self.conf.save()
-    await self.bot.say(formatter.ok())
+    await ctx.send(formatter.ok())
 
-  @commands.command(pass_context=True, aliases=['fa'])
+  @commands.command(aliases=['fa'])
   async def fake_artist(self, ctx, number : int):
     conf   = self.conf.get('fake_artist', {})
     themes = conf.get('themes', [])
@@ -55,7 +55,7 @@ class Games:
         f.write(conf.get('out'))
       say += f'\nhttps://andy29485.tk/files/{i+1}.html'
 
-    await self.bot.say(formatter.ok(say))
+    await ctx.send(formatter.ok(say))
 
 
 def setup(bot):

@@ -6,14 +6,20 @@ import asyncio
 import requests
 import aiohttp
 import logging
-from cogs.utils.config import Config
+import inspect
+from includes.utils.config import Config
 from embypy import Emby as EmbyPy
+
+
+hasattr = lambda x,y: inspect.getattr_static(x, y, None) is not None
 
 logger = logging.getLogger('navi.emby_helper')
 
-colours = [0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
-           0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0x1abc9c,
-           0x2ecc71, 0xa84300, 0xe74c3c, 0xad1457, 0x11806a]
+colours = [
+  0x1f8b4c, 0xc27c0e, 0x3498db, 0x206694, 0x9b59b6,
+  0x71368a, 0xe91e63, 0xe67e22, 0xf1c40f, 0x1abc9c,
+  0x2ecc71, 0xa84300, 0xe74c3c, 0xad1457, 0x11806a,
+]
 
 conf = Config('configs/emby.json')
 
@@ -51,7 +57,7 @@ async def makeEmbed(item, message='', ignore=()):
       url = item.album_primary_image_url
     else:
       url = item.primary_image_url
-    async with session.get(url) as img:
+    async with session.get(url,timeout=5) as img:
       logger.debug('checking image url')
       if img.status == 200:
         logger.debug('url ok')
@@ -62,6 +68,17 @@ async def makeEmbed(item, message='', ignore=()):
 
   em.title  = (message+name or '<No name>').strip()
 
+  if hasattr(item, 'series_name') and item.series_name:
+    logger.debug('setting show name as description')
+    season_num  = item.season_number
+    episode_num = item.episode_number
+    show_name   = item.series_name
+    if season_num:
+      str_ep = f'{show_name} - {season_num:02}x{episode_num:02}'
+    else:
+      str_ep = f'{item.season_name} - {episode_num:02}'
+    em.set_footer(text=str_ep)
+
   if getattr(item, 'overview') and 'Overview' not in ignore:
     logger.debug('setting overview as description')
     if len(item.overview) > 250:
@@ -69,10 +86,7 @@ async def makeEmbed(item, message='', ignore=()):
     else:
       des = item.overview
     em.description = des
-  elif hasattr(item, 'series_name') and item.series_name:
-    logger.debug('setting show name as description')
-    em.description = item.series_name
-  elif item.id:
+  elif item.type:
     logger.debug('using type for description')
     em.description = item.type
 
@@ -87,7 +101,9 @@ async def makeEmbed(item, message='', ignore=()):
   if hasattr(item, 'artists') and 'Artists' not in ignore:
     logger.debug('setting artists')
     names = ', '.join(i.name for i in await item.artists)
-    em.add_field(name='Artists', value=names)
+    if len(names) > 250:
+      names = names[:247]+'...'
+    em.add_field(name='Artists', value=names or 'None(?)')
 
   if hasattr(item, 'album') and 'Album' not in ignore:
     logger.debug('setting album name')
@@ -110,13 +126,13 @@ async def makeEmbed(item, message='', ignore=()):
     songs = ''
     for s in await item.songs:
       song = f'{s.index_number:02} - {s.name}\n'
-      if len(songs)+len(song) > 247:
+      if len(songs)+len(song) > 800:
         songs += '...'
         break
       songs += song
-    em.add_field(name='Songs', value=songs)
+    em.add_field(name='Songs', value=songs or 'None(?)')
 
-  logger.debug('done making embed')
+  logger.debug('done making embed - %s', str(em.to_dict()))
   return em
 
 def getColour(string : str):

@@ -7,9 +7,9 @@ import logging
 import pybooru
 from discord import Embed
 from discord.ext import commands
-from cogs.utils.config import Config
-import cogs.utils.format as formatter
-from cogs.utils import discord_helper as dh
+from includes.utils.config import Config
+import includes.utils.format as formatter
+from includes.utils import discord_helper as dh
 
 logger = logging.getLogger('navi.nsfw')
 
@@ -41,23 +41,24 @@ class NSFW:
     self.lolibooru = pybooru.Moebooru('lolibooru',**self.conf['lolibooru-conf'])
     self.safebooru = pybooru.Danbooru('safebooru',**self.conf['safebooru-conf'])
 
-  @commands.group(pass_context=True)
+  @commands.group()
+  @commands.is_nsfw()
   async def nsfw(self, ctx):
     """NSFW stuff"""
     channel = ctx.message.channel
-    # ensure that the current channel is marked as nsfw
-    if not channel.is_private and 'nsfw' not in channel.name.lower():
-      await self.bot.say(formatter.error('not in nsfw channel'))
-      ctx.invoked_subcommand = None
-      return
+    # # ensure that the current channel is marked as nsfw
+    # if not channel.is_private and 'nsfw' not in channel.name.lower():
+    #   await ctx.send(formatter.error('not in nsfw channel'))
+    #   ctx.invoked_subcommand = None
+    #   return
 
     # if user misstyped or does not know what they are doing, complain
     if ctx.invoked_subcommand is None:
-      await self.bot.say(formatter.error("Please specify valid subcommand"))
+      await ctx.send(formatter.error("Please specify valid subcommand"))
       return
 
   @nsfw.command(name='danbooru', aliases=['d'])
-  async def _danbooru(self, *, search_tags : str = ''):
+  async def _danbooru(self, ctx, *, search_tags : str = ''):
     """
       searches danbooru for an image
 
@@ -87,31 +88,37 @@ class NSFW:
     posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
-      await self.bot.say('could not find anything')
+      await ctx.send('could not find anything')
       return
 
     for post in posts:
       em    = Embed()
       em.title = search_tags or 'rating:e'
       em.url   = 'https://danbooru.donmai.us/posts/{}'.format(post['id'])
-      u        = 'https://danbooru.donmai.us'
+
       if 'large_file_url' in post:
-        u += post['large_file_url']
+        u = post['large_file_url']
       elif 'file_url' in post:
-        u += post['file_url']
+        u = post['file_url']
       else:
-        await self.bot.say('''
+        await ctx.send('''
                 Sorry, there seems to be a premium tag in the image,
                 send me $20 if you you want to search it.
         ''')
+      if 'http' not in u:
+        u = f'https://danbooru.donmai.us/{u}'
       em.set_image(url=u)
-      if post['tag_string']:
-        em.set_footer(text=post['tag_string'])
 
-      await self.bot.say(embed=em)
+      tags = post['tag_string']
+      if len(tags) > 700:
+        tags = tags[:696] + ' ...'
+      if tags:
+        em.set_footer(text=tags)
+
+      await ctx.send(embed=em)
 
   @nsfw.command(name='lolibooru', aliases=['l'])
-  async def _lolibooru(self, *, search_tags : str = ''):
+  async def _lolibooru(self, ctx, *, search_tags : str = ''):
     """
       searches lolibooru for an image
 
@@ -140,7 +147,7 @@ class NSFW:
     posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
-      await self.bot.say('could not find anything')
+      await ctx.send('could not find anything')
       return
 
     for i in range(num):
@@ -153,13 +160,17 @@ class NSFW:
       em.url   = 'https://lolibooru.moe/post/show/{}'.format(post['id'])
       u        = post['file_url'].replace(' ', '%20')
       em.set_image(url=u)
-      if post['tags']:
-        em.set_footer(text=post['tags'])
 
-      await self.bot.say(embed=em)
+      tags = post['tags']
+      if len(tags) > 700:
+        tags = tags[:696] + ' ...'
+      if tags:
+        em.set_footer(text=tags)
+
+      await ctx.send(embed=em)
 
   @nsfw.command(name='yandere', aliases=['y'])
-  async def _yandre(self, *, search_tags : str = '' or 'rating:e'):
+  async def _yandre(self, ctx, *, search_tags : str = '' or 'rating:e'):
     """
       searches yande.re for an image
 
@@ -188,7 +199,7 @@ class NSFW:
     posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
-      await self.bot.say('could not find anything')
+      await ctx.send('could not find anything')
       return
 
     for i in range(num):
@@ -201,13 +212,17 @@ class NSFW:
       em.url   = 'https://yande.re/post/show/{}'.format(post['id'])
       u        = post['file_url']
       em.set_image(url=u)
-      if post['tags']:
-        em.set_footer(text=post['tags'])
 
-      await self.bot.say(embed=em)
+      tags = post['tags']
+      if len(tags) > 700:
+        tags = tags[:696] + ' ...'
+      if tags:
+        em.set_footer(text=tags)
+
+      await ctx.send(embed=em)
 
   @commands.command(name='safebooru', aliases=['s', 'safe'])
-  async def _safebooru(self, *, search_tags : str):
+  async def _safebooru(self, ctx, *, search_tags : str):
     """
       searches safebooru for an image
 
@@ -234,28 +249,34 @@ class NSFW:
     posts = await self.loop.run_in_executor(None, get)
 
     if not posts:
-      await self.bot.say('could not find anything')
+      await ctx.send('could not find anything')
       return
 
     for post in posts:
       em    = Embed()
       em.title = search_tags
       em.url   = 'https://safebooru.donmai.us/posts/{}'.format(post['id'])
-      u        = 'https://safebooru.donmai.us'
       if 'large_file_url' in post:
-        u += post['large_file_url']
+        u = post['large_file_url']
       elif 'file_url' in post:
-        u += post['file_url']
+        u = post['file_url']
       else:
-        await self.bot.say('''
+        await ctx.send('''
                 Sorry, there seems to be a premium tag in the image,
                 send me $20 if you you want to search it.
         ''')
+        return
+      if 'http' not in u:
+        u = 'https://safebooru.donmai.us' + u
       em.set_image(url=u)
-      if post['tag_string']:
-        em.set_footer(text=post['tag_string'])
 
-      await self.bot.say(embed=em)
+      tags = post['tag_string']
+      if len(tags) > 700:
+        tags = tags[:696] + ' ...'
+      if tags:
+        em.set_footer(text=tags)
+
+      await ctx.send(embed=em)
 
 def setup(bot):
   bot.add_cog(NSFW(bot))

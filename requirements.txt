@@ -1,5 +1,6 @@
-discord.py[voice]
-puush.py
+https://github.com/Rapptz/discord.py/archive/rewrite.zip#egg=discord.py[voice]
+apng
+arrow
 GitPython
 html2text
 lxml
@@ -8,4 +9,7 @@ Pybooru
 asyncjisho
 simplejson
 monthdelta
-embypy>=0.3.1.0
+embypy>=0.3.2.0
+matplotlib
+networkx
+Pillow

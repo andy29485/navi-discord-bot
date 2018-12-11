@@ -12,11 +12,11 @@ def as_obj(dct):
     - Reminders
     - Timeouts
   '''
-  from cogs.utils.role_removals import RoleRemove
-  from cogs.utils.reminders import Reminder
-  from cogs.utils.timeout import Timeout
-  from cogs.utils.heap import Heap
-  from cogs.utils.poll import Poll
+  from includes.utils.role_removals import RoleRemove
+  from includes.utils.reminders import Reminder
+  from includes.utils.timeout import Timeout
+  from includes.utils.heap import Heap
+  from includes.utils.poll import Poll
 
   if dct.get('__reminder__', False):
     return Reminder.from_dict(dct)
@@ -33,11 +33,11 @@ def as_obj(dct):
   return dct
 
 def get_type(name):
-  from cogs.utils.role_removals import RoleRemove
-  from cogs.utils.reminders import Reminder
-  from cogs.utils.timeout import Timeout
-  from cogs.utils.heap import Heap, HeapNode
-  from cogs.utils.poll import Poll
+  from includes.utils.role_removals import RoleRemove
+  from includes.utils.reminders import Reminder
+  from includes.utils.timeout import Timeout
+  from includes.utils.heap import Heap, HeapNode
+  from includes.utils.poll import Poll
   return locals()[name]
 
 
@@ -47,7 +47,7 @@ class ObjEncoder(json.JSONEncoder):
   supports same conversions as the function that goes the other way
   '''
   def default(self, obj):
-    from cogs.utils.heap import Heap, HeapNode
+    from includes.utils.heap import Heap, HeapNode
     for dictable_type in (Heap, HeapNode):
       if isinstance(obj, dictable_type):
         return obj.to_dict()

@@ -1,63 +1,38 @@
 #!/usr/bin/env python3
 
-import re
-import asyncio
+import os
 import discord
 import logging
-import os
-from os import stat
-from git import Repo,Actor
-from pwd import getpwuid
 from discord.ext import commands
-from cogs.utils.format import *
-from cogs.utils import perms
-from cogs.utils import find as azfind
-from cogs.utils.config import Config
-from cogs.utils import discord_helper as dh
 from zipfile import ZipFile as zipfile
+import includes.utils.format as formatter
+from includes.utils import perms
+from includes.az import AZ
 
 logger = logging.getLogger('navi.az')
+upload_limit = 7.9999
 
-class AZ:
+class AzCog:
   def __init__(self, bot):
-    self.bot  = bot
-    self.last = {}
-    self.conf = Config('configs/az.json')
-    if 'lenny' not in self.conf:
-      self.conf['lenny'] = {}
-    if 'img-reps' not in self.conf:
-      self.conf['img-reps'] = {}
-    if 'repeat_after' not in self.conf:
-      self.conf['repeat_after'] = 3
-    self.conf.save()
+    self.bot = bot
+    self.az  = AZ()
 
   @commands.command()
-  async def lenny(self, first=''):
-    out = None
-    try:
-      num = int(first)
-      if num < 1:
-        num = 1
-      if num > 10:
-        num = 10
-    except:
-      num = 1
-      out = self.conf['lenny'].get(first.lower(), None)
-    out = code(out) if out else '\n( ͡° ͜ʖ ͡° )'
-    await self.bot.say(out*num)
+  async def lenny(self, ctx, first=''):
+    await ctx.send(self.az.lenny(first))
 
   @commands.command()
-  async def shrug(self):
-    await self.bot.say('\n¯\_(ツ)_/¯')
+  async def shrug(self, ctx):
+    await ctx.send('\n¯\_(ツ)_/¯')
 
-  @commands.command(pass_context=True)
+  @commands.command()
   async def me(self, ctx, *, message : str):
-    await self.bot.say('*{} {}*'.format(ctx.message.author.name, message))
-    await self.bot.delete_message(ctx.message)
+    await ctx.send(f'*{ctx.message.author.name} {message}*')
+    await ctx.message.delete()
 
-  @commands.command(pass_context=True,name='set_colour',aliases=['sc'])
+  @commands.command(name='set_colour',aliases=['sc'])
   @perms.is_in_servers('168702989324779520')
-  @perms.has_role_check(lambda r: r.id == '258405421813989387')
+  @perms.has_role_check(lambda r: str(r.id) == '258405421813989387')
   async def _set_colour(self, ctx, colour):
     """
     set role colour
@@ -84,151 +59,60 @@ class AZ:
     light_grey   0x979c9f.
     darker_grey  0x546e7a.
     """
-    cols = {
-      'teal' : discord.Colour.teal(),
-      'dark_teal' : discord.Colour.dark_teal(),
-      'green' : discord.Colour.green(),
-      'dark_green' : discord.Colour.dark_green(),
-      'blue' : discord.Colour.blue(),
-      'dark_blue' : discord.Colour.dark_blue(),
-      'purple' : discord.Colour.purple(),
-      'dark_purple' : discord.Colour.dark_purple(),
-      'magenta' : discord.Colour.magenta(),
-      'dark_magenta' : discord.Colour.dark_magenta(),
-      'gold' : discord.Colour.gold(),
-      'dark_gold' : discord.Colour.dark_gold(),
-      'orange' : discord.Colour.orange(),
-      'dark_orange' : discord.Colour.dark_orange(),
-      'red' : discord.Colour.red(),
-      'dark_red' : discord.Colour.dark_red(),
-      'lighter_grey' : discord.Colour.lighter_grey(),
-      'dark_grey' : discord.Colour.dark_grey(),
-      'light_grey' : discord.Colour.light_grey(),
-      'darker_grey' : discord.Colour.darker_grey()
-    }
-    colour = colour.lower().strip()
-    m      = re.search('^(0[hx])?([a-f0-9]{6})$', colour)
-    if colour in cols:
-      c = cols[colour]
-    elif m:
-      c = discord.Colour(int(m.group(2), 16))
+    server = ctx.message.guild
+    colour = self.az.get_colour(colour)
+    role   = dh.get_role(server, '258405421813989387')
+
+    if not role:
+      await ctx.send('could not find role to change')
+    elif not colour:
+      await ctx.send('Could not figure out colour - see help')
     else:
-      await self.bot.say('could not find valid colour, see help')
-      return
+      await role.edit(colour=colour)
+      await ctx.send(ok())
 
-    server = ctx.message.server
-    for role in server.roles:
-      if role.id == '258405421813989387':
-        await self.bot.edit_role(server, role, colour=c)
-        await self.bot.say(ok())
-        return
-    await self.bot.say('could not find role to change')
-
-  @commands.command(pass_context=True)
+  @commands.command()
   @perms.in_group('img')
   async def img(self, ctx, *search):
-    if not os.path.exists(self.conf.get('path', '')):
-      logger.debug('could not find images')
-      await self.bot.say('{path} does not exist')
-      return
+    async with ctx.typing():
+      path,url = await self.bot.loop.run_in_executor(None, self.az.img, *search)
 
-    try:
-      # load repo
-      repo   = Repo(self.conf.get('path', ''))
-      loop   = self.bot.loop
-      author = Actor('navi', 'navi@andy29485.tk')
-      remote = repo.remotes.origin
-      users  = set()
-      logger.debug('loaded git info in image repo')
+      if path:
+        size_ok = os.stat(path).st_size/1024/1024 <= upload_limit
+      else:
+        size_ok = False
 
-      # check for changed files
-      logger.debug('getting users')
-      for fname in repo.untracked_files:
-        fname = os.path.join(self.conf.get('path', ''), fname)
-        uname = getpwuid(stat(fname).st_uid).pw_name
-        users.add(uname)
-      logger.debug('found users: %s', ', '.join(users))
+      logger.debug('img (%s) - %s', type(path), str(path))
 
-      # commit changes
-      if users or repo.untracked_files:
-        logger.debug('adding files')
-        await loop.run_in_executor(None, repo.index.add, repo.untracked_files)
-        msg = f"navi auto add - {', '.join(unames)}: added files"
-        logger.debug('commiting')
-        run = lambda: repo.index.commit(msg, author=author, committer=author)
-        await loop.run_in_executor(None, run)
-        users = True # just in case
-
-      # sync with remote
-      logger.debug('pull')
-      await loop.run_in_executor(None, remote.pull)
-      if users:
-        logger.debug('push')
-        await loop.run_in_executor(None, remote.push)
-    except:
-      pass
-
-    search = [re.sub(r'[^\w\./#\*-]+', '', i).lower() for i in search]
-    search = dh.remove_comments(search)
-
-    loop = asyncio.get_event_loop()
-    try:
-      f = loop.run_in_executor(None, azfind.search, self.conf['path'], search)
-      path = await f
-    except:
-      path = ''
-
-    if not path or not path.strip():
-      await self.bot.send_message(ctx.message.channel,
-                          "couldn't find anything matching: `{}`".format(search)
-      )
-      return
-
-    try:
-      url = path.replace(self.conf['path'], self.conf['path-rep'])
-      logger.info(url)
-      if url.rpartition('.')[2] in ('gif', 'png', 'jpg', 'jpeg'):
-        try:
-          em = discord.Embed()
-          em.set_image(url=url)
-          logger.debug(f'sending {str(em.to_dict())}')
-          await self.bot.say(embed=em)
-        except:
-          await self.bot.say(url)
-      elif url.rpartition('.')[2] in ('zip', 'cbz'):
+      if not path:
+        error = formatter.error(f'Could not find image matching: {search}')
+        await ctx.send(error)
+      elif type(path) != str:
+        await ctx.send(embed=path)
+      elif path.rpartition('.')[2] in ('zip', 'cbz'):
         zf = zipfile(path, 'r')
         for fl in zf.filelist:
           f = zf.open(fl.filename)
-          await self.bot.send_file(ctx.message.channel, f, filename=fl.filename)
+          await ctx.send(file=discord.File(f, fl.filename))
           f.close()
         zf.close()
+      elif path.rpartition('.')[2] in ('gif','png','jpg','jpeg') and size_ok:
+        await ctx.send(file=discord.File(path))
       else:
-        await self.bot.say(url)
-    except:
-      raise
-      await self.bot.say('There was an error uploading the image, ' + \
-                         'but at least I didn\'t crash :p'
-      )
+        await ctx.send(url)
 
   async def repeat(self, message):
-    chan = message.channel
-    data = self.last.get(chan, ['', 0])
+    logger.debug('repeat message listener start')
+    await self.az.repeat(self.bot, message)
+    logger.debug('repeat message listener end')
 
-    if not message.content:
-      return
-
-    if data[0] == message.content.lower():
-      data[1] += 1
-    else:
-      data = [message.content.lower(), 1]
-
-    if data[1] == self.conf.get('repeat_after', 3):
-      await self.bot.send_message(chan, message.content)
-      data[1] = 0
-
-    self.last[chan] = data
+  async def censor(self, message):
+    logger.debug('censor message listener start')
+    await self.az.censor(self.bot, message)
+    logger.debug('censor message listener end')
 
 def setup(bot):
-  az = AZ(bot)
+  az = AzCog(bot)
   bot.add_listener(az.repeat, "on_message")
+  bot.add_listener(az.censor, "on_message")
   bot.add_cog(az)

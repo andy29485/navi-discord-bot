@@ -2,15 +2,16 @@
 
 import re
 import asyncio
+import discord
 import logging
 import os.path
 import tempfile
 import itertools
 from discord.ext import commands
 from PIL import Image, ImageFont, ImageDraw
-from cogs.utils.format import error
-from cogs.utils.config import Config
-from cogs.utils import discord_helper as dh
+from includes.utils.format import error
+from includes.utils.config import Config
+from includes.utils import discord_helper as dh
 
 logger = logging.getLogger('navi.memes')
 zp = itertools.zip_longest
@@ -61,18 +62,25 @@ def wrap_text(text, width, font):
   return text_lines
 
 
-def write_image(lines, out, **kargs):
+def write_image(text_in, out, **kargs):
   # get variables
   logger.debug('kargs: '+ str(kargs))
-  locs       = kargs.get('locations',         [])
-  size_const = kargs.get('size',              25)
-  spacing    = kargs.get('spacing',            0)
-  font_name  = kargs.get('font',              '')
-  image_file  = kargs.get('image',             '')
-  path       = kargs.get('path',              '')
-  flags       = kargs.get('flags',              [])
-  regexes    = kargs.get('matches',           [])
-  formats    = kargs.get('formats',   ['{text}'])
+  locs       = kargs.get('locations',          [])
+  size_const = kargs.get('size',               25)
+  spacing    = kargs.get('spacing',             0)
+  font_name  = kargs.get('font',               '')
+  image_file = kargs.get('image',              '')
+  path       = kargs.get('path',               '')
+  flags      = kargs.get('flags',              [])
+  regexes    = kargs.get('matches',            [])
+  formats    = kargs.get('formats',    ['{text}'])
+  colour     = kargs.get('colour', (0, 0, 0, 255))
+  border     = kargs.get('border',          False)
+
+  if type(colour) == int:
+    colour = (colour, colour, colour, 255)
+  if len(colour) == 3:
+    colour = (colour[0], colour[1], colour[2], 255)
 
   tmp_loc = os.path.join(path, image_file)
   if os.path.exists(tmp_loc):
@@ -84,11 +92,12 @@ def write_image(lines, out, **kargs):
 
   logger.debug('opening: '+ image_file)
   # load image
-  img  = Image.open(image_file)
-  draw = ImageDraw.Draw(img)
+  img  = Image.open(image_file).convert("RGBA")
+  draw = ImageDraw.Draw(img, "RGBA")
 
   # for each fillable box
-  for text,loc,style,flag in zp(re.split('(\n|\\|)',lines),locs,formats,flags):
+  text_in = re.split('\\s*(\n|\\|)\\s*', text_in)
+  for text,loc,style,flag in zp(text_in, locs, formats, flags):
     #just in case
     flag   = flag or ''
     style = style or '{text}'
@@ -136,11 +145,26 @@ def write_image(lines, out, **kargs):
         line_pos = (xpos+maxwidth-line_width, ypos+size*i)
       else:
         line_pos = (xpos+((maxwidth-line_width)/2), ypos+size*i)
+
+      if border:
+        logger.debug(f'drawing border at {line_pos}')
+        x = line_pos[0]
+        y = line_pos[1]
+        border_colour = tuple(255 - x  for x in colour)
+
+        draw.text((x-1, y), msg, border_colour, font=font)
+        draw.text((x+1, y), msg, border_colour, font=font)
+        draw.text((x, y-1), msg, border_colour, font=font)
+        draw.text((x, y+1), msg, border_colour, font=font)
+
+        # thicker border
+        draw.text((x-1, y-1), msg, border_colour, font=font)
+        draw.text((x+1, y-1), msg, border_colour, font=font)
+        draw.text((x-1, y+1), msg, border_colour, font=font)
+        draw.text((x+1, y+1), msg, border_colour, font=font)
+
       logger.debug(f'drawing at {line_pos}')
-      try:
-        draw.text(line_pos, msg, (0,0,0), font=font)
-      except: # not grey scale images I guess
-        draw.text(line_pos, msg, 0, font=font)
+      draw.text(line_pos, msg, colour, font=font)
 
   #save the image
   img.save(out)
@@ -152,44 +176,44 @@ class MemeGenerator:
     self.conf   = Config('configs/memes.json')
     doc  = self.meme.__dict__['help']
     doc += '\n  '
-    doc += '\n  '.join(self.conf.get('memes', {}).keys())
+    doc += '\n  '.join(sorted(self.conf.get('memes', {}).keys()))
 
     self.meme.__dict__['help'] = doc
 
-  @commands.command(pass_context=True, aliases=['memes'])
+  @commands.command(aliases=['memes'])
   async def meme(self, ctx, *, text : str):
     """
     Adds text to images
 
     Valid names so far:
     """
+    async with ctx.typing():
+      match = MemeGenerator.pattern.match(text)
+      name  = match.group(1).lower() if match else text
+      text  = match.group(2) if match else ''
+      text  = ' '.join(dh.remove_comments(text.split()))
 
-    match = MemeGenerator.pattern.match(text)
-    name  = match.group(1).lower()
-    text  = match.group(2)
-    text  = ' '.join(dh.remove_comments(text.split()))
+      cfg = self.conf.get('memes', {}).get(name, None)
 
-    cfg = self.conf.get('memes', {}).get(name, None)
+      if not cfg:
+        await ctx.send(error('Could not find image'))
+        return
+      if not text:
+        await ctx.send(error('Are you trying to get an empty image?'))
+        return
 
-    if not cfg:
-      await self.bot.say(error('Could not find image'))
-      return
-    if not text:
-      await self.bot.say(error('Are you trying to get an empty image?'))
-      return
+      temp = tempfile.NamedTemporaryFile(suffix=".png")
 
-    temp = tempfile.NamedTemporaryFile(suffix=".png")
+      if 'font' not in cfg:
+        cfg['font'] = self.conf.get('font', '')
+      if 'path' not in cfg:
+        cfg['path'] = self.conf.get('path', '')
 
-    if 'font' not in cfg:
-      cfg['font'] = self.conf.get('font', '')
-    if 'path' not in cfg:
-      cfg['path'] = self.conf.get('path', '')
+      write_image(text, temp.name, **cfg)
 
-    write_image(text, temp.name, **cfg)
+      await ctx.send(file=discord.File(temp.name))
 
-    await self.bot.send_file(ctx.message.channel, temp.name)
-
-    temp.close()
+      temp.close()
 
 
 def setup(bot):

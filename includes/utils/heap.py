@@ -3,8 +3,9 @@
 import abc
 import time
 import logging
-from cogs.utils.config import Config
-import cogs.utils.obj_creator as obj_creator
+import heapq
+from includes.utils.config import Config
+import includes.utils.obj_creator as obj_creator
 
 logger = logging.getLogger('navi.heapclass')
 
@@ -22,7 +23,7 @@ class Heap:
     '''
     for item in items:
       item.heap = self
-    self.items  = items
+    self.items  = heapq.heapify(items)
 
   def __iter__(self):
     return self.items.__iter__()
@@ -60,11 +61,12 @@ class Heap:
     insert an item into the heap
     '''
     item.heap = self        # create pointer to self
+    heapq.heappush(self.items, i) # push it
 
-    i = len(self.items)     # get the to-be-index of the to-be-inserted item
+    #i = len(self.items)     # get the to-be-index of the to-be-inserted item
 
-    self.items.append(item) # append it
-    self._pushUp(i)         # move it up to the position that it should be in
+    #self.items.append(item) # append it
+    #self._pushUp(i)         # move it up to the position that it should be in
 
   def pop(self, index=0):
     '''
@@ -72,15 +74,15 @@ class Heap:
 
     if an index is given, then that item will be removed
     '''
-    val    = self.items[index] # get a refference to the item(temp variable)
-    size   = len(self.items)   # get the to-be-total-size of the heap
+    val  = self.items[index]   # get a refference to the item(temp variable)
+    size = len(self.items)     # get the to-be-total-size of the heap
     if size == 1:              # if there is only one items
       return self.items.pop()  #   return that item
     else:
       # otherwise move the last item to the position of the requested item,
       # then push the recently moved item down to where it should go
       self.items[index] = self.items.pop()
-      self._pushDown(index, size-2)
+      self.items  = heapq.heapify(self.items)
     return val
 
   def _pushUp(self, index, first = 0):

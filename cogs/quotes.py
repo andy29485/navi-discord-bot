@@ -5,9 +5,9 @@ import logging
 import random
 from datetime import datetime
 from discord.ext import commands
-from cogs.utils import format as formatter
-from cogs.utils import perms
-from cogs.utils.config import Config
+from includes.utils import format as formatter
+from includes.utils import perms
+from includes.utils.config import Config
 
 logger = logging.getLogger('navi.quotes')
 
@@ -18,47 +18,51 @@ class Quote:
     if 'quotes' not in self.quotes_dict:
       self.quotes_dict['quotes'] = []
 
-  @commands.group(pass_context=True, aliases=['q', 'quote'])
+  @commands.group(aliases=['q', 'quote'])
   async def quotes(self, ctx):
     """Manage quotes"""
 
     if ctx.invoked_subcommand is None:
-      message = ctx.message.content
-      try:
-        index = int(ctx.subcommand_passed)
-        if index >= len(self.quotes_dict['quotes']):
-          await self.bot.say(formatter.error(
-               'Quote {} does not exist'.format(index)
-          ))
-        else:
-          quote = self.quotes_dict['quotes'][index]
-          message = 'On {}:\n{}'.format(quote['date'],
-                                        formatter.code(quote['quote']))
-          await self.bot.say(message)
-      except:
-        await self.bot.say(self._random(message))
+      async with ctx.typing():
+        message = ctx.message.content
+        try:
+          index = int(ctx.subcommand_passed)
+          if index >= len(self.quotes_dict['quotes']):
+            await ctx.send(formatter.error(
+                 'Quote {} does not exist'.format(index)
+            ))
+          else:
+            quote = self.quotes_dict['quotes'][index]
+            message = 'On {}:\n{}'.format(quote['date'],
+                                          formatter.code(quote['quote']))
+            await ctx.send(message)
+        except:
+          await ctx.send(self._random(message))
 
-  @quotes.command(name='add', pass_context=True)
+  @quotes.command(name='add')
   async def _add(self, ctx, *, quote):
     """adds a quote"""
+    async with ctx.typing():
+      for i in self.quotes_dict['quotes']:
+        if quote.lower() == i['quote'].lower():
+          await ctx.send(formatter.error('Quote already exists'))
+          return
 
-    for i in self.quotes_dict['quotes']:
-      if quote.lower() == i['quote'].lower():
-        await self.bot.say(formatter.error('Quote already exists'))
-        return
+      index = len(self.quotes_dict['quotes'])
+      date  = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+      self.quotes_dict['quotes'].append({
+          'id':     str(ctx.message.author.id),
+          'date':   date,
+          'quote':  quote,
+      })
+      self.quotes_dict.save()
 
-    index = len(self.quotes_dict['quotes'])
-    date  = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    self.quotes_dict['quotes'].append({'date':date, 'quote':quote,
-                                  'id':ctx.message.author.id})
-    self.quotes_dict.save()
+      await ctx.send(formatter.ok('quote added, index {}'.format(index)))
 
-    await self.bot.say(formatter.ok('quote added, index {}'.format(index)))
-
-  @quotes.command(pass_context=True)
+  @quotes.command()
   async def random(self, ctx):
     message = ' '.join(ctx.message.content.split()[1:])
-    await self.bot.say(self._random(message))
+    await ctx.send(self._random(message))
 
   def _random(self, message):
     quotes = self.quotes_dict['quotes']
@@ -81,24 +85,24 @@ class Quote:
     quote = random.choice(quotes)
     return 'On {}:\n{}'.format(quote['date'], formatter.code(quote['quote']))
 
-  @quotes.command(name='remove', aliases=['rm'], pass_context=True)
+  @quotes.command(name='remove', aliases=['rm'])
   async def _rm(self, ctx, index : int):
     """remove an existing replacement by index"""
+    async with ctx.typing():
+      if index >= len(self.quotes_dict['quotes']):
+        await ctx.send(formatter.error(
+             'Quote {} does not exist'.format(index)
+        ))
+        return
 
-    if index >= len(self.quotes_dict['quotes']):
-      await self.bot.say(formatter.error(
-           'Quote {} does not exist'.format(index)
-      ))
-      return
+      if str(ctx.message.author.id) != self.quotes_dict['quotes'][index]['id'] \
+         and not perms.check_permissions(ctx.message, manage_messages=True):
+          raise commands.errors.CheckFailure('Cannot delete')
 
-    if ctx.message.author.id != self.quotes_dict['quotes'][index]['id'] \
-       and not perms.check_permissions(ctx.message, manage_messages=True):
-        raise commands.errors.CheckFailure('Cannot delete')
+      self.quotes_dict['quotes'].pop(index)
+      self.quotes_dict.save()
 
-    self.quotes_dict['quotes'].pop(index)
-    self.quotes_dict.save()
-
-    await self.bot.say(formatter.ok())
+      await ctx.send(formatter.ok())
 
 def setup(bot):
   bot.add_cog(Quote(bot))

@@ -3,19 +3,20 @@
 import re
 import time
 import logging
-import datetime
+from datetime import datetime
 from discord import Message
-import cogs.utils.heap as heap
-from cogs.utils.format import ok
-from cogs.utils import discord_helper as dh
+import includes.utils.heap as heap
+from includes.utils.format import ok
+from includes.utils import discord_helper as dh
 
 logger = logging.getLogger('navi.reminders')
 
 class Reminder(heap.HeapNode):
-  def __init__(self, channel_id, user_id, message, end_time=0, times=[],
+  def __init__(self, channel_id, user_id, message,
+               end_time=0, times=[],
                command=False, reminder_id=0):
-    self.user_id     = getattr(user_id,    'id',    user_id)
-    self.channel_id  = getattr(channel_id, 'id', channel_id)
+    self.user_id     = int(getattr(user_id,    'id',    user_id))
+    self.channel_id  = int(getattr(channel_id, 'id', channel_id))
     self.message     = message
     self.end_time    = end_time
     self.times       = times
@@ -27,9 +28,9 @@ class Reminder(heap.HeapNode):
 
   @staticmethod
   def from_dict(dct):
-    chan        = dct.get('channel_id')
+    user        = int(dct.get('user_id'))
+    chan        = int(dct.get('channel_id'))
     mesg        = dct.get('message')
-    user        = dct.get('user_id')
     end_time    = dct.get('end_time')
     times       = dct.get('times', [])
     command     = dct.get('command', False)
@@ -40,8 +41,8 @@ class Reminder(heap.HeapNode):
   def to_dict(self):
     return {
       '__reminder__': True,
-      'channel_id'  : self.channel_id,
-      'user_id'     : self.user_id,
+      'user_id'     : int(self.user_id),
+      'channel_id'  : int(self.channel_id),
       'message'     : self.message,
       'end_time'    : self.end_time,
       'times'       : self.times,
@@ -62,8 +63,8 @@ class Reminder(heap.HeapNode):
   def __gt__(self, other):
     return self.end_time > other.end_time
 
-  async def begin(self, bot):
-    t = datetime.datetime.fromtimestamp(self.end_time).isoformat()
+  async def begin(self, ctx):
+    t = datetime.fromtimestamp(self.end_time).isoformat().replace('T', ' ')
     if not self.reminder_id:
       while True:
         self.reminder_id = int(time.time()*1000000)%1000000
@@ -72,28 +73,36 @@ class Reminder(heap.HeapNode):
             break
         else:
           break
-    await bot.say(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
+    if ctx:
+      async with ctx.typing():
+        await ctx.send(ok(f'Will remind you at {t} (id: {self.reminder_id})'))
 
   async def end(self, bot):
+    logger.info('sending reminder for <@%s> to: <#%s> ',
+      self.user_id,
+      self.channel_id,
+    )
+
     chan = bot.get_channel(self.channel_id)
-    serv = chan and chan.server
-    user = chan and dh.get_user(serv, self.user_id)
 
     if not chan:
       chan = self.channel_id
       logger.error(f'could not send message \"{self.message}\" to <#{chan}>')
       return
 
+    guild = chan and chan.guild
+    user  = chan and dh.get_user(guild, self.user_id)
+
     if self.command:
       member = {
-        'id':            user.id,
+        'id':            int(user.id),
         'username':      user.name,
         'avatar':        user.avatar,
         'discriminator': user.discriminator
       }
       msg = Message(
         content=self.message,
-        id='',
+        id=0,
         channel=chan,
         author=member,
         attachments=[],
@@ -103,7 +112,7 @@ class Reminder(heap.HeapNode):
       )
       await bot.process_commands(msg)
     else:
-      await bot.send_message(chan, self.get_message(user))
+      await chan.send(self.get_message(user))
     if self.times:
       next_rem = Reminder(
         self.channel_id,
@@ -115,7 +124,7 @@ class Reminder(heap.HeapNode):
         self.reminder_id
       )
       if next_rem.time_left > 600:
-        self.heap.push(next_rem)
+        await self.heap.push(next_rem)
 
   def get_message(self, user):
     return f'{user.mention}: {self.message} (id: {self.reminder_id})'
@@ -127,13 +136,12 @@ class Reminder(heap.HeapNode):
 
     while True:
       first = self.message.split()[0]
-      if first in ('-c'):
-        self.command = True
-      elif first in ('-r'):
-        self.times = times
-      elif first in ('-cr', '-rc'):
-        self.command = True
-        self.times = times
+      if first[0] == '-':
+        for opt in first[1:]:
+          if opt in 'c':
+            self.command = True
+          elif opt in 'r':
+            self.times = times
       else:
         break
       self.message = self.message.replace(first, '', 1).strip()

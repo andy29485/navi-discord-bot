@@ -81,7 +81,7 @@ async def makeEmbed(item, message='', ignore=()):
     em.set_footer(text=str_ep)
   elif hasattr(item, 'series_name') and item.series_name:
     logger.debug('setting show name as description')
-    season_name = item.season_name
+    season_name = item.name
     show_name   = item.series_name
     em.set_footer(text=f'{show_name} - {season_name}')
 

@@ -61,7 +61,7 @@ class Heap:
     insert an item into the heap
     '''
     item.heap = self        # create pointer to self
-    heapq.heappush(self.items, i) # push it
+    heapq.heappush(self.items, item) # push it
 
     #i = len(self.items)     # get the to-be-index of the to-be-inserted item
 
@@ -82,7 +82,7 @@ class Heap:
       # otherwise move the last item to the position of the requested item,
       # then push the recently moved item down to where it should go
       self.items[index] = self.items.pop()
-      self.items  = heapq.heapify(self.items)
+      self.items = heapq.heapify(self.items)
     return val
 
   def _pushUp(self, index, first = 0):

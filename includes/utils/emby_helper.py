@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from discord import Embed
+import re
 import hashlib
 import asyncio
 import requests
@@ -57,7 +58,7 @@ async def makeEmbed(item, message='', ignore=()):
       url = item.album_primary_image_url
     else:
       url = item.primary_image_url
-    async with session.get(url,timeout=5) as img:
+    async with session.get(url, timeout=5) as img:
       logger.debug('checking image url')
       if img.status == 200:
         logger.debug('url ok')
@@ -70,7 +71,7 @@ async def makeEmbed(item, message='', ignore=()):
 
   if hasattr(item, 'series_name') and item.series_name:
     logger.debug('setting show name as description')
-    season_num  = item.season_number
+    season_num  = item.index_number
     episode_num = item.episode_number
     show_name   = item.series_name
     if season_num:

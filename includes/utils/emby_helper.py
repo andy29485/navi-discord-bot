@@ -69,9 +69,9 @@ async def makeEmbed(item, message='', ignore=()):
 
   em.title  = (message+name or '<No name>').strip()
 
-  if hasattr(item, 'series_name') and item.series_name:
+  if hasattr(item, 'episode_number') and item.series_name:
     logger.debug('setting show name as description')
-    season_num  = item.index_number
+    season_num  = item.season_number
     episode_num = item.episode_number
     show_name   = item.series_name
     if season_num:
@@ -79,6 +79,11 @@ async def makeEmbed(item, message='', ignore=()):
     else:
       str_ep = f'{item.season_name} - {episode_num:02}'
     em.set_footer(text=str_ep)
+  elif hasattr(item, 'series_name') and item.series_name:
+    logger.debug('setting show name as description')
+    season_name = item.season_name
+    show_name   = item.series_name
+    em.set_footer(text=f'{show_name} - {season_name}')
 
   if getattr(item, 'overview') and 'Overview' not in ignore:
     logger.debug('setting overview as description')

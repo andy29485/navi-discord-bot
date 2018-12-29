@@ -23,7 +23,8 @@ class Heap:
     '''
     for item in items:
       item.heap = self
-    self.items  = heapq.heapify(items)
+    heapq.heapify(items)
+    self.items = items
 
   def __iter__(self):
     return self.items.__iter__()

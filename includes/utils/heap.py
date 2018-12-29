@@ -34,8 +34,9 @@ class Heap:
 
   @staticmethod
   def from_dict(dct):
-    items = [obj_creator.as_obj(i) if type(i) == dict else i
-                for i in dct.get('items', [])
+    items = [
+      obj_creator.as_obj(i) if type(i) == dict else i
+        for i in dct.get('items', [])
     ]
     return Heap(items)
 
@@ -82,7 +83,7 @@ class Heap:
       # otherwise move the last item to the position of the requested item,
       # then push the recently moved item down to where it should go
       self.items[index] = self.items.pop()
-      self.items = heapq.heapify(self.items)
+      heapq.heapify(self.items)
     return val
 
   def _pushUp(self, index, first = 0):

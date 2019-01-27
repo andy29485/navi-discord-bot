@@ -2,7 +2,9 @@
 
 import arrow
 import discord
+import json
 import logging
+import string
 import time
 import re
 
@@ -89,6 +91,63 @@ colours = {
   'light_grey' : discord.Colour.light_grey(),
   'darker_grey' : discord.Colour.darker_grey()
 }
+
+emoji_letters = [
+  f':regional_indicator_{l}:' for l in string.ascii_lowercase
+]
+emoji_numbers = [
+  f':{num}:' for num in [
+    'one','two','three','four','five','six',
+    'seven','eight','nine','ten','zero',
+  ]
+]
+emoji_thumbs = [
+  ':thumbsdown:',
+  ':thumbsup:',
+]
+emoji_hearts = [
+  ':heart:',':purple_heart:',':blue_heart:',
+  ':black_heart:',':green_heart:',':yellow_heart:',
+]
+emoji_arrows = [
+  ':arrow_up:',
+  ':arrow_down:',
+  ':arrow_left:',
+  ':arrow_right:',
+
+  ':arrow_lower_left:',
+  ':arrow_lower_right:',
+
+  ':arrow_upper_left:',
+  ':arrow_upper_right:',
+
+
+  ':left_right_arrow:',
+  ':arrow_up_down:',
+]
+emojis = [
+  *emoji_numbers,
+  *emoji_letters,
+  *emoji_hearts,
+  *emoji_arrows,
+  *emoji_thumbs,
+]
+
+def load_emojis():
+  with open('includes/discord-unicode-emojis.json', 'r') as f:
+    emoji_codes = json.load(f)
+
+  out = {}
+  for emoji_list in emoji_codes.values():
+    for emoji in emoji_list:
+      for name in emoji.get('names', []):
+        out[name] = emoji.get('unicode')
+
+  return out
+EMOJI_CODES = load_emojis()
+
+def get_emoji(name):
+  return EMOJI_CODES.get(name, name)
 
 def get_end_time(message, start_date=None):
   # datetime -> arrow compatibility fix

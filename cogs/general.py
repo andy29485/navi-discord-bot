@@ -6,13 +6,18 @@ import random
 import logging
 import asyncio
 from discord.ext import commands
+from discord import Embed
 from datetime import datetime, timedelta
-from includes.utils.poll import Poll
+from includes.utils import discord_helper as dh
 from includes.utils.config import Config
 from includes.utils.format import *
 from includes.utils.reminders import Reminder
 
 logger = logging.getLogger('navi.general')
+
+neg_words = re.compile(
+  r"\b(not?|bad|den(y|ied)|wrong|(ca|do)n'?t|stop|quit)\b"
+)
 
 class General:
   def __init__(self, bot):
@@ -72,29 +77,21 @@ class General:
       '&permissions=305260592&scope=bot'
     )
 
-  async def tally(self, message):
-    chan = message.channel
-    user = message.author
-    mess = message.content
-    loop = asyncio.get_event_loop()
+  async def tally(self, reaction, user):
+    msg = reaction.message
+    emjoi = reaction.emoji
 
-    logger.debug('tally start')
-    #bots don't get a vote
-    if user.bot:
+    # if the bot has reacted this way, then it's a valid reaction
+    if reaction.me:
       return
 
-    if len(mess.strip()) < 2 or \
-        mess.strip()[0] in self.bot.command_prefix + ['$','?','!']:
+    # ignore non-polls
+    if msg.author != self.bot.user or \
+        (len(msg.embeds) != 1 or \
+        msg.embeds[0].title != 'Poll'):
       return
 
-    test_poll = Poll('', [], chan, 0, 1)
-
-    heap = self.bot.get_cog('HeapCog')
-    for poll in heap:
-      if test_poll == poll:
-        await loop.run_in_executor(None, poll.vote, user, mess)
-
-    logger.debug('tally end')
+    await msg.remove_reaction(emoji, user)
 
   async def respond(self, message):
     if message.author.bot:
@@ -480,41 +477,71 @@ class General:
     await ctx.send(message)
 
   @commands.command()
-  async def poll(self, ctx, *, question):
+  async def event(self, ctx, *, event_name):
+    '''
+    Starts a event poll
+
+    format:
+    .event event name
+    '''
+    return await self.poll_creator(
+      ctx, event_name,
+      "Definitly Not",
+      "Unlikely But Possible",
+      "Maybe",
+      "Quite Likely",
+      "Absolutely",
+    )
+
+  @commands.command()
+  async def poll(self, ctx, question, *options):
     '''
     Starts a poll
+
     format:
-    poll question? opt1, opt2, opt3 or opt4...
-    poll stop|end
+    .poll "question" "option 1" "option 2" "option 3" ...
     '''
-    heap = self.bot.get_cog('HeapCog')
-    cid  = int(ctx.message.channel.id)
+    return await self.poll_creator(ctx, question, *options)
 
-    if question.lower().strip() in ['end', 'stop']:
-      for index,poll in enumerate(heap):
-        if isinstance(poll, Poll) and poll.channel_id == cid:
-          heap.pop(index)
-          await poll.end(self.bot)
-          break
-      else:
-        await ctx.send('There is no poll active in this channel')
-      return
 
-    match = re.search(r'^(.*?\?)\s*(.*?)$', question)
-    if not match:
-      await ctx.send('Question could not be found.')
-      return
+  async def poll_creator(self, ctx, question, *options):
+    if len(options) == 0:
+      options = ['yes', 'no']
+      emojis = dh.emoji_thumbs
+    elif len(options) == 2 and neg_words.search(options[0].lower()):
+      emojis = dh.emoji_thumbs[::-1]
+    elif len(options) == 2:
+      emojis = dh.emoji_thumbs
+    elif len(options) < 12:
+      emojis = dh.emoji_numbers
+    elif len(options) < 27:
+      emojis = dh.emoji_letters
+    else:
+      emojis = dh.emojis
 
-    options  = split(match.group(2))
-    question = escape_mentions(match.group(1))
+    emojis = emojis[:len(options)]
 
-    poll = Poll(question, options, ctx.message.channel, 600)
+    with ctx.typing():
+      em = Embed()
+      em.title = 'Poll'
+      em.description = question
 
-    for item in heap:
-      if poll == item:
-        await ctx.send('There is a poll active in this channel already')
-        return
-    await heap.push(poll, ctx)
+      options = '\n'.join(f'{e} - {o}' for e,o in zip(emojis,options))
+      em.add_field(name="Options:", value=options, inline=False)
+
+      msg = await ctx.send(embed=em)
+
+      msg_url = "https://discordapp.com/channels/{gid}/{cid}/{mid}".format(
+        gid = msg.guild.id,
+        cid = msg.channel.id,
+        mid = msg.id,
+      )
+
+      em.url = msg_url
+      await msg.edit(embed=em)
+
+      for emoji in emojis:
+        await msg.add_reaction(dh.get_emoji(emoji[1:-1]))
 
 def split(choices):
   choices = re.split(r'(?i)\s*(?:,|\bor\b)\s*', choices)
@@ -522,6 +549,6 @@ def split(choices):
 
 def setup(bot):
   g = General(bot)
-  bot.add_listener(g.tally, "on_message")
+  bot.add_listener(g.tally, "on_reaction_add")
   bot.add_listener(g.respond, "on_message")
   bot.add_cog(g)

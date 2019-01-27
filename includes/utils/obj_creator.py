@@ -16,12 +16,9 @@ def as_obj(dct):
   from includes.utils.reminders import Reminder
   from includes.utils.timeout import Timeout
   from includes.utils.heap import Heap
-  from includes.utils.poll import Poll
 
   if dct.get('__reminder__', False):
     return Reminder.from_dict(dct)
-  elif dct.get('__poll__', False):
-    return Poll.from_dict(dct)
   elif dct.get('__timeout__', False):
     return Timeout.from_dict(dct)
   elif dct.get('__role_rem__', False):
@@ -37,7 +34,6 @@ def get_type(name):
   from includes.utils.reminders import Reminder
   from includes.utils.timeout import Timeout
   from includes.utils.heap import Heap, HeapNode
-  from includes.utils.poll import Poll
   return locals()[name]
 
 

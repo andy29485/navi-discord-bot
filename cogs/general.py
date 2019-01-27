@@ -36,6 +36,8 @@ class General:
       self.conf['situations'] = []
     if '8-ball' not in self.conf:
       self.conf['8-ball'] = []
+    if 'polls' not in self.conf:
+      self.conf['polls'] = {}
     for rem in self.conf.pop('reminders', []):
       self.loop.run_until_complete(heap.push(rem, None))
     self.conf.save()
@@ -77,12 +79,19 @@ class General:
       '&permissions=305260592&scope=bot'
     )
 
-  async def tally(self, reaction, user):
-    msg = reaction.message
-    emoji = reaction.emoji
+  async def tally(self, event):
+    chan = self.bot.get_channel(event.channel_id)
+    msg  = await chan.get_message(event.message_id)
+    emoji = event.emoji
+
+    poll = self.conf.get('polls', {}).get(message_id)
+
+    # ignore non-existant polls
+    if not poll:
+      return
 
     # ignore own reactions
-    if user == self.bot.user:
+    if event.user_id == self.bot.user.id:
       return
 
     # ignore non-polls
@@ -93,23 +102,29 @@ class General:
 
     to_remove = []
 
-    # if the bot has reacted this way, then it's a valid reaction
-    if reaction.me:
-      logger.debug('ignoring - valid option')
-      for r in msg.reactions:
-        if r == reaction: continue
-        if user.id in [u.id async for u in r.users()]:
-          to_remove.append(r.emoji)
-          logger.debug('removed old reaction')
-    else:
-      to_remove.append(emoji)
-      logger.debug('removed unregestered reaction')
+    old_emoji = bot.get_emoji(poll.get(event.user_id))
+    old_emoji = old_emoji or poll.get(event.user_id)
+    poll[event.user_id] = emoji.id
+    if old_emoji:
+      logger.debug('removed old reaction')
+      to_remove.append(old_emoji)
+
+    for r in msg.reactions:
+      users = [u.id async for u in r.users()]
+      if self.bot.user.id not in users:
+        to_remove.append(r.emoji)
+        logger.debug('removed unregestered reaction')
+      elif r.emoji != emoji:
+        to_remove.append(r.emoji)
+        logger.debug('removed old reaction')
 
     try:
       for e in to_remove:
         await msg.remove_reaction(e, user)
     except:
       logger.exception('unable to remove reactions')
+
+    self.conf.save()
 
 
   async def respond(self, message):
@@ -549,6 +564,7 @@ class General:
       em.add_field(name="Options:", value=options, inline=False)
 
       msg = await ctx.send(embed=em)
+      self.conf['polls'][msg.id] = {}
 
       msg_url = "https://discordapp.com/channels/{gid}/{cid}/{mid}".format(
         gid = msg.guild.id,
@@ -562,12 +578,14 @@ class General:
       for emoji in emojis:
         await msg.add_reaction(dh.get_emoji(emoji[1:-1]))
 
+      self.conf.save()
+
 def split(choices):
   choices = re.split(r'(?i)\s*(?:,|\bor\b)\s*', choices)
   return list(filter(None, choices))
 
 def setup(bot):
   g = General(bot)
-  bot.add_listener(g.tally, "on_reaction_add")
+  bot.add_listener(g.tally, "on_raw_reaction_add")
   bot.add_listener(g.respond, "on_message")
   bot.add_cog(g)

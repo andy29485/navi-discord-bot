@@ -93,37 +93,37 @@ colours = {
 }
 
 emoji_letters = [
-  f':regional_indicator_{l}:' for l in string.ascii_lowercase
+  f'regional_indicator_{l}' for l in string.ascii_lowercase
 ]
 emoji_numbers = [
-  f':{num}:' for num in [
+  f'{num}' for num in [
     'one','two','three','four','five','six',
     'seven','eight','nine','keycap_ten','zero',
   ]
 ]
 emoji_thumbs = [
-  ':thumbsup:',
-  ':thumbsdown:',
+  'thumbsup',
+  'thumbsdown',
 ]
 emoji_hearts = [
-  ':heart:',':purple_heart:',':blue_heart:',
-  ':black_heart:',':green_heart:',':yellow_heart:',
+  'heart','purple_heart','blue_heart',
+  'black_heart','green_heart','yellow_heart',
 ]
 emoji_arrows = [
-  ':arrow_up:',
-  ':arrow_down:',
-  ':arrow_left:',
-  ':arrow_right:',
+  'arrow_up',
+  'arrow_down',
+  'arrow_left',
+  'arrow_right',
 
-  ':arrow_lower_left:',
-  ':arrow_lower_right:',
+  'arrow_lower_left',
+  'arrow_lower_right',
 
-  ':arrow_upper_left:',
-  ':arrow_upper_right:',
+  'arrow_upper_left',
+  'arrow_upper_right',
 
 
-  ':left_right_arrow:',
-  ':arrow_up_down:',
+  'left_right_arrow',
+  'arrow_up_down',
 ]
 emojis = [
   *emoji_numbers,

@@ -6,7 +6,7 @@ import random
 import logging
 import asyncio
 from discord.ext import commands
-from discord import Embed
+from discord import Embed, PartialEmoji
 from datetime import datetime, timedelta
 from includes.utils import discord_helper as dh
 from includes.utils.config import Config
@@ -18,6 +18,10 @@ logger = logging.getLogger('navi.general')
 neg_words = re.compile(
   r"\b(not?|bad|den(y|ied)|wrong|(ca|do)n'?t|stop|quit)\b"
 )
+
+#class ID(discord.abc.Snowflake):
+#  def __init__(self,id): self.id=id
+#  def created_at(self): pass
 
 class General:
   def __init__(self, bot):
@@ -80,47 +84,41 @@ class General:
     )
 
   async def tally(self, event):
-    chan = self.bot.get_channel(event.channel_id)
-    msg  = await chan.get_message(event.message_id)
-    emoji = event.emoji
-
-    poll = self.conf.get('polls', {}).get(message_id)
-
-    # ignore non-existant polls
-    if not poll:
-      return
-
-    # ignore own reactions
-    if event.user_id == self.bot.user.id:
-      return
-
-    # ignore non-polls
-    if msg.author != self.bot.user or \
-        (len(msg.embeds) != 1 or \
-        msg.embeds[0].title != 'Poll'):
-      return
-
-    to_remove = []
-
-    old_emoji = bot.get_emoji(poll.get(event.user_id))
-    old_emoji = old_emoji or poll.get(event.user_id)
-    poll[event.user_id] = emoji.id
-    if old_emoji:
-      logger.debug('removed old reaction')
-      to_remove.append(old_emoji)
-
-    for r in msg.reactions:
-      users = [u.id async for u in r.users()]
-      if self.bot.user.id not in users:
-        to_remove.append(r.emoji)
-        logger.debug('removed unregestered reaction')
-      elif r.emoji != emoji:
-        to_remove.append(r.emoji)
-        logger.debug('removed old reaction')
-
     try:
-      for e in to_remove:
-        await msg.remove_reaction(e, user)
+      logger.debug(f'checking reaction start')
+      chan = self.bot.get_channel(event.channel_id)
+      user = self.bot.get_user(event.user_id)
+      msg  = await chan.get_message(event.message_id)
+      emoji = event.emoji
+
+      poll = self.conf.get('polls', {}).get(str(msg.id))
+
+      # ignore non-existant polls
+      if poll == None or msg.author != self.bot.user:
+        logger.debug(f'ignoring reaction - not a tracked poll')
+        return
+
+      # ignore own reactions
+      if event.user_id == self.bot.user.id:
+        logger.debug('ignoring reaction - own reaction (thus valid)')
+        return
+
+      # ignore own reactions
+      if dh.get_emoji(emoji.name) not in poll.get('emojis', []):
+        logger.debug('deleting reaction - invalid option')
+        logger.debug(f'{emoji.name} in {poll.get("emojis")}')
+        await msg.remove_reaction(emoji, user)
+        return
+
+      to_remove = []
+
+      old_emoji = poll.get(event.user_id)
+      poll[event.user_id] = emoji.id or emoji.name
+
+      if old_emoji:
+        logger.debug('removed old reaction')
+        await msg.remove_reaction(old_emoji, user)
+
     except:
       logger.exception('unable to remove reactions')
 
@@ -560,11 +558,13 @@ class General:
       em.title = 'Poll'
       em.description = question
 
-      options = '\n'.join(f'{e} - {o}' for e,o in zip(emojis,options))
+      options = '\n'.join(f':{e}: - {o}' for e,o in zip(emojis,options))
       em.add_field(name="Options:", value=options, inline=False)
 
+      emojis = [dh.get_emoji(e) for e in emojis]
+
       msg = await ctx.send(embed=em)
-      self.conf['polls'][msg.id] = {}
+      self.conf['polls'][str(msg.id)] = {'emojis': emojis}
 
       msg_url = "https://discordapp.com/channels/{gid}/{cid}/{mid}".format(
         gid = msg.guild.id,
@@ -576,7 +576,7 @@ class General:
       await msg.edit(embed=em)
 
       for emoji in emojis:
-        await msg.add_reaction(dh.get_emoji(emoji[1:-1]))
+        await msg.add_reaction(emoji)
 
       self.conf.save()
 

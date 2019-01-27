@@ -99,7 +99,7 @@ class General:
       for r in msg.reactions:
         if r == reaction: continue
         if user.id in [u.id async for u in r.users()]:
-          to_remove.append(emoji)
+          to_remove.append(r.emoji)
           logger.debug('removed old reaction')
     else:
       to_remove.append(emoji)

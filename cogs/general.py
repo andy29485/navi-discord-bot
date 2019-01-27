@@ -79,19 +79,29 @@ class General:
 
   async def tally(self, reaction, user):
     msg = reaction.message
-    emjoi = reaction.emoji
+    emoji = reaction.emoji
 
     # if the bot has reacted this way, then it's a valid reaction
     if reaction.me:
+      logger.debug('ignoring - valid option')
       return
 
     # ignore non-polls
     if msg.author != self.bot.user or \
         (len(msg.embeds) != 1 or \
         msg.embeds[0].title != 'Poll'):
+      logger.debug('ignoring - not a poll')
       return
 
     await msg.remove_reaction(emoji, user)
+    logger.debug('removed unregestered reaction')
+
+    for r in msg.reactions:
+      if r == reaction: continue
+      if user.id in (u.id async for u in r.users):
+        await msg.remove_reaction(r.emoji, user)
+      logger.debug('removed old reactions')
+
 
   async def respond(self, message):
     if message.author.bot:

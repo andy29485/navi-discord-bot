@@ -81,6 +81,10 @@ class General:
     msg = reaction.message
     emoji = reaction.emoji
 
+    # ignore own reactions
+    if user == bot.user:
+      return
+
     # ignore non-polls
     if msg.author != self.bot.user or \
         (len(msg.embeds) != 1 or \

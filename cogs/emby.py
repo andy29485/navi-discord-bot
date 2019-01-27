@@ -22,35 +22,35 @@ class Emby:
 
   async def poll(self):
     while self == self.bot.get_cog('Emby'):
-      logger.debug('polling (l = %s)', self.conf['watching']['last'])
+      try:
+        logger.debug('polling (l = %s)', self.conf['watching']['last'])
 
-      latest = await self.conn.latest(itemTypes='Movie,Video,Episode')
-      logger.debug('  got list (size = %d)', len(latest))
+        latest = await self.conn.latest(itemTypes='Movie,Video,Episode')
+        logger.debug('  got list (size = %d)', len(latest))
 
-      for l in latest:
-        logger.debug('  found - %s (%s) [%s]', l.name, l.id, l.parent_id)
+        for l in latest:
+          logger.debug('  found - %s (%s) [%s]', l.name, l.id, l.parent_id)
 
-        if self.conf['watching']['last'] == l.id:
-          logger.debug('    last - breaking')
-          break
+          if self.conf['watching']['last'] == l.id:
+            logger.debug('    last - breaking')
+            break
 
-        item = t = await l.update()
-        while t.parent_id:
-          t = await t.parent
-          logger.debug('    parent: %s', t.id)
-          try:
+          item = t = await l.update()
+          while t.parent_id:
+            t = await t.parent
+            logger.debug('    parent: %s', t.id)
             chans = self.conf['watching'].get(t.id, [])
             for chan_id in chans:
               logger.debug('      sending to chan: %s', chan_id)
               chan = self.bot.get_channel(int(chan_id))
               em   = await emby_helper.makeEmbed(item, 'New item added: ')
               await chan.send(embed=em)
-          except:
-            logger.exception('Issue with sending latest item(s)')
-            break
-      self.conf['watching']['last'] = latest[0].id
-      self.conf.save()
-      await asyncio.sleep(30)
+        self.conf['watching']['last'] = latest[0].id
+        self.conf.save()
+        await asyncio.sleep(30)
+      except:
+        logger.exception('Issue with sending latest item(s)')
+        break
 
   @commands.group()
   async def emby(self, ctx):

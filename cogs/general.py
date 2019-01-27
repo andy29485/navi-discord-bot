@@ -81,11 +81,6 @@ class General:
     msg = reaction.message
     emoji = reaction.emoji
 
-    # if the bot has reacted this way, then it's a valid reaction
-    if reaction.me:
-      logger.debug('ignoring - valid option')
-      return
-
     # ignore non-polls
     if msg.author != self.bot.user or \
         (len(msg.embeds) != 1 or \
@@ -93,14 +88,20 @@ class General:
       logger.debug('ignoring - not a poll')
       return
 
-    await msg.remove_reaction(emoji, user)
-    logger.debug('removed unregestered reaction')
-
-    for r in msg.reactions:
-      if r == reaction: continue
-      if user.id in (u.id async for u in r.users):
-        await msg.remove_reaction(r.emoji, user)
-      logger.debug('removed old reactions')
+    try:
+      # if the bot has reacted this way, then it's a valid reaction
+      if reaction.me:
+        logger.debug('ignoring - valid option')
+        for r in msg.reactions:
+          if r == reaction: continue
+          if user.id in [u.id async for u in r.users()]:
+            await msg.remove_reaction(r.emoji, user)
+            logger.debug('removed old reaction')
+      else:
+        await msg.remove_reaction(emoji, user)
+        logger.debug('removed unregestered reaction')
+    except:
+      logger.exception('unable to remove reactions')
 
 
   async def respond(self, message):

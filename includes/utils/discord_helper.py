@@ -98,12 +98,12 @@ emoji_letters = [
 emoji_numbers = [
   f':{num}:' for num in [
     'one','two','three','four','five','six',
-    'seven','eight','nine','ten','zero',
+    'seven','eight','nine','keycap_ten','zero',
   ]
 ]
 emoji_thumbs = [
-  ':thumbsdown:',
   ':thumbsup:',
+  ':thumbsdown:',
 ]
 emoji_hearts = [
   ':heart:',':purple_heart:',':blue_heart:',

@@ -29,6 +29,7 @@ class General:
     self.loop        = bot.loop
     self.stopwatches = {}
     self.conf        = Config('configs/general.json')
+    self.polls       = Config('configs/polls.json')
 
     heap = self.bot.get_cog('HeapCog')
 
@@ -40,8 +41,6 @@ class General:
       self.conf['situations'] = []
     if '8-ball' not in self.conf:
       self.conf['8-ball'] = []
-    if 'polls' not in self.conf:
-      self.conf['polls'] = {}
     for rem in self.conf.pop('reminders', []):
       self.loop.run_until_complete(heap.push(rem, None))
     self.conf.save()
@@ -91,7 +90,7 @@ class General:
       msg  = await chan.get_message(event.message_id)
       emoji = event.emoji
 
-      poll = self.conf.get('polls', {}).get(str(msg.id))
+      poll = self.polls.get(str(msg.id))
 
       # ignore non-existant polls
       if poll == None or msg.author != self.bot.user:
@@ -122,7 +121,7 @@ class General:
     except:
       logger.exception('unable to remove reactions')
 
-    self.conf.save()
+    self.polls.save()
 
 
   async def respond(self, message):
@@ -564,7 +563,7 @@ class General:
       emojis = [dh.get_emoji(e) for e in emojis]
 
       msg = await ctx.send(embed=em)
-      self.conf['polls'][str(msg.id)] = {'emojis': emojis}
+      self.polls[str(msg.id)] = {'emojis': emojis}
 
       msg_url = "https://discordapp.com/channels/{gid}/{cid}/{mid}".format(
         gid = msg.guild.id,
@@ -578,7 +577,7 @@ class General:
       for emoji in emojis:
         await msg.add_reaction(emoji)
 
-      self.conf.save()
+      self.polls.save()
 
 def split(choices):
   choices = re.split(r'(?i)\s*(?:,|\bor\b)\s*', choices)

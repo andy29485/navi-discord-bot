@@ -82,14 +82,13 @@ class General:
     emoji = reaction.emoji
 
     # ignore own reactions
-    if user == bot.user:
+    if user == self.bot.user:
       return
 
     # ignore non-polls
     if msg.author != self.bot.user or \
         (len(msg.embeds) != 1 or \
         msg.embeds[0].title != 'Poll'):
-      logger.debug('ignoring - not a poll')
       return
 
     try:

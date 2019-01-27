@@ -91,18 +91,23 @@ class General:
         msg.embeds[0].title != 'Poll'):
       return
 
-    try:
+    to_remove = []
+
       # if the bot has reacted this way, then it's a valid reaction
       if reaction.me:
         logger.debug('ignoring - valid option')
         for r in msg.reactions:
           if r == reaction: continue
           if user.id in [u.id async for u in r.users()]:
-            await msg.remove_reaction(r.emoji, user)
+            to_remove.append(emoji)
             logger.debug('removed old reaction')
       else:
-        await msg.remove_reaction(emoji, user)
+        to_remove.append(emoji)
         logger.debug('removed unregestered reaction')
+
+    try:
+      for e in to_remove:
+        await msg.remove_reaction(e, user)
     except:
       logger.exception('unable to remove reactions')
 

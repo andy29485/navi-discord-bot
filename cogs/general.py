@@ -539,16 +539,18 @@ class General:
     if len(options) == 0:
       options = ['yes', 'no']
       emojis = dh.emoji_thumbs
+    elif len(options) == 1:
+      ctx.send(error('Not enough options (are these the NK elections?)'))
     elif len(options) == 2 and neg_words.search(options[0].lower()):
       emojis = dh.emoji_thumbs[::-1]
     elif len(options) == 2:
       emojis = dh.emoji_thumbs
-    elif len(options) < 12:
+    elif len(options) <= 11:
       emojis = dh.emoji_numbers
-    elif len(options) < 27:
+    elif len(options) <= 20:
       emojis = dh.emoji_letters
     else:
-      emojis = dh.emojis
+      ctx.send(error('Cannot react with > 20 emojis on a message for now'))
 
     emojis = emojis[:len(options)]
 

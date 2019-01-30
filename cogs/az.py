@@ -27,6 +27,9 @@ class AzCog:
 
   @commands.command()
   async def me(self, ctx, *, message : str):
+    '''
+    a substitue for /me, because discord did not implement IRC's /me well
+    '''
     await ctx.send(f'*{ctx.message.author.name} {message}*')
     await ctx.message.delete()
 
@@ -74,6 +77,39 @@ class AzCog:
   @commands.command()
   @perms.in_group('img')
   async def img(self, ctx, *search):
+    '''
+    Searches bot's image repository for a matching image
+
+    Note: Needs permissions (ask bot owner to give them to you)
+
+    Search format:
+    - search terms are seperated by spaces
+    - search terms evaluated on an AND basis
+    - search terms starting with `-` (minus/hyphen) are negativly matched
+      (cannot be in the results)
+    - `_` is treated as a word boundry (matches start, end, `_`, `.`, and `/`)
+      - e.g.
+        "do" can match "do", "undo" and "don't"
+        "do_" will match "do" and "don't" (not "undo")
+        "do_" will match "do" and "undo" (not "don't")
+        "_do_" will only match "do"
+    - `-` (minus/hyphen) is treated as `_`, except at start of a search term
+    - comments are ignored when searching
+      - `//` everything after `//` is a comment
+      - everything between `/*` and `*/` is a comment
+    - `*` matches 0 or more chars (useful when order matters)
+      `do not` can match "do not", "do a jump not a hop", and "not do"
+      `do*not` would NOT match "not do" (but matches the other examples)
+
+    Examples:
+    - .img test
+    - .img k -ok
+    - .img -_run_
+    - .img _run- // a comment
+    - .img _run_ /* treated the same as above */
+    - .img this /* will only search the outer */ tags
+
+    '''
     async with ctx.typing():
       path,url = await self.bot.loop.run_in_executor(None, self.az.img, *search)
 

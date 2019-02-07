@@ -49,7 +49,7 @@ class Admin:
       perm_conf.get('disabled_default', [])
     )
 
-    if cog_name not in disable:
+    if cog_name not in disabled:
       await ctx.send(formatter.error(f'cog "{cog_name}" not disabled'))
     else:
       disabled.remove(cog_name)

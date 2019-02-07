@@ -78,8 +78,11 @@ prefix = ['.']
 description = "Andy29485's bot"
 help_attrs  = {'hidden': True}
 
-bot = commands.Bot(command_prefix=prefix, description=description,
-                   pm_help=None,          help_attrs=help_attrs
+bot = commands.Bot(
+  command_prefix=prefix,
+  description=description,
+  pm_help=None,
+  help_attrs=help_attrs,
 )
 
 @bot.event
@@ -162,7 +165,7 @@ async def on_command(ctx):
   else:
     chan = '#{0.channel.name} ({0.guild.name})'.format(msg)
 
-  logger.info('{0.author.name} in {1}: {0.content}'.format(msg, chan))
+  logger.info(f'{msg.author.name} in {chan}: {msg.content}')
 
 @bot.event
 async def on_message(message):

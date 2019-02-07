@@ -43,8 +43,11 @@ class Emby:
             for chan_id in chans:
               logger.debug('      sending to chan: %s', chan_id)
               chan = self.bot.get_channel(int(chan_id))
-              em   = await emby_helper.makeEmbed(item, 'New item added: ')
-              await chan.send(embed=em)
+              if chan:
+                em = await emby_helper.makeEmbed(item, 'New item added: ')
+                await chan.send(embed=em)
+              else:
+                logger.error('        unable to send to channel %s', chan_id)
         self.conf['watching']['last'] = latest[0].id
         self.conf.save()
         await asyncio.sleep(30)

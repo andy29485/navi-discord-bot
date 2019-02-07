@@ -23,6 +23,9 @@ if 'owner' not in config:
   config['owner'] = match.group(1) if match else owner
   config.save()
 
+if 'disabled' not in config:
+  config['disabled'] = {}
+
 def is_owner():
   return commands.check(lambda ctx: is_owner_check(ctx.message))
 

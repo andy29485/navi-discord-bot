@@ -20,6 +20,52 @@ class Admin:
   def __init__(self, bot):
     self.bot = bot
 
+  @staticmethod
+  @self.bot.check()
+  def enabled_command(ctx):
+    perm_conf = Config('configs/perms.json')
+    disabled = perm_conf.get('disabled').setdefault(
+      str(ctx.message.guild.id),
+      perm_conf.get('disabled_default', [])
+    )
+
+    return ctx.command.cog_name not in disabled
+
+  @commands.command(hidden=True)
+  @perms.has_perms(administrator=True)
+  async def disable(self, ctx, *, cog_name : str):
+    """Disables a cog in this guild"""
+    if not self.bot.get_cog(cog_name):
+      await ctx.send(formatter.error(f'cog "{cog_name}" not found'))
+      return
+
+    perm_conf = Config('configs/perms.json')
+
+    if str(ctx.message.guild.id) not in perm_conf['disabled']:
+      perm_conf['disabled'][str(ctx.message.guild.id)] = ['cogs.NSFW',cog_name]
+    else:
+      perm_conf['disabled'][str(ctx.message.guild.id)].append(cog_name)
+
+    perm_conf.save()
+    await ctx.send(formatter.ok())
+
+  @commands.command(hidden=True)
+  @perms.has_perms(administrator=True)
+  async def enable(self, ctx, *, cog_name : str):
+    """Enables a cog in this guild"""
+    perm_conf = Config('configs/perms.json')
+    disabled = perm_conf.get('disabled').setdefault(
+      str(ctx.message.guild.id),
+      perm_conf.get('disabled_default', [])
+    )
+
+    if cog_name not in disable:
+      await ctx.send(formatter.error(f'cog "{cog_name}" not disabled'))
+    else:
+      disabled.remove(cog_name)
+      perm_conf.save()
+      await ctx.send(formatter.ok())
+
   @commands.command(hidden=True)
   @perms.is_owner()
   async def load(self, ctx, *, module : str):
@@ -28,6 +74,7 @@ class Admin:
       try:
         self.bot.load_extension(module)
       except Exception as e:
+        logger.exception('could not load cog')
         await ctx.send('\N{PISTOL}')
         await ctx.send('{}: {}'.format(type(e).__name__, e))
       else:
@@ -41,6 +88,7 @@ class Admin:
       try:
         self.bot.unload_extension(module)
       except Exception as e:
+        logger.exception('could not unload cog')
         await ctx.send('\N{PISTOL}')
         await ctx.send('{}: {}'.format(type(e).__name__, e))
       else:
@@ -55,6 +103,7 @@ class Admin:
         self.bot.unload_extension(module)
         self.bot.load_extension(module)
       except Exception as e:
+        logger.exception('could not reload cog')
         await ctx.send('\N{PISTOL}')
         await ctx.send('{}: {}'.format(type(e).__name__, e))
       else:

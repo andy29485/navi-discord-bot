@@ -90,7 +90,7 @@ class AzCog:
     - `_` is treated as a word boundry (matches start, end, `_`, `.`, and `/`)
       - e.g.
         "do" can match "do", "undo" and "don't"
-        "do_" will match "do" and "don't" (not "undo")
+        "_do" will match "do" and "don't" (not "undo")
         "do_" will match "do" and "undo" (not "don't")
         "_do_" will only match "do"
     - `-` (minus/hyphen) is treated as `_`, except at start of a search term

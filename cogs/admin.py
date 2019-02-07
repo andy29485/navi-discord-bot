@@ -20,17 +20,6 @@ class Admin:
   def __init__(self, bot):
     self.bot = bot
 
-  @staticmethod
-  @self.bot.check()
-  def enabled_command(ctx):
-    perm_conf = Config('configs/perms.json')
-    disabled = perm_conf.get('disabled').setdefault(
-      str(ctx.message.guild.id),
-      perm_conf.get('disabled_default', [])
-    )
-
-    return ctx.command.cog_name not in disabled
-
   @commands.command(hidden=True)
   @perms.has_perms(administrator=True)
   async def disable(self, ctx, *, cog_name : str):

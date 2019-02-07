@@ -187,6 +187,15 @@ async def on_message(message):
     await bot.process_commands(message)
   logger.debug('global on message end')
 
+@bot.check
+def enabled_command(ctx):
+  perm_conf = Config('configs/perms.json')
+  disabled = perm_conf.get('disabled').setdefault(
+    str(ctx.message.guild.id),
+    perm_conf.get('disabled_default', [])
+  )
+  return ctx.command.cog_name not in disabled
+
 # load token and start bot
 #   if not token, ask
 while len(auth.get('token', '')) < 30:

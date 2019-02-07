@@ -29,13 +29,14 @@ class Admin:
       return
 
     perm_conf = Config('configs/perms.json')
+    disabled = perm_conf.get('disabled').setdefault(
+      str(ctx.message.guild.id),
+      perm_conf.get('disabled_default', [])
+    )
 
-    if str(ctx.message.guild.id) not in perm_conf['disabled']:
-      perm_conf['disabled'][str(ctx.message.guild.id)] = ['cogs.NSFW',cog_name]
-    else:
-      perm_conf['disabled'][str(ctx.message.guild.id)].append(cog_name)
-
+    disabled.append(cog_name)
     perm_conf.save()
+
     await ctx.send(formatter.ok())
 
   @commands.command(hidden=True)

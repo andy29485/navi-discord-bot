@@ -194,7 +194,9 @@ def enabled_command(ctx):
     str(ctx.message.guild.id),
     perm_conf.get('disabled_default', [])
   )
-  return ctx.command.cog_name not in disabled
+  if ctx.command.cog_name in disabled:
+    raise commands.DisabledCommand('This Cog is Guild disabled')
+  return True
 
 # load token and start bot
 #   if not token, ask

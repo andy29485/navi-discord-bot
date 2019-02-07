@@ -28,6 +28,10 @@ class Admin:
       await ctx.send(formatter.error(f'cog "{cog_name}" not found'))
       return
 
+    if cog_name == 'Admin':
+      await ctx.send(formatter.error(f"You can't disable the Admin cog"))
+      return
+
     perm_conf = Config('configs/perms.json')
     disabled = perm_conf.get('disabled').setdefault(
       str(ctx.message.guild.id),

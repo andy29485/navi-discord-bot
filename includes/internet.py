@@ -29,7 +29,7 @@ PIXIV_URL_PAT = re.compile(
   ')'
 )
 
-if conf.get('saucenao_token'):
+if not conf.get('saucenao_token'):
   conf['saucenao_token'] = input('Enter SauceNAO token: ')
 
 if not conf.get('pixiv_token'):

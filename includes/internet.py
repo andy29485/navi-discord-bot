@@ -4,17 +4,45 @@ import re
 import json
 import aiohttp
 import asyncio
+import discord
 import logging
+import pixivpy3
 import html2text
 import asyncjisho
+import datetime
 from lxml import etree
 from urllib.parse import parse_qs
 from urllib import parse as urlencode
 
+from includes.utils.config import Config
 from includes.utils import format as formatter
 
 logger = logging.getLogger('navi.internet')
+conf = Config('configs/internet.json')
 jisho  = asyncjisho.Jisho()
+papi = pixivpy3.AppPixivAPI()
+
+PIXIV_URL_PAT = re.compile(
+  r'(https?://)?((www|m|touch|ssl)\.)?pixiv\.(co\.jp|org|com|net)/('
+    r'[/\.&\w\?=]+[&\?]illust_id=(?P<illust_id>\d+)|'
+    r'member(_illust)?.php[/\.&\w\?=]*[&\?]id=(?P<member_id>\d+)'
+  ')'
+)
+
+if conf.get('saucenao_token'):
+  conf['saucenao_token'] = input('Enter SauceNAO token: ')
+
+if conf.get('pixiv_token'):
+  uname = input('Enter Pixiv username: ')
+  pword = input('Enter Pixiv password: ')
+  token = papi.login(uname,pword).get('response',{}).get('refresh_token')
+  if not token:
+    papi = None
+  else:
+    conf['pixiv_token'] = token
+    conf.save()
+else:
+  papi.auth(refresh_token=conf.get('pixiv_token'))
 
 async def google(query):
   entries  = await get_search_entries(query)
@@ -64,7 +92,7 @@ async def get_search_entries(query):
     'q'             : query,
     'format'        :'json',
     'pretty'        : 0,
-    'skip_disambig' :1
+    'skip_disambig' : 1
   }
   params_g = {
     'q'    : query,
@@ -129,3 +157,91 @@ async def get_search_entries(query):
         # if I ever cared about the description, this is how
         entries.append('<{}>\n{}\n'.format(url, summary))
   return entries
+
+async def _pixiv_illust(message, id):
+  try:
+    async with message.channel.typing():
+      files = []
+      illust = papi.illust_detail(id).illust
+      urls = [img.image_urls.large for img in (illust.meta_pages or [illust])]
+
+      for i,url in enumerate(urls):
+        r = papi.requests_call(
+          'GET',
+          url,
+          headers={ 'Referer': 'https://app-api.pixiv.net/' },
+          stream=True
+        )
+        # TODO - ugoira
+        ext = url.rpartition('.')[2]
+        files.append(discord.File(r.raw, filename=f'{id}-{i:03}.{ext}'))
+
+      tags = ', '.join(sorted(t.name for t in illust.tags))
+
+      em = discord.Embed()
+      em.title = illust.title
+      em.description = illust.caption
+      em.timestamp = datetime.datetime.fromisoformat(illust.create_date)
+      em.colour = discord.Colour.blue()
+      em.add_field(name='Tags:', value=tags)
+      em.set_author(
+        name=illust.user.name,
+        url=f'https://www.pixiv.net/member.php?id={illust.user.id}',
+        icon_url=(list(illust.user.profile_image_urls.values()) or [None])[0]
+      )
+      em.url = (
+        'https://www.pixiv.net/member_illust.php?'
+        f'mode=medium&illust_id={id}'
+      )
+
+      await message.channel.send(embed=em)
+      # Send images in chunks of 10 - does not work b/c discord change order
+      #for files_chunk in [files[i:i+10] for i in range(0, len(files), 10)]:
+      #  await message.channel.send(files=files_chunk)
+      for file in files:
+        await message.channel.send(file=file)
+
+  except:
+    logger.exception(f'error sending pixiv images for illust id: {id}')
+
+async def _pixiv_member(message, id):
+  user = papi.user_detail('3414789')
+  em = discord.Embed()
+  em.title = illust.title
+  em.description = illust.caption
+  em.timestamp = datetime.datetime.fromisoformat(illust.create_date)
+  em.colour = discord.Colour.blue()
+  em.add_field(name='Tags:', value=tags)
+  em.set_author(
+    name=illust.user.name,
+    url=f'https://www.pixiv.net/member.php?id={illust.user.id}',
+    icon_url=(list(illust.user.profile_image_urls.values()) or [None])[0]
+  )
+  em.url = (
+    'https://www.pixiv.net/member_illust.php?'
+    f'mode=medium&illust_id={id}'
+  )
+  pass # TODO
+
+async def pixiv_process(message):
+  if not papi: return False
+
+  for match in PIXIV_URL_PAT.finditer(message.content):
+    if match.group('illust_id'):
+      await _pixiv_illust(message, match.group('illust_id'))
+    elif match.group('member_id'):
+      await _pixiv_member(message, match.group('member_id'))
+
+async def get_sauce(url):
+  return # TODO
+  if not conf.get('saucenao_token'):
+    return formatter.error('No API token')
+
+  params = {
+    'output_type': 2, # JSON
+    'db': 999,
+    'api_key': conf.get('saucenao_token'),
+    'url': url
+  }
+
+  resp = requests.get('https://saucenao.com/search.php', params)

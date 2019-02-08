@@ -126,6 +126,7 @@ class General:
 
   async def respond(self, message):
     if message.author.bot:
+      logger.debug('ignoring general respond listener - reason: bot')
       return
 
     if len(message.content.strip()) < 2 or \

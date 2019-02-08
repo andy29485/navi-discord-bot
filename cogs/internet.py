@@ -30,5 +30,13 @@ class Search:
     """Creates a lmgtfy link"""
     await ctx.send(internet.lmgtfy(search_terms))
 
+  async def pixiv_listen(self, message):
+    if message.author.bot:
+      logger.debug('ignoring pixiv link listener - reason: bot')
+      return
+    return await internet.pixiv_process(message)
+
 def setup(bot):
-  bot.add_cog(Search(bot))
+  s = Search(bot)
+  bot.add_listener(s.pixiv_listen, "on_message")
+  bot.add_cog(s)

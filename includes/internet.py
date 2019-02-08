@@ -32,7 +32,7 @@ PIXIV_URL_PAT = re.compile(
 if conf.get('saucenao_token'):
   conf['saucenao_token'] = input('Enter SauceNAO token: ')
 
-if conf.get('pixiv_token'):
+if not conf.get('pixiv_token'):
   uname = input('Enter Pixiv username: ')
   pword = input('Enter Pixiv password: ')
   token = papi.login(uname,pword).get('response',{}).get('refresh_token')

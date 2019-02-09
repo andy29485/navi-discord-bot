@@ -9,6 +9,7 @@ import includes.internet as internet
 class Search:
   def __init__(self, bot):
     self.bot = bot
+    self.internet = internet
 
   @commands.command(name='search', aliases=['ddg', 'd', 'g'])
   async def google(self, ctx, *, query):

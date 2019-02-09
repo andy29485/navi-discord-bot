@@ -31,6 +31,7 @@ PIXIV_URL_PAT = re.compile(
 
 if not conf.get('saucenao_token'):
   conf['saucenao_token'] = input('Enter SauceNAO token: ')
+  conf.save()
 
 if not conf.get('pixiv_token'):
   uname = input('Enter Pixiv username: ')
@@ -162,7 +163,8 @@ async def _pixiv_illust(message, id):
   try:
     async with message.channel.typing():
       files = []
-      illust = papi.illust_detail(id).illust
+      illust = papi.illust_detail(id)
+      illust = illust.get('illust', illust)
       urls = [img.image_urls.large for img in (illust.meta_pages or [illust])]
 
       for i,url in enumerate(urls):
@@ -202,10 +204,11 @@ async def _pixiv_illust(message, id):
         await message.channel.send(file=file)
 
   except:
-    logger.exception(f'error sending pixiv images for illust id: {id}')
+    logger.exception(f'pixiv illust id: {id} - {illust}')
 
 async def _pixiv_member(message, id):
-  user = papi.user_detail('3414789')
+  return
+  user = papi.user_detail(id)
   em = discord.Embed()
   em.title = illust.title
   em.description = illust.caption
@@ -221,7 +224,6 @@ async def _pixiv_member(message, id):
     'https://www.pixiv.net/member_illust.php?'
     f'mode=medium&illust_id={id}'
   )
-  pass # TODO
 
 async def pixiv_process(message):
   if not papi: return False

@@ -29,6 +29,9 @@ PIXIV_URL_PAT = re.compile(
   ')'
 )
 
+def _pixiv_auth():
+  papi.auth(refresh_token=conf.get('pixiv_token'))
+
 if not conf.get('saucenao_token'):
   conf['saucenao_token'] = input('Enter SauceNAO token: ')
   conf.save()
@@ -43,7 +46,7 @@ if not conf.get('pixiv_token'):
     conf['pixiv_token'] = token
     conf.save()
 else:
-  papi.auth(refresh_token=conf.get('pixiv_token'))
+  _pixiv_auth()
 
 async def google(query):
   entries  = await get_search_entries(query)
@@ -164,7 +167,10 @@ async def _pixiv_illust(message, id):
     async with message.channel.typing():
       files = []
       illust = papi.illust_detail(id)
-      illust = illust.get('illust', illust)
+      if not illust:
+        _pixiv_auth()
+        illust = papi.illust_detail(id)
+      illust = illust.illust
       urls = [img.image_urls.large for img in (illust.meta_pages or [illust])]
 
       for i,url in enumerate(urls):

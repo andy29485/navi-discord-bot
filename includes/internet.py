@@ -167,7 +167,7 @@ async def _pixiv_illust(message, id):
     async with message.channel.typing():
       files = []
       illust = papi.illust_detail(id)
-      if not illust:
+      if 'error' in illust:
         _pixiv_auth()
         illust = papi.illust_detail(id)
       illust = illust.illust

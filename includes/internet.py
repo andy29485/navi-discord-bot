@@ -30,6 +30,10 @@ PIXIV_URL_PAT = re.compile(
 )
 
 def _pixiv_auth():
+  global papi
+  if not papi or conf.get('pixiv_token') == '-':
+    papi = None
+    return
   papi.auth(refresh_token=conf.get('pixiv_token'))
 
 if not conf.get('saucenao_token'):

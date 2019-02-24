@@ -13,7 +13,7 @@ from includes.utils import discord_helper as dh
 
 logger = logging.getLogger('navi.nsfw')
 
-class NSFW:
+class NSFW(commands.Cog):
   def __init__(self, bot):
     self.bot      = bot
     self.loop     = bot.loop

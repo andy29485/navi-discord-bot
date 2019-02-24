@@ -7,7 +7,7 @@ from includes.math import Math
 import asyncio
 import discord
 
-class MathCog:
+class MathCog(commands.Cog):
   def __init__(self, bot):
     self.bot  = bot
     self.math = Math()

@@ -12,7 +12,7 @@ from includes.az import AZ
 logger = logging.getLogger('navi.az')
 upload_limit = 7.9999
 
-class AzCog:
+class AzCog(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
     self.az  = AZ()

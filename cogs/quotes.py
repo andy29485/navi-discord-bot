@@ -11,7 +11,7 @@ from includes.utils.config import Config
 
 logger = logging.getLogger('navi.quotes')
 
-class Quote:
+class Quote(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
     self.quotes_dict = Config('configs/quotes.json')

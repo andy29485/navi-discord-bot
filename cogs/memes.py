@@ -169,7 +169,7 @@ def write_image(text_in, out, **kargs):
   #save the image
   img.save(out)
 
-class MemeGenerator:
+class MemeGenerator(commands.Cog):
   pattern = re.compile(r'(\w+)\s+(.*)$')
   def __init__(self, bot):
     self.bot    = bot

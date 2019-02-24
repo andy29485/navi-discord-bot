@@ -23,7 +23,7 @@ neg_words = re.compile(
 #  def __init__(self,id): self.id=id
 #  def created_at(self): pass
 
-class General:
+class General(commands.Cog):
   def __init__(self, bot):
     self.bot         = bot
     self.loop        = bot.loop

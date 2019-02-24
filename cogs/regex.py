@@ -9,7 +9,7 @@ from includes.utils import format as formatter
 
 logger = logging.getLogger('navi.az')
 
-class RegexCog:
+class RegexCog(commands.Cog):
   def __init__(self, bot):
     self.bot   = bot
     self.regex = RegexRes()

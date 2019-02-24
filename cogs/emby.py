@@ -11,7 +11,7 @@ import re
 
 logger = logging.getLogger('navi.emby')
 
-class Emby:
+class Emby(commands.Cog):
   def __init__(self, bot):
     self.bot  = bot
     self.conf = emby_helper.conf

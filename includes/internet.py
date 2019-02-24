@@ -215,6 +215,9 @@ async def _pixiv_illust(message, id):
 async def _pixiv_member(message, id):
   return
   user = papi.user_detail(id)
+  if 'error' in user:
+    _pixiv_auth()
+    user = papi.user_detail(id)
   em = discord.Embed()
   em.title = illust.title
   em.description = illust.caption

@@ -18,7 +18,7 @@ groupme_objects = {}
 
 logger = logging.getLogger('navi.groupme')
 
-class GroupMe:
+class GroupMe(commands.Cog):
   def __init__(self, bot):
     self.conf     = Config('configs/groupme.json')
     self.bot      = bot

@@ -9,7 +9,7 @@ from discord.ext import commands
 from includes.utils.config import Config
 from includes.utils import format as formatter
 
-class Games:
+class Games(commands.Cog):
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/games.json')

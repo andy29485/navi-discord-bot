@@ -7,7 +7,7 @@ import includes.utils.heap as heap
 
 logger = logging.getLogger('navi.heap')
 
-class HeapCog:
+class HeapCog(commands.Cog):
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/heap.json')

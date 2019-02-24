@@ -6,7 +6,7 @@ from discord.ext import commands
 
 import includes.internet as internet
 
-class Search:
+class Search(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
     self.internet = internet

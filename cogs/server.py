@@ -32,7 +32,7 @@ class EmWrap:
   def to_dict(self):
     return self.d
 
-class Server:
+class Server(commands.Cog):
   def __init__(self, bot):
     self.bot  = bot
     self.conf = Config('configs/server.json')

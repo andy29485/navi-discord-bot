@@ -12,7 +12,7 @@ from includes.utils.config import Config
 
 logger = logging.getLogger('navi.osu')
 
-class Osu:
+class Osu(commands.Cog):
   breatmap_sets_url_patterns=[re.compile('https?://osu.ppy.sh/s/(\\d+)')]
   breatmap_url_patterns     =[re.compile('https?://osu.ppy.sh/b/(\\d+)')]
   user_url_patterns         =[re.compile('https?://osu.ppy.sh/u/(\\d+)')]
